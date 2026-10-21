@@ -11,7 +11,7 @@ enum class PageLayout(
     val stickman: Boolean,
 ) {
     COMPACT(R.layout.widget_compact, 100f, 100f, 1, false),
-    WIDE(R.layout.widget_wide, 220f, 100f, 3, true),
+    WIDE(R.layout.widget_wide, 220f, 100f, 2, true),
     TALL(R.layout.widget_tall, 130f, 190f, 2, true);
 
     companion object {

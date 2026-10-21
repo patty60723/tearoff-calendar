@@ -132,7 +132,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:autoSizeMaxTextSize="96sp"
+                android:autoSizeMaxTextSize="150sp"
                 android:autoSizeMinTextSize="40sp"
                 android:autoSizeTextType="uniform"
                 android:fontFamily="serif"
@@ -140,7 +140,7 @@
                 android:includeFontPadding="false"
                 android:maxLines="1"
                 android:textColor="@color/ink"
-                android:textSize="96sp" />
+                android:textSize="150sp" />
             <TextView
                 android:id="@+id/label"
                 android:layout_width="wrap_content"

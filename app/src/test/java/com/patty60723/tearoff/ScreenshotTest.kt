@@ -50,6 +50,7 @@ class ScreenshotTest {
 
     @Test
     fun widgets() {
+        StoryBook(context).jumpTo(14, AppClock.today(context))
         val day = LocalDate.of(2026, 10, 21)
         save("widget-tall", widget(PageLayout.TALL, day), 170, 255)
         save("widget-wide", widget(PageLayout.WIDE, day), 349, 170)
