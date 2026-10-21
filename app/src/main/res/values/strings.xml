@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">手撕日曆</string>
+    <string name="widget_name">手撕日曆</string>
+    <string name="widget_description">每天一頁，有農曆和宜忌</string>
+    <string name="yi">宜</string>
+    <string name="ji">忌</string>
+    <string name="prev">‹ 前一天</string>
+    <string name="next">後一天 ›</string>
+    <string name="today">回到今天</string>
+    <string name="pin">把小工具放到桌面</string>
+    <string name="how_to">也可以自己加：長按桌面空白處 →「小工具」→ 找到「手撕日曆」，按住拖到桌面。拉動邊框可以調整大小，變窄時會換成精簡版面。</string>
+</resources>

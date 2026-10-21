@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/prev"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/prev"
+                android:textColor="@color/ink" />
+
+            <Button
+                android:id="@+id/today"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/today"
+                android:textColor="@color/red" />
+
+            <Button
+                android:id="@+id/next"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/next"
+                android:textColor="@color/ink" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/yi"
+            android:textColor="@color/red" />
+
+        <TextView
+            android:id="@+id/yi_all"
+            style="@style/SectionBody" />
+
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/ji" />
+
+        <TextView
+            android:id="@+id/ji_all"
+            style="@style/SectionBody" />
+
+        <TextView
+            android:id="@+id/details"
+            style="@style/SectionBody"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/ink_soft" />
+
+        <Button
+            android:id="@+id/pin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:backgroundTint="@color/red"
+            android:text="@string/pin"
+            android:textColor="@color/paper" />
+
+        <TextView
+            style="@style/SectionBody"
+            android:layout_marginTop="8dp"
+            android:text="@string/how_to"
+            android:textColor="@color/ink_soft"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

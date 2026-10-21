@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 裝訂孔 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="78dp"
+    android:height="8dp"
+    android:viewportWidth="78"
+    android:viewportHeight="8">
+    <path
+        android:fillColor="@color/red_dark"
+        android:pathData="M3,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M15,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M27,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M39,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M51,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M63,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M75,4m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+</vector>

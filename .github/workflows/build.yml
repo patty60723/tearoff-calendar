@@ -1,0 +1,46 @@
+name: Build APK
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test and build
+        run: ./gradlew testDebugUnitTest assembleDebug
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk tearoff-calendar.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tearoff-calendar
+          path: tearoff-calendar.apk
+
+      # main 分支每次更新，都把最新的 APK 放到 Releases 的「最新版」，手機直接下載
+      - name: Publish latest release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest tearoff-calendar.apk \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "最新版（第 $GITHUB_RUN_NUMBER 版）" \
+            --notes "用手機下載 tearoff-calendar.apk 直接安裝。新版可以直接蓋過舊版，桌面上的小工具會保留。"
