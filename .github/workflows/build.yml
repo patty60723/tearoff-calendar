@@ -32,6 +32,22 @@ jobs:
           path: app/build/screenshots
           if-no-files-found: ignore
 
+      # 同一份截圖也推到 screenshots/<分支> 分支，用 git 就能拿到
+      - name: Push screenshots to a branch
+        if: always() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -d app/build/screenshots ] || exit 0
+          cd app/build/screenshots
+          git init -q
+          git checkout -q -b shots
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add .
+          git commit -qm "screenshots ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "shots:screenshots/${GITHUB_REF_NAME}"
+
       - name: Rename APK
         run: cp app/build/outputs/apk/debug/app-debug.apk tearoff-calendar.apk
 
