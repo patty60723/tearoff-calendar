@@ -60,6 +60,14 @@ class ScreenshotTest {
     }
 
     @Test
+    fun cover() {
+        StoryBook(context).reset()
+        val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        val root = activity.window.decorView
+        save("app-cover", root, root.width, root.height, background = false)
+    }
+
+    @Test
     fun app() {
         // 第一章走完的樣子，故事卡上有完整的火柴人
         StoryBook(context).jumpTo(14, AppClock.today(context))

@@ -21,8 +21,8 @@ import com.patty60723.tearoff.story.StoryBook
 import java.time.LocalDate
 
 class MainActivity : Activity() {
-    /** 正在看的那一頁；平常是最上面那張還沒撕的 */
-    private var date: LocalDate = LocalDate.MIN
+    /** 正在看的那一頁；null 是封面（還沒撕過任何一頁） */
+    private var date: LocalDate? = null
     private lateinit var book: StoryBook
     private lateinit var pad: TearPageView
 
@@ -36,12 +36,12 @@ class MainActivity : Activity() {
         book = StoryBook(this)
         date = savedInstanceState?.getString(KEY_DATE)?.let(LocalDate::parse) ?: topDate()
 
-        findViewById<Button>(R.id.prev).setOnClickListener { show(date.minusDays(1)) }
-        findViewById<Button>(R.id.next).setOnClickListener { show(date.plusDays(1)) }
+        findViewById<Button>(R.id.prev).setOnClickListener { show(viewing().minusDays(1)) }
+        findViewById<Button>(R.id.next).setOnClickListener { show(viewing().plusDays(1)) }
         findViewById<Button>(R.id.today).setOnClickListener { show(topDate()) }
 
         pad = findViewById(R.id.page)
-        pad.pageBelow = { w, h -> snapshot(pageView(date.plusDays(1)), w, h) }
+        pad.pageBelow = { w, h -> snapshot(pageView(date?.plusDays(1) ?: AppClock.today(this)), w, h) }
         pad.onTorn = { onTorn() }
         pad.onBlocked = {
             val message = if (book.nextDate(AppClock.today(this)) == null) R.string.tear_done else R.string.tear_only_top
@@ -110,30 +110,41 @@ class MainActivity : Activity() {
         if (!::book.isInitialized) return
         // 打開 App 時順便更新桌面上的小工具，以防午夜那次換頁被系統延誤
         CalendarWidget.refreshAll(this)
-        show(date)
+        // 可能隔天才回到 App，最上面那張要重新算
+        show(topDate())
         showStory()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString(KEY_DATE, date.toString())
+        date?.let { outState.putString(KEY_DATE, it.toString()) }
     }
 
-    /** 最上面那張：下一張該撕的頁；都撕完了就是明天那頁。 */
-    private fun topDate(): LocalDate {
+    /**
+     * 最上面那張，跟真的手撕日曆一樣：今天的頁撕開後就一直留在最上面；
+     * 到了新的一天，上面還是昨天那頁（漏撕的話是更早的），撕掉才看到今天。
+     * 還沒撕過任何一頁時是封面（null）。
+     */
+    private fun topDate(): LocalDate? {
+        if (book.page == 0) return null
         val today = AppClock.today(this)
-        return book.nextDate(today) ?: today.plusDays(1)
+        return book.nextDate(today)?.minusDays(1) ?: today
     }
 
-    private fun show(newDate: LocalDate) {
+    /** 封面時當作在看今天 */
+    private fun viewing(): LocalDate = date ?: AppClock.today(this)
+
+    private fun show(newDate: LocalDate?) {
         date = newDate
-        val page = Almanac.page(date)
+        val today = AppClock.today(this)
+        val page = Almanac.page(newDate ?: today)
 
         pad.removeAllViews()
-        pad.addView(pageView(date))
-        pad.tearable = date == book.nextDate(AppClock.today(this))
+        pad.addView(if (newDate == null) coverView() else pageView(newDate))
+        // 只有最上面那張、而且還有沒撕的頁時才能撕
+        pad.tearable = newDate == topDate() && book.nextDate(today) != null
 
-        findViewById<Button>(R.id.today).visibility = if (date == topDate()) View.INVISIBLE else View.VISIBLE
+        findViewById<Button>(R.id.today).visibility = if (newDate == topDate()) View.INVISIBLE else View.VISIBLE
         findViewById<TextView>(R.id.yi_all).text = page.yi.joinToString("　")
         findViewById<TextView>(R.id.ji_all).text = page.ji.joinToString("　")
         findViewById<TextView>(R.id.details).text = buildString {
@@ -142,6 +153,20 @@ class MainActivity : Activity() {
             if (page.festivals.isNotEmpty()) append("\n節日：${page.festivals.joinToString("、")}")
         }
         showHint()
+    }
+
+    /** 封面：第一次打開時最上面的那張。 */
+    private fun coverView(): View {
+        val view = layoutInflater.inflate(R.layout.page_cover, null)
+        val today = AppClock.today(this)
+        val palette = Palettes.forMonth(today.monthValue)
+        view.findViewById<android.widget.ImageView>(R.id.band).setColorFilter(palette.main)
+        view.findViewById<android.widget.ImageView>(R.id.hills).setColorFilter(palette.main)
+        view.findViewById<TextView>(R.id.cover_year).apply {
+            text = today.year.toString()
+            setTextColor(palette.deep)
+        }
+        return view
     }
 
     /** 一頁日曆；還沒到的日子蓋一層薄紙。 */
@@ -211,8 +236,10 @@ class MainActivity : Activity() {
         val today = AppClock.today(this)
         val next = book.nextDate(today)
         val pending = book.pendingPages(today)
+        val showing = date
         findViewById<TextView>(R.id.hint).text = when {
-            date != topDate() -> getString(R.string.hint_browsing, date.monthValue, date.dayOfMonth)
+            showing != topDate() -> getString(R.string.hint_browsing, viewing().monthValue, viewing().dayOfMonth)
+            showing == null -> getString(R.string.hint_cover)
             next == null -> getString(R.string.tear_done)
             pending > 1 -> getString(R.string.hint_more, pending)
             else -> getString(R.string.hint_tear)

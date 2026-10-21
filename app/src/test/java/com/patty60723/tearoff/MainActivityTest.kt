@@ -21,7 +21,10 @@ class MainActivityTest {
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         activity.findViewById<Button>(R.id.tear).performClick()
         ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS)
-        assertEquals(1, StoryBook(activity).page)
+        val book = StoryBook(activity)
+        assertEquals(1, book.page)
+        // 封面撕掉之後，最上面是今天，今天不能再撕
+        assertEquals(null, book.nextDate(AppClock.today(activity)))
         // 撕完再打開一次也不能閃退
         Robolectric.buildActivity(MainActivity::class.java).setup()
     }
