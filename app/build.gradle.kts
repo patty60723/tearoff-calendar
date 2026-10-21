@@ -55,3 +55,11 @@ dependencies {
     // 在電腦上模擬 Android，實際打開 App 試試看
     testImplementation("org.robolectric:robolectric:4.14.1")
 }
+
+// 測試失敗時在 CI 的紀錄裡印出完整的錯誤
+tasks.withType<Test> {
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}

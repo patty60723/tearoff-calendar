@@ -162,7 +162,7 @@ class MainActivity : Activity() {
             }
         }
 
-        findViewById<StickmanView>(R.id.stickman).apply {
+        findViewById<StickmanView>(R.id.story_stickman).apply {
             parts = book.parts
             action = Actions.get(if (book.page == 0) null else book.lastAction)
         }

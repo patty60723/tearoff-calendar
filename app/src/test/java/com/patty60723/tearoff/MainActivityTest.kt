@@ -2,8 +2,8 @@ package com.patty60723.tearoff
 
 import android.widget.Button
 import android.widget.FrameLayout
-import android.widget.TextView
-import org.junit.Assert.assertTrue
+import com.patty60723.tearoff.story.StoryBook
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -21,8 +21,9 @@ class MainActivityTest {
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         activity.findViewById<Button>(R.id.tear).performClick()
         ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS)
-        val title = activity.findViewById<TextView>(R.id.story_title).text.toString()
-        assertTrue(title, title.contains("1"))
+        assertEquals(1, StoryBook(activity).page)
+        // 撕完再打開一次也不能閃退
+        Robolectric.buildActivity(MainActivity::class.java).setup()
     }
 
     @Test
