@@ -11,6 +11,9 @@ import android.os.Bundle
 import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
+import com.patty60723.tearoff.stickman.Actions
+import com.patty60723.tearoff.stickman.StickmanRenderer
+import com.patty60723.tearoff.story.StoryBook
 import java.time.LocalDate
 
 class CalendarWidget : AppWidgetProvider() {
@@ -91,7 +94,25 @@ class CalendarWidget : AppWidgetProvider() {
                 setTextViewText(R.id.yi, page.yi.take(items).joinToString(" "))
                 setTextViewText(R.id.ji, page.ji.take(items).joinToString(" "))
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
+                if (!compact) setStickman(context, this)
             }
+        }
+
+        private val FRAME_IDS = intArrayOf(
+            R.id.frame0, R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4, R.id.frame5,
+        )
+
+        /** 火柴人目前長到哪裡、最近一次撕頁的動作，畫成幾張圖輪播。 */
+        private fun setStickman(context: Context, views: RemoteViews) {
+            val book = StoryBook(context)
+            val action = Actions.get(if (book.page == 0) null else book.lastAction)
+            val density = context.resources.displayMetrics.density.coerceAtMost(3f)
+            val frames = StickmanRenderer.frames(
+                book.parts, action, FRAME_IDS.size,
+                widthPx = (36 * density).toInt(), heightPx = (48 * density).toInt(),
+            )
+            frames.forEachIndexed { i, bitmap -> views.setImageViewBitmap(FRAME_IDS[i], bitmap) }
+            views.setInt(R.id.stickman, "setFlipInterval", (action.periodMs / FRAME_IDS.size).toInt())
         }
 
         private fun openApp(context: Context): PendingIntent = PendingIntent.getActivity(

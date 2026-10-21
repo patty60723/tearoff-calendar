@@ -10,4 +10,12 @@
     <string name="today">回到今天</string>
     <string name="pin">把小工具放到桌面</string>
     <string name="how_to">也可以自己加：長按桌面空白處 →「小工具」→ 找到「手撕日曆」，按住拖到桌面。拉動邊框可以調整大小，變窄時會換成精簡版面。</string>
+    <string name="tear_one">撕下 %1$d/%2$d 這一頁</string>
+    <string name="tear_more">撕下 %1$d/%2$d 這一頁（還有 %3$d 頁沒撕）</string>
+    <string name="tear_done">今天撕過了，明天再來</string>
+    <string name="story_page">第 %d 頁</string>
+    <string name="story_not_started">還沒開始</string>
+    <string name="story_hint">頁面最下面好像有一個小墨點……撕下第一頁看看吧。</string>
+    <string name="name_title">幫它取個名字</string>
+    <string name="name_ok">就叫這個</string>
 </resources>

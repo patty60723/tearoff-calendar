@@ -1,0 +1,206 @@
+{
+  "pack": "平常日子的小插曲",
+  "beats": [
+    {
+      "id": "out-yi-1",
+      "when": {
+        "yiCategory": "出門"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}！{name}沿著大大的「{day}」字走了好遠好遠，在數字後面發現一條沒走過的小路。",
+      "action": "walk"
+    },
+    {
+      "id": "out-yi-2",
+      "when": {
+        "yiCategory": "出門"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}坐上一張飄下來的日曆紙，像坐魔毯一樣，咻——飛過好幾行小字。",
+      "action": "cheer"
+    },
+    {
+      "id": "out-ji-1",
+      "when": {
+        "jiCategory": "出門"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}乖乖待在家，趴在窗邊數雲，數到第七朵就睡著了。",
+      "action": "sit"
+    },
+    {
+      "id": "friend-yi-1",
+      "when": {
+        "yiCategory": "會友"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。隔壁頁的小墨點來串門子，{name}請它吃了一顆句號形狀的糖。",
+      "action": "wave"
+    },
+    {
+      "id": "friend-yi-2",
+      "when": {
+        "yiCategory": "會友"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}寫了一張小紙條，摺成紙飛機，咻——剛好飛到老曆公的鬍子上。",
+      "action": "wave"
+    },
+    {
+      "id": "friend-ji-1",
+      "when": {
+        "jiCategory": "會友"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}一個人看書，看到好笑的地方，就自己跟自己擊掌。",
+      "action": "clap"
+    },
+    {
+      "id": "bless-yi-1",
+      "when": {
+        "yiCategory": "祈福"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}對著日曆上最大的紅字許願：「希望明天也很好玩！」",
+      "action": "cheer"
+    },
+    {
+      "id": "bless-ji-1",
+      "when": {
+        "jiCategory": "祈福"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。老曆公說：「心意到就好啦。」{name}對著天空，鞠了一個小小的躬。",
+      "action": "bounce"
+    },
+    {
+      "id": "build-yi-1",
+      "when": {
+        "yiCategory": "動工"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}用撕下來的紙邊蓋了一間小紙屋，門口還貼了一個「福」。",
+      "action": "clap"
+    },
+    {
+      "id": "build-ji-1",
+      "when": {
+        "jiCategory": "動工"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}什麼都不蓋，坐著喝茶，看螞蟻排隊搬家。",
+      "action": "sit"
+    },
+    {
+      "id": "trade-yi-1",
+      "when": {
+        "yiCategory": "生意"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}擺了一個小攤子，用一個逗號換到了一個驚嘆號！",
+      "action": "wave"
+    },
+    {
+      "id": "trade-ji-1",
+      "when": {
+        "jiCategory": "生意"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}把小錢包的拉鍊拉好，拍一拍：「今天不亂花。」",
+      "action": "bounce"
+    },
+    {
+      "id": "tidy-yi-1",
+      "when": {
+        "yiCategory": "打理"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}把自己的線條洗得亮晶晶，連圍巾都晒得香香的。",
+      "action": "bounce"
+    },
+    {
+      "id": "tidy-ji-1",
+      "when": {
+        "jiCategory": "打理"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}今天亂亂的，線條翹來翹去……嗯，這樣也很可愛。",
+      "action": "bounce"
+    },
+    {
+      "id": "plant-yi-1",
+      "when": {
+        "yiCategory": "種植"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}在頁面角落種下一顆小種子，說好每天都要來看它。",
+      "action": "look"
+    },
+    {
+      "id": "plant-ji-1",
+      "when": {
+        "jiCategory": "種植"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}只看不摘，對小花說：「你今天放假喔。」",
+      "action": "sit"
+    },
+    {
+      "id": "learn-yi-1",
+      "when": {
+        "yiCategory": "學習"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}跟老曆公學了一個新動作：轉圈圈！轉到第三圈就頭暈了。",
+      "action": "hop"
+    },
+    {
+      "id": "learn-ji-1",
+      "when": {
+        "jiCategory": "學習"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}理直氣壯地睡了一個好長好長的午覺。",
+      "action": "sit"
+    },
+    {
+      "id": "old-yi-1",
+      "when": {
+        "yiCategory": "處理舊事"
+      },
+      "weight": 2,
+      "text": "今天宜{yi}。{name}幫老曆公整理舊日曆，翻到好多年前的一頁生日，兩個一起笑了。",
+      "action": "look"
+    },
+    {
+      "id": "old-ji-1",
+      "when": {
+        "jiCategory": "處理舊事"
+      },
+      "weight": 1,
+      "text": "今天忌{ji}。{name}不翻舊東西，抬頭往前看：「明天會撕到哪一頁呢？」",
+      "action": "look"
+    },
+    {
+      "id": "none-ji-1",
+      "when": {
+        "jiCategory": "諸事不宜"
+      },
+      "weight": 3,
+      "text": "今天諸事不宜。老曆公說：「那就什麼都不用做！」{name}開心地躺平，晒了一整天太陽。",
+      "action": "sit"
+    },
+    {
+      "id": "any-1",
+      "weight": 1,
+      "text": "{name}在今天這一頁走走看看，撿到一個圓圓的句號，把它收進小包袱裡。",
+      "action": "walk"
+    },
+    {
+      "id": "any-2",
+      "weight": 1,
+      "text": "風把頁角吹得啪啦啪啦響。{name}抓緊紙帽，跟風比賽誰跑得快。",
+      "action": "walk"
+    }
+  ]
+}

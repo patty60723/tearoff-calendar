@@ -82,11 +82,50 @@
             <include layout="@layout/widget_yiji" />
         </LinearLayout>
 
-        <ImageView
+        <!-- 火柴人：6 張圖輪流播放，像手翻書 -->
+        <ViewFlipper
             android:id="@+id/stickman"
             android:layout_width="36dp"
             android:layout_height="48dp"
             android:layout_marginLeft="4dp"
-            android:src="@drawable/stickman" />
+            android:autoStart="true"
+            android:flipInterval="160">
+
+            <ImageView
+                android:id="@+id/frame0"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame5"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+        </ViewFlipper>
     </LinearLayout>
 </LinearLayout>

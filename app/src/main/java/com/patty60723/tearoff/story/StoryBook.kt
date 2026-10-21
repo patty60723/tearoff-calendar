@@ -1,0 +1,100 @@
+package com.patty60723.tearoff.story
+
+import android.content.Context
+import com.patty60723.tearoff.Almanac
+import com.patty60723.tearoff.stickman.Parts
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+
+/** 撕了幾頁、看到哪段故事。存在手機裡。 */
+class StoryBook(context: Context) {
+    private val prefs = context.getSharedPreferences("story", Context.MODE_PRIVATE)
+    private val assets = context.assets
+
+    val beats: List<Beat> by lazy {
+        assets.list(DIR).orEmpty().filter { it.endsWith(".json") }.sorted().flatMap { file ->
+            StoryParser.parse(assets.open("$DIR/$file").bufferedReader().use { it.readText() })
+        }
+    }
+
+    /** 已經撕了幾頁 */
+    val page: Int get() = prefs.getInt(KEY_PAGE, 0)
+
+    var name: String
+        get() = prefs.getString(KEY_NAME, null) ?: StoryEngine.DEFAULT_NAME
+        set(value) = prefs.edit().putString(KEY_NAME, value).apply()
+
+    val lastText: String? get() = prefs.getString(KEY_TEXT, null)
+    val lastAction: String? get() = prefs.getString(KEY_ACTION, null)
+
+    /** 目前長出來的部位和配件 */
+    val parts: Set<String> get() = StoryEngine.unlocked(beats, page)
+
+    private val lastTornDate: LocalDate?
+        get() = prefs.getString(KEY_LAST_DATE, null)?.let(LocalDate::parse)
+
+    /**
+     * 下一張要撕的是哪一天的頁。漏掉的最多補 [CATCH_UP_DAYS] 天，
+     * 再更早的就直接跳過；今天撕過了就是 null。
+     */
+    fun nextDate(today: LocalDate): LocalDate? {
+        val last = lastTornDate ?: return today
+        val next = maxOf(last.plusDays(1), today.minusDays(CATCH_UP_DAYS - 1))
+        return next.takeIf { !it.isAfter(today) }
+    }
+
+    fun pendingPages(today: LocalDate): Int =
+        nextDate(today)?.let { ChronoUnit.DAYS.between(it, today).toInt() + 1 } ?: 0
+
+    /** 撕下一頁之前先看會是哪一段（第 12 頁要先問名字）。 */
+    fun peek(today: LocalDate): Beat? = nextDate(today)?.let { StoryEngine.pick(beats, context(it, page + 1)) }
+
+    /** 撕下一頁，回傳這一頁的故事。 */
+    fun tear(today: LocalDate): TornPage? {
+        val date = nextDate(today) ?: return null
+        val newPage = page + 1
+        val ctx = context(date, newPage)
+        val beat = StoryEngine.pick(beats, ctx)
+        val text = beat?.let { StoryEngine.render(it, ctx) } ?: ""
+        val recent = (listOfNotNull(beat?.id) + recent()).take(RECENT)
+        prefs.edit()
+            .putInt(KEY_PAGE, newPage)
+            .putString(KEY_LAST_DATE, date.toString())
+            .putString(KEY_TEXT, text)
+            .putString(KEY_ACTION, beat?.action)
+            .putString(KEY_RECENT, recent.joinToString(","))
+            .apply()
+        return TornPage(newPage, date, text, beat?.action)
+    }
+
+    private fun context(date: LocalDate, page: Int): StoryContext {
+        val day = Almanac.page(date)
+        return StoryContext(
+            page = page,
+            date = date,
+            festivals = day.festivals,
+            solarTerm = day.solarTerm,
+            yi = day.yi,
+            ji = day.ji,
+            wearing = parts intersect Parts.accessories,
+            name = name,
+            recent = recent(),
+        )
+    }
+
+    private fun recent() = prefs.getString(KEY_RECENT, "").orEmpty().split(",").filter { it.isNotEmpty() }
+
+    data class TornPage(val page: Int, val date: LocalDate, val text: String, val action: String?)
+
+    private companion object {
+        const val DIR = "story"
+        const val CATCH_UP_DAYS = 7L
+        const val RECENT = 30
+        const val KEY_PAGE = "page"
+        const val KEY_NAME = "name"
+        const val KEY_TEXT = "lastText"
+        const val KEY_ACTION = "lastAction"
+        const val KEY_LAST_DATE = "lastTornDate"
+        const val KEY_RECENT = "recent"
+    }
+}

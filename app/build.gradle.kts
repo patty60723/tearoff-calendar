@@ -45,4 +45,6 @@ kotlin {
 dependencies {
     implementation("cn.6tail:lunar:1.7.7")
     testImplementation("junit:junit:4.13.2")
+    // 單元測試裡 Android 的 org.json 只是空殼，換成真的才能讀故事檔
+    testImplementation("org.json:json:20240303")
 }
