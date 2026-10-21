@@ -17,12 +17,12 @@ class Pose(private val p: FloatArray) {
 
     fun lerp(to: Pose, t: Float) = Pose(FloatArray(SIZE) { p[it] + (to.p[it] - p[it]) * t })
 
-    fun moved(dx: Float = 0f, dy: Float = 0f) = Pose(
+    fun moved(dx: Number = 0, dy: Number = 0) = Pose(
         FloatArray(SIZE) { i ->
             when {
                 i == BEND -> p[i]
-                i % 2 == 0 -> p[i] + dx
-                else -> p[i] + dy
+                i % 2 == 0 -> p[i] + dx.toFloat()
+                else -> p[i] + dy.toFloat()
             }
         }
     )
@@ -141,10 +141,10 @@ object Actions {
                 at(Pose.ELBOW_R, 27, 29); at(Pose.HAND_R, 31, 34)
             },
             STAND.edit {
-                at(Pose.KNEE_L, 25, 47); at(Pose.FOOT_L, 23, 57)
-                at(Pose.KNEE_R, 27, 45); at(Pose.FOOT_R, 25, 53)
-                at(Pose.ELBOW_L, 23, 29); at(Pose.HAND_L, 23, 35)
-                at(Pose.ELBOW_R, 25, 29); at(Pose.HAND_R, 25, 35)
+                at(Pose.KNEE_L, 24, 47); at(Pose.FOOT_L, 23, 57)
+                at(Pose.KNEE_R, 30, 44); at(Pose.FOOT_R, 27, 52)
+                at(Pose.ELBOW_L, 21, 29); at(Pose.HAND_L, 20, 35)
+                at(Pose.ELBOW_R, 27, 29); at(Pose.HAND_R, 28, 35)
             }.moved(dy = -1),
             STAND.edit {
                 at(Pose.KNEE_L, 22, 47); at(Pose.FOOT_L, 17, 57)
@@ -153,10 +153,10 @@ object Actions {
                 at(Pose.ELBOW_R, 21, 29); at(Pose.HAND_R, 17, 34)
             },
             STAND.edit {
-                at(Pose.KNEE_L, 27, 45); at(Pose.FOOT_L, 25, 53)
-                at(Pose.KNEE_R, 25, 47); at(Pose.FOOT_R, 23, 57)
-                at(Pose.ELBOW_L, 23, 29); at(Pose.HAND_L, 23, 35)
-                at(Pose.ELBOW_R, 25, 29); at(Pose.HAND_R, 25, 35)
+                at(Pose.KNEE_L, 30, 44); at(Pose.FOOT_L, 27, 52)
+                at(Pose.KNEE_R, 24, 47); at(Pose.FOOT_R, 23, 57)
+                at(Pose.ELBOW_L, 27, 29); at(Pose.HAND_L, 28, 35)
+                at(Pose.ELBOW_R, 21, 29); at(Pose.HAND_R, 20, 35)
             }.moved(dy = -1),
         ),
     )
@@ -167,10 +167,10 @@ object Actions {
     )
 
     val CHEER: Action = STAND.edit {
-        at(Pose.ELBOW_L, 19, 21); at(Pose.HAND_L, 15, 12)
-        at(Pose.ELBOW_R, 29, 21); at(Pose.HAND_R, 33, 12)
+        at(Pose.ELBOW_L, 17, 21); at(Pose.HAND_L, 12, 12)
+        at(Pose.ELBOW_R, 31, 21); at(Pose.HAND_R, 36, 12)
     }.let { up ->
-        Action("cheer", 700, listOf(up.moved(dy = -4), up.edit { at(Pose.HAND_L, 13, 14); at(Pose.HAND_R, 35, 14) }))
+        Action("cheer", 700, listOf(up.moved(dy = -4), up.edit { at(Pose.HAND_L, 10, 15); at(Pose.HAND_R, 38, 15) }))
     }
 
     /** 坐著喝茶：右手拿杯子慢慢喝。 */

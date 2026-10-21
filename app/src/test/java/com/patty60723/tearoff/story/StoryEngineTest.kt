@@ -71,7 +71,8 @@ class StoryEngineTest {
             assertNotNull("$date", beat)
             val text = StoryEngine.render(beat!!, ctx)
             assertFalse("$date: $text", text.contains("{") || text.contains("}"))
-            assertFalse("$date: $text", text.contains("宜。") || text.contains("忌。"))
+            // {yi} {ji} 沒填到的話會變成「今天宜。」
+            assertFalse("$date: $text", Regex("今天[宜忌]。").containsMatchIn(text))
             date = date.plusDays(1)
         }
     }

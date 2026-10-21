@@ -9,24 +9,6 @@ import kotlin.math.PI
 import kotlin.math.min
 import kotlin.math.sin
 
-/** 故事解鎖的部位與配件。名稱跟故事檔裡的 `unlock` 一樣。 */
-object Parts {
-    const val LINE = "line"
-    const val HEAD = "head"
-    const val EYES = "eyes"
-    const val ARM_R = "armR"
-    const val ARM_L = "armL"
-    const val LEG_L = "legL"
-    const val LEG_R = "legR"
-    const val VOICE = "voice"
-    const val RED_TOES = "redToes"
-    const val SCARF = "scarf"
-    const val PAPER_HAT = "paperHat"
-    const val BUNDLE = "bundle"
-
-    val accessories = setOf(SCARF, PAPER_HAT, BUNDLE)
-}
-
 /** 依解鎖到哪裡，把火柴人畫出來。沒長出來的部位就不畫。 */
 object StickmanRenderer {
     private const val W = 48f
@@ -95,11 +77,11 @@ object StickmanRenderer {
 
         if (Parts.BUNDLE in parts) {
             // 包袱：扛在背後的小棍子
-            canvas.drawLine(shoulderX + 2, shoulderY + 2, shoulderX - 7, shoulderY - 9, line)
+            canvas.drawLine(shoulderX + 2, shoulderY + 2, shoulderX - 11, shoulderY - 5, line)
             fill.color = CLOTH
-            canvas.drawCircle(shoulderX - 8, shoulderY - 12, 4.5f, fill)
+            canvas.drawCircle(shoulderX - 13, shoulderY - 7, 4.5f, fill)
             line.strokeWidth = 1.5f
-            canvas.drawCircle(shoulderX - 8, shoulderY - 12, 4.5f, line)
+            canvas.drawCircle(shoulderX - 13, shoulderY - 7, 4.5f, line)
             line.strokeWidth = 2.5f
         }
 
@@ -125,11 +107,11 @@ object StickmanRenderer {
         if (Parts.SCARF in parts) {
             line.color = RED
             line.strokeWidth = 2.8f
-            canvas.drawLine(neckX - 3.5f, neckY + 1, neckX + 3.5f, neckY + 1, line)
+            canvas.drawLine(neckX - 3.5f, neckY + 2.5f, neckX + 3.5f, neckY + 2.5f, line)
             val sway = sin(phase * 2 * PI).toFloat() * 2
             val tail = Path().apply {
-                moveTo(neckX - 3, neckY + 1)
-                quadTo(neckX - 7, neckY + 1 + sway, neckX - 10, neckY + 4 - sway)
+                moveTo(neckX - 3, neckY + 2.5f)
+                quadTo(neckX - 7, neckY + 2.5f + sway, neckX - 10, neckY + 5.5f - sway)
             }
             canvas.drawPath(tail, line)
             line.color = INK
