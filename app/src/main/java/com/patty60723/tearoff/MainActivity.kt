@@ -4,20 +4,26 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
 import java.time.LocalDate
 
 class MainActivity : Activity() {
+    /** 正在看的那一頁；平常是最上面那張還沒撕的 */
     private var date: LocalDate = LocalDate.now()
     private lateinit var book: StoryBook
+    private lateinit var pad: TearPageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,14 +32,21 @@ class MainActivity : Activity() {
             return
         }
         setContentView(R.layout.activity_main)
-        savedInstanceState?.getString(KEY_DATE)?.let { date = LocalDate.parse(it) }
+        book = StoryBook(this)
+        date = savedInstanceState?.getString(KEY_DATE)?.let(LocalDate::parse) ?: topDate()
 
         findViewById<Button>(R.id.prev).setOnClickListener { show(date.minusDays(1)) }
         findViewById<Button>(R.id.next).setOnClickListener { show(date.plusDays(1)) }
-        findViewById<Button>(R.id.today).setOnClickListener { show(LocalDate.now()) }
+        findViewById<Button>(R.id.today).setOnClickListener { show(topDate()) }
 
-        book = StoryBook(this)
-        findViewById<Button>(R.id.tear).setOnClickListener { onTear() }
+        pad = findViewById(R.id.page)
+        pad.pageBelow = { w, h -> snapshot(pageView(date.plusDays(1)), w, h) }
+        pad.onTorn = { onTorn() }
+        pad.onBlocked = {
+            val message = if (book.nextDate(LocalDate.now()) == null) R.string.tear_done else R.string.tear_only_top
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+        findViewById<Button>(R.id.tear).setOnClickListener { pad.peelAway() }
 
         val manager = AppWidgetManager.getInstance(this)
         val pin = findViewById<Button>(R.id.pin)
@@ -75,6 +88,7 @@ class MainActivity : Activity() {
         if (!::book.isInitialized) return
         // 打開 App 時順便更新桌面上的小工具，以防午夜那次換頁被系統延誤
         CalendarWidget.refreshAll(this)
+        show(date)
         showStory()
     }
 
@@ -83,27 +97,64 @@ class MainActivity : Activity() {
         outState.putString(KEY_DATE, date.toString())
     }
 
+    /** 最上面那張：下一張該撕的頁；都撕完了就是明天那頁。 */
+    private fun topDate(): LocalDate {
+        val today = LocalDate.now()
+        return book.nextDate(today) ?: today.plusDays(1)
+    }
+
     private fun show(newDate: LocalDate) {
         date = newDate
         val page = Almanac.page(date)
 
-        val preview = findViewById<FrameLayout>(R.id.preview)
-        preview.removeAllViews()
-        val views = CalendarWidget.build(this, page, compact = false)
-        preview.addView(views.apply(this, preview).apply { isClickable = false })
+        pad.removeAllViews()
+        pad.addView(pageView(date))
+        pad.tearable = date == book.nextDate(LocalDate.now())
 
-        findViewById<Button>(R.id.today).visibility =
-            if (date == LocalDate.now()) View.INVISIBLE else View.VISIBLE
+        findViewById<Button>(R.id.today).visibility = if (date == topDate()) View.INVISIBLE else View.VISIBLE
         findViewById<TextView>(R.id.yi_all).text = page.yi.joinToString("　")
         findViewById<TextView>(R.id.ji_all).text = page.ji.joinToString("　")
         findViewById<TextView>(R.id.details).text = buildString {
-            append("${page.chong}　${page.sha}")
+            append("${page.date.monthValue}月${page.date.dayOfMonth}日　${page.chong}　${page.sha}")
             page.solarTerm?.let { append("\n節氣：$it") }
             if (page.festivals.isNotEmpty()) append("\n節日：${page.festivals.joinToString("、")}")
         }
+        showHint()
     }
 
-    private fun onTear() {
+    /** 一頁日曆；還沒到的日子蓋一層薄紙。 */
+    private fun pageView(day: LocalDate): View {
+        val frame = FrameLayout(this)
+        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL)
+        frame.addView(views.apply(this, frame).apply { isClickable = false })
+        val today = LocalDate.now()
+        if (day.isAfter(today)) {
+            frame.addView(
+                TextView(this).apply {
+                    text = if (day == today.plusDays(1)) getString(R.string.veil_tomorrow) else getString(R.string.veil_later, day.monthValue, day.dayOfMonth)
+                    gravity = Gravity.CENTER
+                    textSize = 18f
+                    letterSpacing = 0.2f
+                    typeface = android.graphics.Typeface.SERIF
+                    setTextColor(getColor(R.color.ink))
+                    setBackgroundColor(0xB3FBF8F2.toInt())
+                },
+                FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT),
+            )
+        }
+        return frame
+    }
+
+    private fun snapshot(view: View, width: Int, height: Int): Bitmap {
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
+        )
+        view.layout(0, 0, width, height)
+        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { view.draw(Canvas(it)) }
+    }
+
+    private fun onTorn() {
         val today = LocalDate.now()
         val beat = book.peek(today)
         if (beat?.ask == "name") askName { tear(today) } else tear(today)
@@ -126,42 +177,28 @@ class MainActivity : Activity() {
             .show()
     }
 
-    /** 那一頁往上捲起飛走，再換成新的一頁。 */
+    /** 紙已經撕下來了：記下這一頁的故事，換上下一頁。 */
     private fun tear(today: LocalDate) {
-        val torn = book.tear(today) ?: return
-        val preview = findViewById<FrameLayout>(R.id.preview)
-        findViewById<Button>(R.id.tear).isEnabled = false
-        preview.pivotX = 0f
-        preview.pivotY = 0f
-        preview.animate()
-            .translationY(-preview.height * 0.7f)
-            .rotation(-12f)
-            .alpha(0f)
-            .setDuration(450)
-            .withEndAction {
-                preview.translationY = 0f
-                preview.rotation = 0f
-                preview.animate().alpha(1f).setDuration(250).start()
-                show(if (torn.date == today) today else torn.date.plusDays(1))
-                showStory()
-                CalendarWidget.refreshAll(this)
-            }
-            .start()
+        book.tear(today) ?: return
+        show(topDate())
+        showStory()
+        CalendarWidget.refreshAll(this)
+    }
+
+    private fun showHint() {
+        val today = LocalDate.now()
+        val next = book.nextDate(today)
+        val pending = book.pendingPages(today)
+        findViewById<TextView>(R.id.hint).text = when {
+            date != topDate() -> getString(R.string.hint_browsing, date.monthValue, date.dayOfMonth)
+            next == null -> getString(R.string.tear_done)
+            pending > 1 -> getString(R.string.hint_more, pending)
+            else -> getString(R.string.hint_tear)
+        }
+        findViewById<Button>(R.id.tear).visibility = if (pad.tearable) View.VISIBLE else View.GONE
     }
 
     private fun showStory() {
-        val today = LocalDate.now()
-        val pending = book.pendingPages(today)
-        val next = book.nextDate(today)
-        findViewById<Button>(R.id.tear).apply {
-            isEnabled = next != null
-            text = when {
-                next == null -> getString(R.string.tear_done)
-                pending > 1 -> getString(R.string.tear_more, next.monthValue, next.dayOfMonth, pending - 1)
-                else -> getString(R.string.tear_one, next.monthValue, next.dayOfMonth)
-            }
-        }
-
         findViewById<StickmanView>(R.id.story_stickman).apply {
             parts = book.parts
             action = Actions.get(if (book.page == 0) null else book.lastAction)

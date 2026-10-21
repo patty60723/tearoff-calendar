@@ -8,7 +8,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingLeft="28dp"
+        android:paddingTop="12dp"
+        android:paddingRight="28dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:letterSpacing="0.1"
+            android:textColor="@color/ink_soft"
+            android:textSize="13sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/prev"
-                android:textColor="@color/ink" />
+                android:textColor="@color/ink_soft" />
 
             <Button
                 android:id="@+id/today"
@@ -39,36 +52,39 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/next"
-                android:textColor="@color/ink" />
+                android:textColor="@color/ink_soft" />
         </LinearLayout>
 
-        <FrameLayout
-            android:id="@+id/preview"
+        <!-- 可以用手指撕的那一頁 -->
+        <com.patty60723.tearoff.TearPageView
+            android:id="@+id/page"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_marginTop="8dp" />
+            android:layout_height="wrap_content"
+            android:elevation="2dp" />
 
         <Button
             android:id="@+id/tear"
-            android:layout_width="match_parent"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="@color/red"
-            android:textColor="@color/paper" />
+            android:layout_gravity="center_horizontal"
+            android:text="@string/tear_button"
+            android:textColor="@color/ink_soft"
+            android:textSize="12sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/card"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="12dp">
+            android:padding="14dp">
 
             <com.patty60723.tearoff.stickman.StickmanView
                 android:id="@+id/story_stickman"
-                android:layout_width="84dp"
-                android:layout_height="112dp" />
+                android:layout_width="72dp"
+                android:layout_height="96dp" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -81,16 +97,18 @@
                     android:id="@+id/story_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:letterSpacing="0.1"
                     android:textColor="@color/red"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/story_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:lineSpacingExtra="4dp"
+                    android:fontFamily="serif"
+                    android:lineSpacingExtra="5dp"
                     android:textColor="@color/ink"
                     android:textSize="15sp" />
             </LinearLayout>
@@ -124,7 +142,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
-            android:backgroundTint="@color/red"
+            android:backgroundTint="@color/ink"
             android:text="@string/pin"
             android:textColor="@color/paper" />
 

@@ -1,73 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/paper_stack"
-    android:orientation="vertical"
-    android:paddingRight="4dp"
-    android:paddingBottom="6dp">
+    android:paddingRight="3dp"
+    android:paddingBottom="5dp">
 
-    <include layout="@layout/widget_header" />
-
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingLeft="8dp"
-        android:paddingRight="6dp">
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/hills"
+            android:tint="#C0814E"
+            android:layout_width="match_parent"
+            android:layout_height="26dp"
+            android:layout_gravity="bottom"
+            android:scaleType="fitXY"
+            android:src="@drawable/hills" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/band"
+                android:tint="#C0814E"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/band" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="10dp"
+                android:paddingTop="6dp"
+                android:paddingRight="10dp">
+
+                <TextView
+                    android:id="@+id/month"
+                    android:text="十月"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:maxLines="1"
+                    android:textColor="@color/ink"
+                    android:textSize="10sp" />
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+                <TextView
+                    android:id="@+id/weekday"
+                    android:text="星期三"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:maxLines="1"
+                    android:textColor="@color/ink"
+                    android:textSize="10sp" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/day"
+                android:text="21"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="64sp"
+                android:autoSizeMinTextSize="28sp"
+                android:autoSizeTextType="uniform"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="@color/ink"
+                android:textSize="64sp" />
+            <TextView
+                android:id="@+id/phrase"
+                android:text="宜 出行・祭祀"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="serif"
-                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:letterSpacing="0.15"
                 android:textColor="@color/ink"
-                android:textSize="34sp"
-                android:textStyle="bold" />
+                android:textSize="12sp" />
 
-            <LinearLayout
+            <!-- 精簡版不顯示，但 id 要在，程式才不用分好幾套 -->
+            <TextView
+                android:id="@+id/month_en"
+                android:text="OCTOBER 2026"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:textColor="@color/red"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/lunar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:textColor="@color/ink"
-                    android:textSize="11sp" />
-
-                <!-- 精簡版不顯示干支，但 id 要在，程式才不用分兩套 -->
-                <TextView
-                    android:id="@+id/ganzhi"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone" />
-            </LinearLayout>
+                android:visibility="gone"
+                android:textColor="@color/ink_soft"
+                android:textSize="1sp" />
+            <TextView
+                android:id="@+id/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textColor="@color/ink_soft"
+                android:textSize="1sp" />
+            <TextView
+                android:id="@+id/lunar"
+                android:text="農曆九月十一・丙午年"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textColor="@color/ink_soft"
+                android:textSize="1sp" />
+            <TextView
+                android:id="@+id/ji"
+                android:text="忌 動土・安葬"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textColor="@color/ink_soft"
+                android:textSize="1sp" />
+            <ImageView
+                android:id="@+id/rule"
+                android:tint="#C0814E"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
         </LinearLayout>
-
-        <include layout="@layout/widget_yiji" />
-    </LinearLayout>
-</LinearLayout>
+    </FrameLayout>
+</FrameLayout>

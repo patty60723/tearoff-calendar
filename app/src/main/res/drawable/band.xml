@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 頂端的色帶，顏色由程式依月份套上 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFF" />
+    <corners android:topLeftRadius="8dp" android:topRightRadius="8dp" />
+</shape>

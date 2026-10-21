@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="red">#C62F2F</color>
+    <color name="red">#B8322A</color>
     <color name="red_dark">#9E2222</color>
-    <color name="ink">#2B2724</color>
-    <color name="ink_soft">#8A8172</color>
-    <color name="paper">#FFFDF7</color>
-    <color name="paper_under">#EFE8D8</color>
-    <color name="paper_bottom">#DCD3C0</color>
+    <color name="ink">#2E2A26</color>
+    <color name="ink_soft">#8C8378</color>
+    <color name="paper">#FBF8F2</color>
+    <color name="paper_under">#ECE6DA</color>
+    <color name="paper_bottom">#DDD5C6</color>
     <color name="paper_edge">#E3DACA</color>
-    <color name="desk">#F4EFE4</color>
+    <color name="desk">#EDE8E0</color>
 </resources>

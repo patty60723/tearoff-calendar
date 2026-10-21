@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/paper_stack"
+    android:paddingRight="3dp"
+    android:paddingBottom="5dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/hills"
+            android:tint="#C0814E"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom"
+            android:scaleType="fitXY"
+            android:src="@drawable/hills" />
+
+        <!-- 火柴人站在山丘上：6 張圖輪流播放 -->
+        <ViewFlipper
+            android:id="@+id/stickman"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom|right"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="20dp"
+            android:autoStart="true"
+            android:flipInterval="160">
+
+            <ImageView
+                android:id="@+id/frame0"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame5"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+        </ViewFlipper>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/band"
+                android:tint="#C0814E"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/band" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="12dp"
+                android:paddingTop="8dp"
+                android:paddingRight="12dp">
+
+                <TextView
+                    android:id="@+id/month"
+                    android:text="十月"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:maxLines="1"
+                    android:letterSpacing="0.1"
+                    android:textColor="@color/ink"
+                    android:textSize="11sp" />
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+                <TextView
+                    android:id="@+id/weekday"
+                    android:text="星期三"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:maxLines="1"
+                    android:letterSpacing="0.1"
+                    android:textColor="@color/ink"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/month_en"
+                android:text="OCTOBER 2026"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:letterSpacing="0.3"
+                android:textColor="@color/ink_soft"
+                android:textSize="8sp" />
+            <TextView
+                android:id="@+id/day"
+                android:text="21"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="96sp"
+                android:autoSizeMinTextSize="40sp"
+                android:autoSizeTextType="uniform"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="@color/ink"
+                android:textSize="96sp" />
+            <TextView
+                android:id="@+id/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:maxLines="1"
+                android:layout_gravity="center_horizontal"
+                android:letterSpacing="0.1"
+                android:visibility="gone"
+                android:textColor="@color/red"
+                android:textSize="11sp" />
+            <TextView
+                android:id="@+id/phrase"
+                android:text="宜 出行・祭祀"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:maxLines="1"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:letterSpacing="0.2"
+                android:textColor="@color/ink"
+                android:textSize="14sp" />
+            <ImageView
+                android:id="@+id/rule"
+                android:tint="#C0814E"
+                android:layout_width="20dp"
+                android:layout_height="1dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="6dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/rule" />
+            <TextView
+                android:id="@+id/lunar"
+                android:text="農曆九月十一・丙午年"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:layout_gravity="center_horizontal"
+                android:letterSpacing="0.05"
+                android:textColor="@color/ink_soft"
+                android:textSize="9.5sp" />
+            <TextView
+                android:id="@+id/ji"
+                android:text="忌 動土・安葬"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:letterSpacing="0.05"
+                android:textColor="@color/ink_soft"
+                android:textSize="9.5sp" />
+
+            <!-- 留給山丘和火柴人 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp" />
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

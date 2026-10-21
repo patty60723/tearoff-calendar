@@ -7,12 +7,10 @@
     <string name="ji">忌</string>
     <string name="prev">‹ 前一天</string>
     <string name="next">後一天 ›</string>
-    <string name="today">回到今天</string>
+    <string name="today">回到最上面</string>
     <string name="pin">把小工具放到桌面</string>
     <string name="how_to">也可以自己加：長按桌面空白處 →「小工具」→ 找到「手撕日曆」，按住拖到桌面。拉動邊框可以調整大小，變窄時會換成精簡版面。</string>
-    <string name="tear_one">撕下 %1$d/%2$d 這一頁</string>
-    <string name="tear_more">撕下 %1$d/%2$d 這一頁（還有 %3$d 頁沒撕）</string>
-    <string name="tear_done">今天撕過了，明天再來</string>
+    <string name="tear_done">今天撕過了，明天見</string>
     <string name="story_page">第 %d 頁</string>
     <string name="story_not_started">還沒開始</string>
     <string name="story_hint">頁面最下面好像有一個小墨點……撕下第一頁看看吧。</string>
@@ -22,4 +20,11 @@
     <string name="crash_hint">上次 App 閃退了。請把下一個畫面截圖回報，再按「繼續」回到日曆。</string>
     <string name="crash_continue">繼續</string>
     <string name="crash_stay">先截圖</string>
+    <string name="tear_button">或按這裡撕下</string>
+    <string name="tear_only_top">只能撕最上面那一頁喔</string>
+    <string name="veil_tomorrow">明天見</string>
+    <string name="veil_later">%1$d/%2$d 還沒到</string>
+    <string name="hint_tear">從左下角或右下角，往上撕下這一頁</string>
+    <string name="hint_more">還有 %d 頁沒撕，從角落往上撕</string>
+    <string name="hint_browsing">在看 %1$d/%2$d 的頁面</string>
 </resources>

@@ -27,11 +27,20 @@ class MainActivityTest {
     }
 
     @Test
+    fun layoutPicksTheBiggestThatFits() {
+        assertEquals(PageLayout.COMPACT, PageLayout.fitting(170f, 170f))
+        assertEquals(PageLayout.TALL, PageLayout.fitting(170f, 255f))
+        assertEquals(PageLayout.WIDE, PageLayout.fitting(349f, 170f))
+        assertEquals(PageLayout.TALL, PageLayout.fitting(349f, 340f))
+        assertEquals(PageLayout.COMPACT, PageLayout.fitting(80f, 80f))
+    }
+
+    @Test
     fun widgetViewsInflate() {
         val context = RuntimeEnvironment.getApplication()
         val page = Almanac.page(LocalDate.of(2026, 10, 21))
-        for (compact in listOf(false, true)) {
-            CalendarWidget.build(context, page, compact).apply(context, FrameLayout(context))
+        for (layout in PageLayout.entries) {
+            CalendarWidget.build(context, page, layout).apply(context, FrameLayout(context))
         }
     }
 }

@@ -24,6 +24,14 @@ jobs:
       - name: Test and build
         run: ./gradlew testDebugUnitTest assembleDebug
 
+      # 測試畫出來的小工具與 App 畫面，失敗時也上傳，方便看哪裡壞了
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: app/build/screenshots
+          if-no-files-found: ignore
+
       - name: Rename APK
         run: cp app/build/outputs/apk/debug/app-debug.apk tearoff-calendar.apk
 

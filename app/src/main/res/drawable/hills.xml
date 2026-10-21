@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部的山丘，三層深淺，顏色由程式依月份套上 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="60dp"
+    android:viewportWidth="200"
+    android:viewportHeight="60">
+    <path
+        android:fillAlpha="0.16"
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,30 C30,14 55,12 82,24 C110,36 130,8 162,10 C182,11 192,18 200,22 L200,60 L0,60 Z" />
+    <path
+        android:fillAlpha="0.28"
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,42 C24,30 52,30 78,38 C104,46 124,30 150,28 C172,26 188,32 200,36 L200,60 L0,60 Z" />
+    <path
+        android:fillAlpha="0.45"
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,52 C40,44 80,48 112,50 C140,52 170,40 200,44 L200,60 L0,60 Z" />
+</vector>

@@ -59,44 +59,59 @@ class CalendarWidget : AppWidgetProvider() {
             val page = Almanac.page(LocalDate.now())
             for (id in ids) {
                 val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    // 系統依小工具實際大小自動挑版面
-                    RemoteViews(
-                        mapOf(
-                            SizeF(100f, 100f) to build(context, page, compact = true),
-                            SizeF(220f, 100f) to build(context, page, compact = false),
-                        )
-                    )
+                    // 系統依小工具實際大小自動挑版面：挑放得下的裡面最大的那個
+                    RemoteViews(PageLayout.entries.associate { SizeF(it.minWidthDp, it.minHeightDp) to build(context, page, it) })
                 } else {
-                    val minWidth = manager.getAppWidgetOptions(id)
-                        .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-                    build(context, page, compact = minWidth in 1 until 220)
+                    val options = manager.getAppWidgetOptions(id)
+                    val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat()
+                    val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).toFloat()
+                    build(context, page, PageLayout.fitting(width, height))
                 }
                 manager.updateAppWidget(id, views)
             }
         }
 
-        fun build(context: Context, page: DayPage, compact: Boolean): RemoteViews {
-            val layout = if (compact) R.layout.widget_compact else R.layout.widget_wide
-            val items = if (compact) 3 else 4
-            return RemoteViews(context.packageName, layout).apply {
-                setTextViewText(R.id.month, "${page.date.year}年${page.date.monthValue}月")
+        fun build(context: Context, page: DayPage, layout: PageLayout): RemoteViews {
+            val palette = Palettes.forMonth(page.date.monthValue)
+            return RemoteViews(context.packageName, layout.res).apply {
+                setTextViewText(R.id.month, MONTHS[page.date.monthValue - 1])
+                setTextViewText(R.id.month_en, "${MONTHS_EN[page.date.monthValue - 1]} ${page.date.year}")
                 setTextViewText(R.id.weekday, page.weekday)
-                setTextViewText(R.id.day, page.date.dayOfMonth.toString())
-                setTextColor(
-                    R.id.day,
-                    context.getColor(if (page.isRedDay) R.color.red else R.color.ink),
-                )
+                setTextViewText(R.id.day, "%02d".format(page.date.dayOfMonth))
+                setTextColor(R.id.day, if (page.isRedDay) Palettes.RED else palette.deep)
+                setTextColor(R.id.month, palette.deep)
+                setTextColor(R.id.weekday, palette.deep)
+
                 val label = page.label
                 setTextViewText(R.id.label, label ?: "")
-                setViewVisibility(R.id.label, if (label == null) View.GONE else View.VISIBLE)
-                setTextViewText(R.id.lunar, "農曆${page.lunarDate}")
-                setTextViewText(R.id.ganzhi, "${page.ganZhiYear}・${page.zodiac}")
-                setTextViewText(R.id.yi, page.yi.take(items).joinToString(" "))
-                setTextViewText(R.id.ji, page.ji.take(items).joinToString(" "))
+                setViewVisibility(R.id.label, if (label == null || layout == PageLayout.COMPACT) View.GONE else View.VISIBLE)
+                setTextViewText(R.id.phrase, phrase(page, layout.yiCount))
+                setTextViewText(R.id.lunar, "農曆${page.lunarDate}・${page.ganZhiYear}")
+                setTextViewText(R.id.ji, avoid(page))
+
+                for (id in intArrayOf(R.id.band, R.id.hills, R.id.rule)) setInt(id, "setColorFilter", palette.main)
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
-                if (!compact) setStickman(context, this)
+                if (layout.stickman) setStickman(context, this)
             }
         }
+
+        /** 頁面上最大的那句：「宜 出行・祭祀」。 */
+        fun phrase(page: DayPage, count: Int): String {
+            val yi = page.yi.filter { it !in FILLER }
+            return if (yi.isEmpty()) "諸事不宜" else "宜 " + yi.take(count).joinToString("・")
+        }
+
+        private fun avoid(page: DayPage): String {
+            val ji = page.ji.filter { it !in FILLER }
+            return if (ji.isEmpty()) "" else "忌 " + ji.take(3).joinToString("・")
+        }
+
+        private val FILLER = setOf("餘事勿取", "諸事不宜", "無")
+        private val MONTHS = listOf("一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月")
+        private val MONTHS_EN = listOf(
+            "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+            "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+        )
 
         private val FRAME_IDS = intArrayOf(
             R.id.frame0, R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4, R.id.frame5,
