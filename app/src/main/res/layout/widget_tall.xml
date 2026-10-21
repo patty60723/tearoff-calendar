@@ -133,7 +133,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:autoSizeMaxTextSize="150sp"
-                android:autoSizeMinTextSize="40sp"
+                android:autoSizeMinTextSize="30sp"
                 android:autoSizeTextType="uniform"
                 android:fontFamily="serif"
                 android:gravity="center"
@@ -199,7 +199,7 @@
             <!-- 留給山丘和火柴人 -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="70dp" />
+                android:layout_height="84dp" />
         </LinearLayout>
     </FrameLayout>
 </FrameLayout>
