@@ -21,6 +21,10 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CrashLog.read(this)?.let {
+            showCrash(it)
+            return
+        }
         setContentView(R.layout.activity_main)
         savedInstanceState?.getString(KEY_DATE)?.let { date = LocalDate.parse(it) }
 
@@ -43,8 +47,32 @@ class MainActivity : Activity() {
         show(date)
     }
 
+    /** 上次閃退的錯誤訊息，截圖回報後按「繼續」回到日曆。 */
+    private fun showCrash(text: String) {
+        val view = TextView(this).apply {
+            this.text = getString(R.string.crash_title) + "\n\n" + text
+            setTextIsSelectable(true)
+            textSize = 12f
+            setPadding(32, 32, 32, 32)
+        }
+        val scroll = android.widget.ScrollView(this).apply {
+            fitsSystemWindows = true
+            addView(view)
+        }
+        setContentView(scroll)
+        AlertDialog.Builder(this)
+            .setMessage(R.string.crash_hint)
+            .setPositiveButton(R.string.crash_continue) { _, _ ->
+                CrashLog.clear(this)
+                recreate()
+            }
+            .setNegativeButton(R.string.crash_stay, null)
+            .show()
+    }
+
     override fun onResume() {
         super.onResume()
+        if (!::book.isInitialized) return
         // 打開 App 時順便更新桌面上的小工具，以防午夜那次換頁被系統延誤
         CalendarWidget.refreshAll(this)
         showStory()

@@ -32,6 +32,11 @@ android {
         }
     }
 
+    testOptions {
+        // Robolectric 測試要讀得到 layout 和 assets
+        unitTests.isIncludeAndroidResources = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -47,4 +52,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     // 單元測試裡 Android 的 org.json 只是空殼，換成真的才能讀故事檔
     testImplementation("org.json:json:20240303")
+    // 在電腦上模擬 Android，實際打開 App 試試看
+    testImplementation("org.robolectric:robolectric:4.14.1")
 }
