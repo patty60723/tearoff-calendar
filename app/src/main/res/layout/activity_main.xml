@@ -83,8 +83,8 @@
 
             <com.patty60723.tearoff.stickman.StickmanView
                 android:id="@+id/story_stickman"
-                android:layout_width="72dp"
-                android:layout_height="96dp" />
+                android:layout_width="96dp"
+                android:layout_height="128dp" />
 
             <LinearLayout
                 android:layout_width="0dp"

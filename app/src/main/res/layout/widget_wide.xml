@@ -15,7 +15,7 @@
             android:id="@+id/hills"
             android:tint="#C0814E"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="52dp"
             android:layout_gravity="bottom"
             android:scaleType="fitXY"
             android:src="@drawable/hills" />
@@ -23,11 +23,11 @@
         <!-- 火柴人站在山丘上：6 張圖輪流播放 -->
         <ViewFlipper
             android:id="@+id/stickman"
-            android:layout_width="27dp"
-            android:layout_height="36dp"
+            android:layout_width="42dp"
+            android:layout_height="56dp"
             android:layout_gravity="bottom|right"
-            android:layout_marginRight="14dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="16dp"
             android:autoStart="true"
             android:flipInterval="160">
 
@@ -161,7 +161,7 @@
                     android:gravity="center_vertical"
                     android:orientation="vertical"
                     android:paddingLeft="8dp"
-                    android:paddingRight="30dp">
+                    android:paddingRight="46dp">
 
                     <TextView
                         android:id="@+id/label"

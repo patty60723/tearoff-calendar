@@ -71,7 +71,8 @@ class CalendarWidget : AppWidgetProvider() {
             }
         }
 
-        fun build(context: Context, page: DayPage, layout: PageLayout): RemoteViews {
+        /** @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊 */
+        fun build(context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp): RemoteViews {
             val palette = Palettes.forMonth(page.date.monthValue)
             return RemoteViews(context.packageName, layout.res).apply {
                 setTextViewText(R.id.month, MONTHS[page.date.monthValue - 1])
@@ -91,7 +92,7 @@ class CalendarWidget : AppWidgetProvider() {
 
                 for (id in intArrayOf(R.id.band, R.id.hills, R.id.rule)) setInt(id, "setColorFilter", palette.main)
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
-                if (layout.stickman) setStickman(context, this)
+                if (stickmanDp > 0) setStickman(context, this, stickmanDp)
             }
         }
 
@@ -118,13 +119,13 @@ class CalendarWidget : AppWidgetProvider() {
         )
 
         /** 火柴人目前長到哪裡、最近一次撕頁的動作，畫成幾張圖輪播。 */
-        private fun setStickman(context: Context, views: RemoteViews) {
+        private fun setStickman(context: Context, views: RemoteViews, widthDp: Float) {
             val book = StoryBook(context)
             val action = Actions.get(if (book.page == 0) null else book.lastAction)
             val density = context.resources.displayMetrics.density.coerceAtMost(3f)
             val frames = StickmanRenderer.frames(
                 book.parts, action, FRAME_IDS.size,
-                widthPx = (36 * density).toInt(), heightPx = (48 * density).toInt(),
+                widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(),
             )
             frames.forEachIndexed { i, bitmap -> views.setImageViewBitmap(FRAME_IDS[i], bitmap) }
             views.setInt(R.id.stickman, "setFlipInterval", (action.periodMs / FRAME_IDS.size).toInt())

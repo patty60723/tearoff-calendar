@@ -172,8 +172,19 @@ class MainActivity : Activity() {
     /** 一頁日曆；還沒到的日子蓋一層薄紙。 */
     private fun pageView(day: LocalDate): View {
         val frame = FrameLayout(this)
-        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL)
-        frame.addView(views.apply(this, frame).apply { isClickable = false })
+        // App 裡的頁面比小工具大很多，火柴人和山丘照頁寬等比例放大
+        val metrics = resources.displayMetrics
+        val pageWidthPx = metrics.widthPixels - (56 * metrics.density).toInt()
+        val stickmanPx = (pageWidthPx * 0.17f).toInt()
+        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density)
+        val page = views.apply(this, frame).apply { isClickable = false }
+        page.findViewById<View>(R.id.stickman)?.layoutParams?.let {
+            it.width = stickmanPx
+            it.height = stickmanPx * 4 / 3
+            (it as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin = (pageWidthPx * 0.09f).toInt()
+        }
+        page.findViewById<View>(R.id.hills)?.layoutParams?.height = (pageWidthPx * 0.26f).toInt()
+        frame.addView(page)
         val today = AppClock.today(this)
         if (day.isAfter(today)) {
             frame.addView(
