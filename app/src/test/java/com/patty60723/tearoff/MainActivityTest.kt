@@ -27,6 +27,21 @@ class MainActivityTest {
     }
 
     @Test
+    fun debugFakeDateAndJump() {
+        val app = RuntimeEnvironment.getApplication()
+        AppClock.setFakeToday(app, LocalDate.of(2026, 2, 16))
+        StoryBook(app).jumpTo(13, AppClock.today(app))
+        val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        activity.findViewById<Button>(R.id.tear).performClick()
+        ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS)
+        val book = StoryBook(activity)
+        assertEquals(14, book.page)
+        // 假裝的今天撕過了，下一張是明天
+        assertEquals(null, book.nextDate(AppClock.today(activity)))
+        AppClock.setFakeToday(app, null)
+    }
+
+    @Test
     fun layoutPicksTheBiggestThatFits() {
         assertEquals(PageLayout.COMPACT, PageLayout.fitting(170f, 170f))
         assertEquals(PageLayout.TALL, PageLayout.fitting(170f, 255f))

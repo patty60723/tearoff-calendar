@@ -16,4 +16,7 @@ object Parts {
     const val BUNDLE = "bundle"
 
     val accessories = setOf(SCARF, PAPER_HAT, BUNDLE)
+
+    /** 除錯用：全部長齊、配件全戴 */
+    val everything = setOf(LINE, HEAD, EYES, ARM_R, ARM_L, LEG_L, LEG_R, VOICE, RED_TOES) + accessories
 }

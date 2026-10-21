@@ -32,6 +32,10 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     testOptions {
         // Robolectric 測試要讀得到 layout 和 assets
         unitTests.isIncludeAndroidResources = true

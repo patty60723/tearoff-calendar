@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
 import android.widget.FrameLayout
+import com.patty60723.tearoff.story.StoryBook
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -59,6 +60,8 @@ class ScreenshotTest {
 
     @Test
     fun app() {
+        // 第一章走完的樣子，故事卡上有完整的火柴人
+        StoryBook(context).jumpTo(14, AppClock.today(context))
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         val root = activity.window.decorView
         save("app", root, root.width, root.height, background = false)

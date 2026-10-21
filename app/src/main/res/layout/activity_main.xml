@@ -152,5 +152,17 @@
             android:text="@string/how_to"
             android:textColor="@color/ink_soft"
             android:textSize="13sp" />
+
+        <!-- 只有測試版看得到 -->
+        <Button
+            android:id="@+id/debug"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="除錯"
+            android:textColor="@color/ink_soft"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>

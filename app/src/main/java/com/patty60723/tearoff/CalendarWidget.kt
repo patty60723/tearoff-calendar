@@ -56,7 +56,7 @@ class CalendarWidget : AppWidgetProvider() {
         }
 
         private fun render(context: Context, manager: AppWidgetManager, ids: IntArray) {
-            val page = Almanac.page(LocalDate.now())
+            val page = Almanac.page(AppClock.today(context))
             for (id in ids) {
                 val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     // 系統依小工具實際大小自動挑版面：挑放得下的裡面最大的那個

@@ -15,13 +15,14 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.patty60723.tearoff.stickman.Actions
+import com.patty60723.tearoff.stickman.Parts
 import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
 import java.time.LocalDate
 
 class MainActivity : Activity() {
     /** 正在看的那一頁；平常是最上面那張還沒撕的 */
-    private var date: LocalDate = LocalDate.now()
+    private var date: LocalDate = LocalDate.MIN
     private lateinit var book: StoryBook
     private lateinit var pad: TearPageView
 
@@ -43,10 +44,31 @@ class MainActivity : Activity() {
         pad.pageBelow = { w, h -> snapshot(pageView(date.plusDays(1)), w, h) }
         pad.onTorn = { onTorn() }
         pad.onBlocked = {
-            val message = if (book.nextDate(LocalDate.now()) == null) R.string.tear_done else R.string.tear_only_top
+            val message = if (book.nextDate(AppClock.today(this)) == null) R.string.tear_done else R.string.tear_only_top
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
         findViewById<Button>(R.id.tear).setOnClickListener { pad.peelAway() }
+
+        findViewById<Button>(R.id.debug).apply {
+            visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
+            val menu = DebugMenu(
+                this@MainActivity, book,
+                refresh = {
+                    show(topDate())
+                    showStory()
+                    CalendarWidget.refreshAll(this@MainActivity)
+                },
+                preview = { id ->
+                    // 在 Button.apply 裡，要明確用 Activity 的 findViewById
+                    this@MainActivity.findViewById<StickmanView>(R.id.story_stickman).apply {
+                        parts = Parts.everything
+                        action = Actions.get(id)
+                    }
+                    this@MainActivity.findViewById<TextView>(R.id.story_title).text = "動作：$id"
+                },
+            )
+            setOnClickListener { menu.show() }
+        }
 
         val manager = AppWidgetManager.getInstance(this)
         val pin = findViewById<Button>(R.id.pin)
@@ -99,7 +121,7 @@ class MainActivity : Activity() {
 
     /** 最上面那張：下一張該撕的頁；都撕完了就是明天那頁。 */
     private fun topDate(): LocalDate {
-        val today = LocalDate.now()
+        val today = AppClock.today(this)
         return book.nextDate(today) ?: today.plusDays(1)
     }
 
@@ -109,7 +131,7 @@ class MainActivity : Activity() {
 
         pad.removeAllViews()
         pad.addView(pageView(date))
-        pad.tearable = date == book.nextDate(LocalDate.now())
+        pad.tearable = date == book.nextDate(AppClock.today(this))
 
         findViewById<Button>(R.id.today).visibility = if (date == topDate()) View.INVISIBLE else View.VISIBLE
         findViewById<TextView>(R.id.yi_all).text = page.yi.joinToString("　")
@@ -127,7 +149,7 @@ class MainActivity : Activity() {
         val frame = FrameLayout(this)
         val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL)
         frame.addView(views.apply(this, frame).apply { isClickable = false })
-        val today = LocalDate.now()
+        val today = AppClock.today(this)
         if (day.isAfter(today)) {
             frame.addView(
                 TextView(this).apply {
@@ -155,7 +177,7 @@ class MainActivity : Activity() {
     }
 
     private fun onTorn() {
-        val today = LocalDate.now()
+        val today = AppClock.today(this)
         val beat = book.peek(today)
         if (beat?.ask == "name") askName { tear(today) } else tear(today)
     }
@@ -186,7 +208,7 @@ class MainActivity : Activity() {
     }
 
     private fun showHint() {
-        val today = LocalDate.now()
+        val today = AppClock.today(this)
         val next = book.nextDate(today)
         val pending = book.pendingPages(today)
         findViewById<TextView>(R.id.hint).text = when {

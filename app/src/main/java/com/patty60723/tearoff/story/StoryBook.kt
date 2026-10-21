@@ -67,6 +67,30 @@ class StoryBook(context: Context) {
         return TornPage(newPage, date, text, beat?.action)
     }
 
+    // ---- 除錯用 ----
+
+    /** 從頭開始：回到第 0 頁，名字也清掉。 */
+    fun reset() {
+        prefs.edit().clear().apply()
+    }
+
+    /**
+     * 直接跳到「已經撕了 page 頁」，最後一頁是昨天，所以今天可以接著撕。
+     * 故事卡顯示第 page 頁那段。
+     */
+    fun jumpTo(page: Int, today: LocalDate) {
+        val date = today.minusDays(1)
+        val ctx = context(date, page)
+        val beat = if (page > 0) StoryEngine.pick(beats, ctx) else null
+        prefs.edit()
+            .putInt(KEY_PAGE, page)
+            .putString(KEY_LAST_DATE, date.toString())
+            .putString(KEY_TEXT, beat?.let { StoryEngine.render(it, ctx) })
+            .putString(KEY_ACTION, beat?.action)
+            .remove(KEY_RECENT)
+            .apply()
+    }
+
     private fun context(date: LocalDate, page: Int): StoryContext {
         val day = Almanac.page(date)
         return StoryContext(
