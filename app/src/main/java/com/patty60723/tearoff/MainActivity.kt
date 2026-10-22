@@ -172,10 +172,7 @@ class MainActivity : Activity() {
     }
 
     private fun showCity() {
-        val city = Cities.selected(this)
-        val times = SunTimes.of(viewing(), city.lat, city.lon)
-        findViewById<TextView>(R.id.city).text =
-            getString(R.string.city_row, city.name, times.sunrise?.toString() ?: "--:--", times.sunset?.toString() ?: "--:--")
+        findViewById<TextView>(R.id.city).text = getString(R.string.city_row, Cities.selected(this).name)
     }
 
     /** 封面：第一次打開時最上面的那張。 */
