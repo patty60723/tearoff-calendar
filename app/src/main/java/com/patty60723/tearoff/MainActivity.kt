@@ -48,6 +48,7 @@ class MainActivity : Activity() {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
         findViewById<Button>(R.id.tear).setOnClickListener { pad.peelAway() }
+        findViewById<TextView>(R.id.city).setOnClickListener { pickCity() }
 
         findViewById<Button>(R.id.debug).apply {
             visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
@@ -153,6 +154,28 @@ class MainActivity : Activity() {
             if (page.festivals.isNotEmpty()) append("\n節日：${page.festivals.joinToString("、")}")
         }
         showHint()
+        showCity()
+    }
+
+    private fun pickCity() {
+        val cities = Cities.all
+        val current = cities.indexOf(Cities.selected(this))
+        AlertDialog.Builder(this)
+            .setTitle(R.string.city_title)
+            .setSingleChoiceItems(cities.map { it.name }.toTypedArray(), current) { dialog, which ->
+                Cities.select(this, cities[which])
+                dialog.dismiss()
+                show(date)
+                CalendarWidget.refreshAll(this)
+            }
+            .show()
+    }
+
+    private fun showCity() {
+        val city = Cities.selected(this)
+        val times = SunTimes.of(viewing(), city.lat, city.lon)
+        findViewById<TextView>(R.id.city).text =
+            getString(R.string.city_row, city.name, times.sunrise?.toString() ?: "--:--", times.sunset?.toString() ?: "--:--")
     }
 
     /** 封面：第一次打開時最上面的那張。 */
@@ -184,6 +207,13 @@ class MainActivity : Activity() {
             (it as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin = (pageWidthPx * 0.09f).toInt()
         }
         page.findViewById<View>(R.id.hills)?.layoutParams?.height = (pageWidthPx * 0.26f).toInt()
+        page.findViewById<TextView>(R.id.sun)?.apply {
+            textSize = 12f
+            (layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
+                it.leftMargin = (pageWidthPx * 0.06f).toInt()
+                it.bottomMargin = (pageWidthPx * 0.05f).toInt()
+            }
+        }
         frame.addView(page)
         val today = AppClock.today(this)
         if (day.isAfter(today)) {

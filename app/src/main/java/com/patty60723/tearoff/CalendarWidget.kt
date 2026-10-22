@@ -85,7 +85,11 @@ class CalendarWidget : AppWidgetProvider() {
 
                 val label = page.label
                 setTextViewText(R.id.label, label ?: "")
-                setViewVisibility(R.id.label, if (label == null || layout == PageLayout.COMPACT) View.GONE else View.VISIBLE)
+                val fullPage = layout == PageLayout.TALL || layout == PageLayout.WIDE
+                setViewVisibility(R.id.label, if (label != null && fullPage) View.VISIBLE else View.GONE)
+                // 直式有節日時，英文月份讓位給節日，日期才不會被擠小
+                if (layout == PageLayout.TALL) setViewVisibility(R.id.month_en, if (label == null) View.VISIBLE else View.GONE)
+                setTextViewText(R.id.sun, sunText(context, page))
                 setTextViewText(R.id.phrase, phrase(page, layout.yiCount))
                 setTextViewText(R.id.lunar, "農曆${page.lunarDate}・${page.ganZhiYear}")
                 setTextViewText(R.id.ji, avoid(page))
@@ -94,6 +98,13 @@ class CalendarWidget : AppWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
                 if (stickmanDp > 0) setStickman(context, this, stickmanDp)
             }
+        }
+
+        /** 「日出 05:53\n日落 17:22」，用設定的城市算。 */
+        fun sunText(context: Context, page: DayPage): String {
+            val city = Cities.selected(context)
+            val times = SunTimes.of(page.date, city.lat, city.lon)
+            return "日出 ${times.sunrise ?: "--:--"}\n日落 ${times.sunset ?: "--:--"}"
         }
 
         /** 頁面上最大的那句：「宜 出行・祭祀」。 */

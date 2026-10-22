@@ -13,12 +13,12 @@
 
         <ImageView
             android:id="@+id/hills"
-            android:tint="#C0814E"
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="30dp"
             android:layout_gravity="bottom"
             android:scaleType="fitXY"
-            android:src="@drawable/hills" />
+            android:src="@drawable/hills"
+            android:tint="#C0814E" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -27,11 +27,11 @@
 
             <ImageView
                 android:id="@+id/band"
-                android:tint="#C0814E"
                 android:layout_width="match_parent"
                 android:layout_height="8dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/band" />
+                android:src="@drawable/band"
+                android:tint="#C0814E" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -43,91 +43,138 @@
 
                 <TextView
                     android:id="@+id/month"
-                    android:text="十月"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="serif"
+                    android:letterSpacing="0.1"
                     android:maxLines="1"
+                    android:text="十月"
                     android:textColor="@color/ink"
                     android:textSize="10sp" />
+
                 <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="1dp"
                     android:layout_weight="1" />
+
                 <TextView
                     android:id="@+id/weekday"
-                    android:text="星期三"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="serif"
+                    android:letterSpacing="0.1"
                     android:maxLines="1"
+                    android:text="星期三"
                     android:textColor="@color/ink"
                     android:textSize="10sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/day"
-                android:text="21"
+            <!-- 日期和火柴人：這兩個一定要放得下 -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:autoSizeMaxTextSize="64sp"
-                android:autoSizeMinTextSize="28sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="serif"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:maxLines="1"
-                android:textColor="@color/ink"
-                android:textSize="64sp" />
-            <TextView
-                android:id="@+id/phrase"
-                android:text="宜 出行・祭祀"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="serif"
-                android:maxLines="1"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="12dp"
-                android:letterSpacing="0.15"
-                android:textColor="@color/ink"
-                android:textSize="12sp" />
+                android:orientation="horizontal"
+                android:paddingLeft="6dp"
+                android:paddingRight="8dp">
 
-            <!-- 精簡版不顯示，但 id 要在，程式才不用分好幾套 -->
+                <TextView
+                    android:id="@+id/day"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:autoSizeMaxTextSize="72sp"
+                    android:autoSizeMinTextSize="24sp"
+                    android:autoSizeTextType="uniform"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="21"
+                    android:textColor="@color/ink"
+                    android:textSize="72sp" />
+
+            <!-- 火柴人：6 張圖輪流播放 -->
+            <ViewFlipper
+                android:id="@+id/stickman"
+                android:layout_width="36dp"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="6dp"
+                android:autoStart="true"
+                android:flipInterval="160">
+
+            <ImageView
+                android:id="@+id/frame0"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+
+            <ImageView
+                android:id="@+id/frame5"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/stickman" />
+            </ViewFlipper>
+            </LinearLayout>
+
+            <!-- 這個版面放不下，但 id 要在，程式才不用分好幾套 -->
             <TextView
                 android:id="@+id/month_en"
-                android:text="OCTOBER 2026"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textColor="@color/ink_soft"
-                android:textSize="1sp" />
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
             <TextView
                 android:id="@+id/label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textColor="@color/ink_soft"
-                android:textSize="1sp" />
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
             <TextView
-                android:id="@+id/lunar"
-                android:text="農曆九月十一・丙午年"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textColor="@color/ink_soft"
-                android:textSize="1sp" />
-            <TextView
-                android:id="@+id/ji"
-                android:text="忌 動土・安葬"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textColor="@color/ink_soft"
-                android:textSize="1sp" />
+                android:id="@+id/phrase"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
             <ImageView
                 android:id="@+id/rule"
-                android:tint="#C0814E"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/lunar"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/ji"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/sun"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:visibility="gone" />

@@ -20,6 +20,21 @@
             android:scaleType="fitXY"
             android:src="@drawable/hills" />
 
+        <!-- 日出日落印在左下的山丘上（火柴人站在右邊） -->
+        <TextView
+            android:id="@+id/sun"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:layout_marginLeft="14dp"
+            android:layout_marginBottom="14dp"
+            android:fontFamily="serif"
+            android:letterSpacing="0.05"
+            android:lineSpacingExtra="1dp"
+            android:text="日出 05:53\n日落 17:22"
+            android:textColor="@color/ink"
+            android:textSize="9sp" />
+
         <!-- 火柴人站在山丘上：6 張圖輪流播放 -->
         <ViewFlipper
             android:id="@+id/stickman"

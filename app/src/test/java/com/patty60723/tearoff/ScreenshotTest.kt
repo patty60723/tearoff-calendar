@@ -54,7 +54,11 @@ class ScreenshotTest {
         val day = LocalDate.of(2026, 10, 21)
         save("widget-tall", widget(PageLayout.TALL, day), 170, 255)
         save("widget-wide", widget(PageLayout.WIDE, day), 349, 170)
-        save("widget-compact", widget(PageLayout.COMPACT, day), 170, 170)
+        save("widget-compact", widget(PageLayout.COMPACT, day), 110, 110)
+        // 你截圖裡那種接近正方形的大小，霜降那天有節氣
+        save("widget-medium", widget(PageLayout.MEDIUM, LocalDate.of(2026, 10, 23)), 175, 195)
+        save("widget-medium-2x2", widget(PageLayout.MEDIUM, day), 170, 170)
+        save("widget-tall-frost", widget(PageLayout.TALL, LocalDate.of(2026, 10, 23)), 170, 255)
         save("widget-tall-new-year", widget(PageLayout.TALL, LocalDate.of(2026, 2, 17)), 170, 255)
         save("widget-tall-june", widget(PageLayout.TALL, LocalDate.of(2026, 6, 19)), 170, 255)
     }

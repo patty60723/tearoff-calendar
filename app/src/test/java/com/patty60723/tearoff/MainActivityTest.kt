@@ -46,7 +46,9 @@ class MainActivityTest {
 
     @Test
     fun layoutPicksTheBiggestThatFits() {
-        assertEquals(PageLayout.COMPACT, PageLayout.fitting(170f, 170f))
+        assertEquals(PageLayout.COMPACT, PageLayout.fitting(120f, 120f))
+        assertEquals(PageLayout.MEDIUM, PageLayout.fitting(170f, 170f))
+        assertEquals(PageLayout.MEDIUM, PageLayout.fitting(175f, 195f))
         assertEquals(PageLayout.TALL, PageLayout.fitting(170f, 255f))
         assertEquals(PageLayout.WIDE, PageLayout.fitting(349f, 170f))
         assertEquals(PageLayout.TALL, PageLayout.fitting(349f, 340f))

@@ -30,4 +30,6 @@
     <string name="hint_cover">撕開封面，這一年就開始了</string>
     <string name="cover_title">手撕日曆</string>
     <string name="cover_sub">從角落往上撕開</string>
+    <string name="city_row">%1$s・日出 %2$s・日落 %3$s　換城市 ›</string>
+    <string name="city_title">日出日落用哪個城市</string>
 </resources>
