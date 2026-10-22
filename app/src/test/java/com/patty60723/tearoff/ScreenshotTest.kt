@@ -106,6 +106,7 @@ class ScreenshotTest {
         com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, com.patty60723.tearoff.weather.Mood.RAIN)
         val rainy = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         rainy.findViewById<android.widget.TextView>(R.id.weather).performClick()
+        org.robolectric.shadows.ShadowLooper.idleMainLooper()
         rainy.window.decorView.let { save("app-weather", it, it.width, it.height, background = false) }
         com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, null)
 

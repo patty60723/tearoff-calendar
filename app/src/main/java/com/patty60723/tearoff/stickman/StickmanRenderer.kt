@@ -89,11 +89,11 @@ object StickmanRenderer {
 
         if (Parts.BUNDLE in parts) {
             // 包袱：扛在背後的小棍子
-            canvas.drawLine(shoulderX + 2, shoulderY + 2, shoulderX - 11, shoulderY - 5, line)
+            canvas.drawLine(shoulderX + 2, shoulderY + 2, shoulderX - 9, shoulderY - 1, line)
             fill.color = CLOTH
-            canvas.drawCircle(shoulderX - 13, shoulderY - 7, 4.5f, fill)
+            canvas.drawCircle(shoulderX - 12, shoulderY - 1, 4.5f, fill)
             line.strokeWidth = 1.5f
-            canvas.drawCircle(shoulderX - 13, shoulderY - 7, 4.5f, line)
+            canvas.drawCircle(shoulderX - 12, shoulderY - 1, 4.5f, line)
             line.strokeWidth = 2.5f
         }
 
