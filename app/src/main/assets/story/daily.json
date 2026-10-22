@@ -201,6 +201,87 @@
       "weight": 1,
       "text": "風把頁角吹得啪啦啪啦響。{name}抓緊紙帽，跟風比賽誰跑得快。",
       "action": "walk"
+    },
+    {
+      "id": "weather-rain-1",
+      "when": {
+        "weather": "雨"
+      },
+      "weight": 4,
+      "text": "今天下雨。{name}撐著小傘，躲在「{day}」這個大數字底下，聽雨滴在紙上咚咚響。",
+      "action": "umbrella"
+    },
+    {
+      "id": "weather-rain-2",
+      "when": {
+        "weather": "雨"
+      },
+      "weight": 4,
+      "text": "雨下個不停，{name}把撕下來的紙摺成小船，放進水窪裡，看它漂到下一行去。",
+      "action": "umbrella"
+    },
+    {
+      "id": "weather-thunder-1",
+      "when": {
+        "weather": "雷雨"
+      },
+      "weight": 5,
+      "text": "轟隆隆！{name}抱著傘縮在頁角。老曆公說：「別怕別怕，是雷公在打鼓。」",
+      "action": "umbrella"
+    },
+    {
+      "id": "weather-hot-1",
+      "when": {
+        "weather": "熱"
+      },
+      "weight": 4,
+      "text": "好熱好熱！{name}戴上草帽，躲在大紅字的影子底下乘涼，汗一直滴。",
+      "action": "wipe"
+    },
+    {
+      "id": "weather-sunny-1",
+      "when": {
+        "weather": "晴"
+      },
+      "weight": 3,
+      "text": "大晴天！{name}把線條攤開晒太陽，晒得暖呼呼的。",
+      "action": "wave"
+    },
+    {
+      "id": "weather-cloudy-1",
+      "when": {
+        "weather": "陰"
+      },
+      "weight": 3,
+      "text": "天空灰灰的。{name}抬頭數雲，數著數著，有一朵雲變成了兔子。",
+      "action": "gaze"
+    },
+    {
+      "id": "weather-fog-1",
+      "when": {
+        "weather": "霧"
+      },
+      "weight": 4,
+      "text": "起霧了。{name}走著走著，差一點撞上一個逗號。",
+      "action": "gaze"
+    },
+    {
+      "id": "weather-cold-1",
+      "when": {
+        "weather": "冷"
+      },
+      "weight": 4,
+      "text": "冷颼颼的一天。{name}把紅圍巾多繞了一圈，還是一直發抖。",
+      "action": "shiver"
+    },
+    {
+      "id": "weather-snow-1",
+      "when": {
+        "weather": "雪"
+      },
+      "weight": 5,
+      "text": "下雪了！{name}伸手接住一片雪花，冷得直跳腳。",
+      "action": "shiver"
     }
   ]
 }

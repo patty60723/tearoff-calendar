@@ -30,6 +30,9 @@
     <string name="hint_cover">撕開封面，這一年就開始了</string>
     <string name="cover_title">手撕日曆</string>
     <string name="cover_sub">從角落往上撕開</string>
-    <string name="city_row">日出日落依%1$s　換城市 ›</string>
+    <string name="city_row">天氣和日出日落依%1$s　換城市 ›</string>
     <string name="city_title">日出日落用哪個城市</string>
+    <string name="weather_row">%1$s　點我看看 ›</string>
+    <string name="weather_none">天氣讀取中…（需要網路）</string>
+    <string name="weather_credit">天氣資料：Open-Meteo.com</string>
 </resources>

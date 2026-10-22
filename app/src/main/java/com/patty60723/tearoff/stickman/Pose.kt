@@ -183,8 +183,41 @@ object Actions {
         Action("sit", 1800, listOf(sit, sit.edit { at(Pose.ELBOW_R, 26, 37); at(Pose.HAND_R, 26, 29) }))
     }
 
+    // ---- 天氣 ----
+
+    /** 右手高舉撐傘，慢慢走 */
+    val UMBRELLA: Action = STAND.edit {
+        at(Pose.ELBOW_R, 30, 25); at(Pose.HAND_R, 30, 17)
+        at(Pose.ELBOW_L, 20, 30); at(Pose.HAND_L, 18, 36)
+    }.let { Action("umbrella", 1400, listOf(it, it.moved(dy = -1))) }
+
+    /** 熱：右手在額頭擦汗 */
+    val WIPE = Action(
+        "wipe", 900,
+        listOf(
+            STAND.edit { at(Pose.ELBOW_R, 33, 20); at(Pose.HAND_R, 30, 9) },
+            STAND.edit { at(Pose.ELBOW_R, 31, 20); at(Pose.HAND_R, 25, 7) },
+        ),
+    )
+
+    /** 冷：雙手抱胸，左右發抖 */
+    val SHIVER: Action = STAND.edit {
+        at(Pose.ELBOW_L, 19, 29); at(Pose.HAND_L, 28, 27)
+        at(Pose.ELBOW_R, 29, 29); at(Pose.HAND_R, 20, 27)
+    }.let { Action("shiver", 300, listOf(it.moved(dx = -1), it.moved(dx = 1))) }
+
+    /** 手遮眼睛，抬頭看天空 */
+    val GAZE = Action(
+        "gaze", 2000,
+        listOf(
+            STAND.edit { at(Pose.HEAD, 25, 11); at(Pose.ELBOW_R, 33, 19); at(Pose.HAND_R, 30, 9) },
+            STAND.edit { at(Pose.HEAD, 23, 11); at(Pose.ELBOW_R, 32, 19); at(Pose.HAND_R, 28, 9) },
+        ),
+    )
+
     val all: Map<String, Action> =
-        listOf(IDLE, WIGGLE, LOOK, WAVE, CLAP, HOP, WALK, BOUNCE, CHEER, SIT).associateBy { it.id }
+        listOf(IDLE, WIGGLE, LOOK, WAVE, CLAP, HOP, WALK, BOUNCE, CHEER, SIT, UMBRELLA, WIPE, SHIVER, GAZE)
+            .associateBy { it.id }
 
     fun get(id: String?): Action = all[id] ?: IDLE
 }

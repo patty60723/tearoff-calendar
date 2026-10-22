@@ -18,6 +18,8 @@ import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.stickman.Parts
 import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
+import com.patty60723.tearoff.weather.WeatherService
+import kotlin.concurrent.thread
 import java.time.LocalDate
 
 class MainActivity : Activity() {
@@ -49,6 +51,7 @@ class MainActivity : Activity() {
         }
         findViewById<Button>(R.id.tear).setOnClickListener { pad.peelAway() }
         findViewById<TextView>(R.id.city).setOnClickListener { pickCity() }
+        findViewById<TextView>(R.id.weather).setOnClickListener { playWeather() }
 
         findViewById<Button>(R.id.debug).apply {
             visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
@@ -57,6 +60,7 @@ class MainActivity : Activity() {
                 refresh = {
                     show(topDate())
                     showStory()
+                    showWeather()
                     CalendarWidget.refreshAll(this@MainActivity)
                 },
                 preview = { id ->
@@ -64,6 +68,7 @@ class MainActivity : Activity() {
                     this@MainActivity.findViewById<StickmanView>(R.id.story_stickman).apply {
                         parts = Parts.everything
                         action = Actions.get(id)
+                        props = emptySet()
                     }
                     this@MainActivity.findViewById<TextView>(R.id.story_title).text = "動作：$id"
                 },
@@ -114,6 +119,43 @@ class MainActivity : Activity() {
         // 可能隔天才回到 App，最上面那張要重新算
         show(topDate())
         showStory()
+        refreshWeather()
+    }
+
+    /** 先顯示存著的天氣，背景抓到新的再更新畫面和小工具。 */
+    private fun refreshWeather() {
+        showWeather()
+        thread {
+            if (WeatherService.refreshIfStale(this)) runOnUiThread {
+                if (isDestroyed) return@runOnUiThread
+                showWeather()
+                show(date)
+                CalendarWidget.refreshAll(this)
+            }
+        }
+    }
+
+    private fun showWeather() {
+        val weather = WeatherService.current(this)
+        findViewById<TextView>(R.id.weather).text =
+            if (weather == null) getString(R.string.weather_none) else getString(R.string.weather_row, weather.long)
+    }
+
+    private val backToStory = Runnable { showStory() }
+
+    /** 點天氣：故事卡上的火柴人演一段，幾秒後回到故事。 */
+    private fun playWeather() {
+        val weather = WeatherService.current(this) ?: return refreshWeather()
+        val mood = weather.mood
+        findViewById<StickmanView>(R.id.story_stickman).apply {
+            parts = book.parts
+            action = Actions.get(mood.action)
+            props = mood.props
+        }
+        findViewById<TextView>(R.id.story_title).text = weather.long
+        findViewById<TextView>(R.id.story_text).text = "${book.name}：${mood.line}"
+        pad.removeCallbacks(backToStory)
+        pad.postDelayed(backToStory, 6000)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -289,6 +331,7 @@ class MainActivity : Activity() {
         findViewById<StickmanView>(R.id.story_stickman).apply {
             parts = book.parts
             action = Actions.get(if (book.page == 0) null else book.lastAction)
+            props = book.lastProps
         }
         val started = book.page > 0
         findViewById<TextView>(R.id.story_title).text =

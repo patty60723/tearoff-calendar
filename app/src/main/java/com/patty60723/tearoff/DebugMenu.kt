@@ -7,6 +7,8 @@ import android.text.InputType
 import android.widget.EditText
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.story.StoryBook
+import com.patty60723.tearoff.weather.Mood
+import com.patty60723.tearoff.weather.WeatherService
 import java.time.LocalDate
 
 /** 測試版才有的除錯選單：假裝別天、跳頁、重來、看動作。 */
@@ -28,6 +30,7 @@ class DebugMenu(
             "跳到第幾頁…（現在第 ${book.page} 頁）",
             "重設故事，從第 0 頁開始",
             "看火柴人的動作…",
+            "假裝天氣是…（現在：${WeatherService.fakeMood(activity)?.keyword ?: "真的天氣"}）",
             "測試閃退紀錄（App 會閃退一次）",
         )
         AlertDialog.Builder(activity)
@@ -40,7 +43,8 @@ class DebugMenu(
                     3 -> askPage()
                     4 -> confirm("確定要從頭開始？名字也會清掉。") { book.reset(); refresh() }
                     5 -> pickAction()
-                    6 -> throw RuntimeException("除錯選單：測試閃退紀錄")
+                    6 -> pickWeather()
+                    7 -> throw RuntimeException("除錯選單：測試閃退紀錄")
                 }
             }
             .show()
@@ -83,6 +87,18 @@ class DebugMenu(
         AlertDialog.Builder(activity)
             .setTitle("看火柴人的動作")
             .setItems(ids) { _, which -> preview(ids[which]) }
+            .show()
+    }
+
+    private fun pickWeather() {
+        val moods = Mood.entries
+        val names = moods.map { "${it.keyword}（${it.line}）" } + "用真的天氣"
+        AlertDialog.Builder(activity)
+            .setTitle("假裝天氣是")
+            .setItems(names.toTypedArray()) { _, which ->
+                WeatherService.setFakeMood(activity, moods.getOrNull(which))
+                refresh()
+            }
             .show()
     }
 

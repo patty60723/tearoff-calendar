@@ -14,6 +14,8 @@ import android.widget.RemoteViews
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.stickman.StickmanRenderer
 import com.patty60723.tearoff.story.StoryBook
+import com.patty60723.tearoff.weather.WeatherService
+import kotlin.concurrent.thread
 import java.time.LocalDate
 
 class CalendarWidget : AppWidgetProvider() {
@@ -21,6 +23,19 @@ class CalendarWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         render(context, manager, ids)
         MidnightAlarm.schedule(context)
+        refreshWeather(context)
+    }
+
+    /** 先用存著的天氣畫，背景抓到新的再畫一次。 */
+    private fun refreshWeather(context: Context) {
+        val pending = goAsync()
+        thread {
+            try {
+                if (WeatherService.refreshIfStale(context)) refreshAll(context)
+            } finally {
+                pending.finish()
+            }
+        }
     }
 
     override fun onAppWidgetOptionsChanged(
@@ -44,6 +59,7 @@ class CalendarWidget : AppWidgetProvider() {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 refreshAll(context)
                 MidnightAlarm.schedule(context)
+                refreshWeather(context)
             }
         }
     }
@@ -104,7 +120,10 @@ class CalendarWidget : AppWidgetProvider() {
         fun sunText(context: Context, page: DayPage): String {
             val city = Cities.selected(context)
             val times = SunTimes.of(page.date, city.lat, city.lon)
-            return "日出 ${times.sunrise ?: "--:--"}\n日落 ${times.sunset ?: "--:--"}"
+            val sun = "日出 ${times.sunrise ?: "--:--"}\n日落 ${times.sunset ?: "--:--"}"
+            // 今天那頁才印天氣
+            val weather = if (page.date == AppClock.today(context)) WeatherService.current(context) else null
+            return if (weather == null) sun else "${weather.short}\n$sun"
         }
 
         /** 頁面上最大的那句：「宜 出行・祭祀」。 */
@@ -137,6 +156,7 @@ class CalendarWidget : AppWidgetProvider() {
             val frames = StickmanRenderer.frames(
                 book.parts, action, FRAME_IDS.size,
                 widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(),
+                props = if (book.page == 0) emptySet() else book.lastProps,
             )
             frames.forEachIndexed { i, bitmap -> views.setImageViewBitmap(FRAME_IDS[i], bitmap) }
             views.setInt(R.id.stickman, "setFlipInterval", (action.periodMs / FRAME_IDS.size).toInt())

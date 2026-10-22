@@ -92,6 +92,21 @@ class StoryEngineTest {
     }
 
     @Test
+    fun weatherBeatsNeedWeather() {
+        val date = LocalDate.of(2026, 12, 3)
+        val weatherBeats = beats.filter { it.weather != null }
+        assertTrue(weatherBeats.isNotEmpty())
+        for (beat in weatherBeats) {
+            assertFalse(beat.id, StoryEngine.matches(beat, context(40, date)))
+            assertTrue(beat.id, StoryEngine.matches(beat, context(40, date).copy(weather = beat.weather)))
+        }
+        // 每種天氣都有片段
+        for (keyword in listOf("晴", "熱", "陰", "霧", "雨", "雷雨", "冷", "雪")) {
+            assertTrue(keyword, weatherBeats.any { it.weather == keyword })
+        }
+    }
+
+    @Test
     fun categories() {
         assertEquals("出門", YiJiCategory.of("出行"))
         assertEquals("動工", YiJiCategory.of("動土"))

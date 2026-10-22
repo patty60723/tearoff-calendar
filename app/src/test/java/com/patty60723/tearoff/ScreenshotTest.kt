@@ -63,6 +63,29 @@ class ScreenshotTest {
         save("widget-tall-june", widget(PageLayout.TALL, LocalDate.of(2026, 6, 19)), 170, 255)
     }
 
+    /** 每種天氣三格：火柴人全身＋道具 */
+    @Test
+    fun weatherMoods() {
+        val moods = com.patty60723.tearoff.weather.Mood.entries
+        val cell = 180
+        val bitmap = Bitmap.createBitmap(cell * 3, cell * 4 / 3 * moods.size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(Palettes.PAPER)
+        moods.forEachIndexed { row, mood ->
+            for (col in 0 until 3) {
+                canvas.save()
+                canvas.translate(col * cell.toFloat(), row * cell * 4 / 3f)
+                com.patty60723.tearoff.stickman.StickmanRenderer.draw(
+                    canvas, com.patty60723.tearoff.stickman.Parts.everything,
+                    com.patty60723.tearoff.stickman.Actions.get(mood.action), col / 3f,
+                    cell.toFloat(), cell * 4 / 3f, mood.props,
+                )
+                canvas.restore()
+            }
+        }
+        File(out, "weather-moods.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
     @Test
     fun cover() {
         StoryBook(context).reset()
@@ -78,6 +101,13 @@ class ScreenshotTest {
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         val root = activity.window.decorView
         save("app", root, root.width, root.height, background = false)
+
+        // 假裝下雨，點天氣那行：故事卡上的火柴人撐傘
+        com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, com.patty60723.tearoff.weather.Mood.RAIN)
+        val rainy = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        rainy.findViewById<android.widget.TextView>(R.id.weather).performClick()
+        rainy.window.decorView.let { save("app-weather", it, it.width, it.height, background = false) }
+        com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, null)
 
         val pad = activity.findViewById<TearPageView>(R.id.page)
         pad.holdPeel(rightCorner = true, x = pad.width * 0.42f, y = pad.height * 0.62f)

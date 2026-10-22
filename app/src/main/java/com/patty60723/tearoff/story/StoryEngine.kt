@@ -14,6 +14,8 @@ data class StoryContext(
     val yi: List<String> = emptyList(),
     val ji: List<String> = emptyList(),
     val wearing: Set<String> = emptySet(),
+    /** 撕到今天那頁時才有：天氣關鍵字 */
+    val weather: String? = null,
     val name: String = StoryEngine.DEFAULT_NAME,
     /** 最近出現過的片段 id，先不重複 */
     val recent: List<String> = emptyList(),
@@ -49,6 +51,7 @@ object StoryEngine {
             (beat.yiCategory == null || beat.yiCategory in ctx.yiCategories) &&
             (beat.jiCategory == null || beat.jiCategory in ctx.jiCategories) &&
             (beat.wearing == null || beat.wearing in ctx.wearing) &&
+            (beat.weather == null || beat.weather == ctx.weather) &&
             (beat.seasons.isEmpty() || ctx.season in beat.seasons)
 
     /**

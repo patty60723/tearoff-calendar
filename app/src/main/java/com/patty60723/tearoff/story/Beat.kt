@@ -18,6 +18,8 @@ data class Beat(
     val yiCategory: String? = null,
     val jiCategory: String? = null,
     val wearing: String? = null,
+    /** 天氣關鍵字：晴、熱、陰、霧、雨、雷雨、冷、雪 */
+    val weather: String? = null,
     val seasons: List<String> = emptyList(),
     val weight: Int = 1,
     val text: String,
@@ -55,6 +57,7 @@ object StoryParser {
                 yiCategory = w.string("yiCategory"),
                 jiCategory = w.string("jiCategory"),
                 wearing = w.string("wearing"),
+                weather = w.string("weather"),
                 seasons = w.optJSONArray("season").strings(),
                 weight = o.optInt("weight", 1),
                 text = o.getString("text"),

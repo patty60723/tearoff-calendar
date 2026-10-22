@@ -23,9 +23,16 @@ class StickmanView @JvmOverloads constructor(
             invalidate()
         }
 
+    /** 天氣道具，見 [com.patty60723.tearoff.weather.Props] */
+    var props: Set<String> = emptySet()
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     override fun onDraw(canvas: Canvas) {
         val phase = (SystemClock.uptimeMillis() % action.periodMs) / action.periodMs.toFloat()
-        StickmanRenderer.draw(canvas, parts, action, phase, width.toFloat(), height.toFloat())
+        StickmanRenderer.draw(canvas, parts, action, phase, width.toFloat(), height.toFloat(), props)
         if (isShown) postInvalidateOnAnimation()
     }
 }

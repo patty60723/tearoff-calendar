@@ -2,6 +2,8 @@ package com.patty60723.tearoff.story
 
 import android.content.Context
 import com.patty60723.tearoff.Almanac
+import com.patty60723.tearoff.AppClock
+import com.patty60723.tearoff.weather.WeatherService
 import com.patty60723.tearoff.stickman.Parts
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -10,6 +12,7 @@ import java.time.temporal.ChronoUnit
 class StoryBook(context: Context) {
     private val prefs = context.getSharedPreferences("story", Context.MODE_PRIVATE)
     private val assets = context.assets
+    private val appContext = context.applicationContext
 
     val beats: List<Beat> by lazy {
         assets.list(DIR).orEmpty().filter { it.endsWith(".json") }.sorted().flatMap { file ->
@@ -26,6 +29,8 @@ class StoryBook(context: Context) {
 
     val lastText: String? get() = prefs.getString(KEY_TEXT, null)
     val lastAction: String? get() = prefs.getString(KEY_ACTION, null)
+    /** 天氣片段的道具（傘、草帽……），讓火柴人的動作配得起來 */
+    val lastProps: Set<String> get() = prefs.getStringSet(KEY_PROPS, null).orEmpty()
 
     /** 目前長出來的部位和配件 */
     val parts: Set<String> get() = StoryEngine.unlocked(beats, page)
@@ -57,7 +62,9 @@ class StoryBook(context: Context) {
         val beat = StoryEngine.pick(beats, ctx)
         val text = beat?.let { StoryEngine.render(it, ctx) } ?: ""
         val recent = (listOfNotNull(beat?.id) + recent()).take(RECENT)
+        val props = if (beat?.weather != null) WeatherService.current(appContext)?.mood?.props.orEmpty() else emptySet()
         prefs.edit()
+            .putStringSet(KEY_PROPS, props)
             .putInt(KEY_PAGE, newPage)
             .putString(KEY_LAST_DATE, date.toString())
             .putString(KEY_TEXT, text)
@@ -87,6 +94,7 @@ class StoryBook(context: Context) {
             .putString(KEY_LAST_DATE, date.toString())
             .putString(KEY_TEXT, beat?.let { StoryEngine.render(it, ctx) })
             .putString(KEY_ACTION, beat?.action)
+            .remove(KEY_PROPS)
             .remove(KEY_RECENT)
             .apply()
     }
@@ -101,6 +109,8 @@ class StoryBook(context: Context) {
             yi = day.yi,
             ji = day.ji,
             wearing = parts intersect Parts.accessories,
+            // 只有撕到今天那頁時，今天的天氣才算數
+            weather = if (date == AppClock.today(appContext)) WeatherService.current(appContext)?.mood?.keyword else null,
             name = name,
             recent = recent(),
         )
@@ -118,6 +128,7 @@ class StoryBook(context: Context) {
         const val KEY_NAME = "name"
         const val KEY_TEXT = "lastText"
         const val KEY_ACTION = "lastAction"
+        const val KEY_PROPS = "lastProps"
         const val KEY_LAST_DATE = "lastTornDate"
         const val KEY_RECENT = "recent"
     }

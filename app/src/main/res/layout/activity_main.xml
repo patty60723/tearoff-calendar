@@ -72,6 +72,19 @@
             android:textColor="@color/ink_soft"
             android:textSize="12sp" />
 
+        <!-- 今天的天氣，點一下火柴人就會演給你看 -->
+        <TextView
+            android:id="@+id/weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="?android:attr/selectableItemBackground"
+            android:fontFamily="serif"
+            android:letterSpacing="0.1"
+            android:padding="8dp"
+            android:textColor="@color/ink"
+            android:textSize="15sp" />
+
         <!-- 日出日落用哪個城市算，點一下可以換 -->
         <TextView
             android:id="@+id/city"
@@ -165,6 +178,13 @@
             android:text="@string/how_to"
             android:textColor="@color/ink_soft"
             android:textSize="13sp" />
+
+        <TextView
+            style="@style/SectionBody"
+            android:layout_marginTop="4dp"
+            android:text="@string/weather_credit"
+            android:textColor="@color/ink_soft"
+            android:textSize="11sp" />
 
         <!-- 只有測試版看得到 -->
         <Button
