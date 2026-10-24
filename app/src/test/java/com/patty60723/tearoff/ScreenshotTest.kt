@@ -273,14 +273,14 @@ class ScreenshotTest {
             painter(c).draw(canvas, x, y, cell.toFloat(), h.toFloat())
             canvas.drawText(c.text, x + 8, y + 24, label)
         }
-        // 放大：包袱附近（原型座標約 (47, 78)）放到格子中間，3 倍
+        // 放大：包袱附近（原型座標約 (47, 80)）放到格子中間，3 倍
         zoom.forEachIndexed { i, c ->
             val x = i * cell.toFloat()
             val y = h * 2f
             val s = cell / 40f
             canvas.save()
             canvas.clipRect(x, y, x + cell, y + cell)
-            painter(c).draw(canvas, x + cell / 2f - 47 * s, y + cell / 2f - 98 * s, 120 * s, 160 * s)
+            painter(c).draw(canvas, x + cell / 2f - 47 * s, y + cell / 2f - 100 * s, 120 * s, 160 * s)
             canvas.restore()
             canvas.drawText(c.text, x + 8, y + 24, label)
         }
