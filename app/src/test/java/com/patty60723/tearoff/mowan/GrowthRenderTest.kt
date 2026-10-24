@@ -17,8 +17,8 @@ class GrowthRenderTest {
 
     private fun parts(page: Int) = Mowan.partsOf(StoryEngine.unlocked(beats, page))
 
-    /** 會畫出來的部位（包袱 V3 在 W4 才畫） */
-    private val drawable = setOf("body", "head", "flick", "eyes", "blush", "armL", "armR", "legL", "legR", "mouth", "redToes", "scarf", "paperHat")
+    /** 會畫出來的部位 */
+    private val drawable = setOf("body", "head", "flick", "eyes", "blush", "armL", "armR", "legL", "legR", "mouth", "redToes", "scarf", "paperHat", "bundle")
     /** 環境，不屬於角色，每一頁都可以有 */
     private val environment = setOf("ground", "sun", "rain", "clouds", "bolt", "snow", "mist", "heat")
     /** 動作附帶的效果 → 需要的部位 */
@@ -52,11 +52,11 @@ class GrowthRenderTest {
         for (page in 1..14) {
             val parts = parts(page)
             val caps = Capabilities.of(parts)
-            for (hatOn in listOf(true, false)) {
-                val expected = (parts intersect drawable).filterTo(HashSet()) { it != "paperHat" || hatOn }
+            for ((hatOn, bundleOn) in listOf(true to true, false to false, true to false, false to true)) {
+                val expected = (parts intersect drawable).filterTo(HashSet()) { (it != "paperHat" || hatOn) && (it != "bundle" || bundleOn) }
                 for ((name, pose) in poses(caps)) {
-                    val at = "第 $page 頁 $name（紙帽${if (hatOn) "戴著" else "脫下"}）"
-                    val drawn = Mowan.render(parts, 0, hatOn, pose).ops.map { it.part }
+                    val at = "第 $page 頁 $name（紙帽${if (hatOn) "戴著" else "脫下"}、包袱${if (bundleOn) "背著" else "卸下"}）"
+                    val drawn = Mowan.render(parts, 0, hatOn, pose, bundleOn = bundleOn).ops.map { it.part }
                     assertTrue("$at 有沒標部位的筆畫", drawn.none { it.isEmpty() })
                     val character = drawn.filterTo(HashSet()) { it !in environment && it !in effects.keys }
                     assertEquals("$at 畫出的部位", expected, character)

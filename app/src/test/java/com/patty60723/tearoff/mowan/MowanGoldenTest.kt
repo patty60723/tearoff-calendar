@@ -79,8 +79,10 @@ class MowanGoldenTest {
             val weather = Mowan.Weather.valueOf(g.getString("weather").uppercase())
             val clock = g.getDouble("clock")
             val label = "第 $page 頁、$weather ${clock.toInt()}ms、影格 $variant、紙帽${if (hatOn) "戴著" else "脫下"}"
+            // 這份黃金數值來自 core.js 的 Renderer，那時還沒有包袱，所以比對「卸下包袱」的畫面；包袱另外在 BundleTest 比對
             val frame = Mowan.frame(
                 Mowan.partsOf(StoryEngine.unlocked(beats, page)), variant, hatOn, weather, clock, g.getInt("rainStep"),
+                bundleOn = false,
             )
 
             val head = Regex("""translate\(0 (\S+)\) rotate\((\S+) 60\.5 66\)""").find(g.getString("headTransform"))!!

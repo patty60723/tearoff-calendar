@@ -26,6 +26,10 @@ class MowanView @JvmOverloads constructor(
     var hatOn: Boolean = true
         set(value) { if (field != value) { field = value; reset() } }
 
+    /** 包袱是否背著（第 14 頁前不管這個值都不畫） */
+    var bundleOn: Boolean = true
+        set(value) { if (field != value) { field = value; reset() } }
+
     /** 換天氣時姿勢從頭開始（伸懶腰從站直開始） */
     var weather: Mowan.Weather = Mowan.Weather.NONE
         set(value) { if (field != value) { field = value; reset() } }
@@ -59,12 +63,12 @@ class MowanView @JvmOverloads constructor(
         val elapsed = SystemClock.uptimeMillis() - startMs
         val variant = fixedVariant ?: if (still) 0 else Mowan.variantAt(elapsed)
         val painter = if (weather == Mowan.Weather.NONE) {
-            boil[variant] ?: MowanPainter(Mowan.frame(parts, variant, hatOn)).also { boil[variant] = it }
+            boil[variant] ?: MowanPainter(Mowan.frame(parts, variant, hatOn, bundleOn = bundleOn)).also { boil[variant] = it }
         } else {
             val clock = if (still) stillClock(weather) else elapsed.toDouble()
             val rain = if (still) 0 else Mowan.rainStepAt(elapsed)
             // 打雷的時間點由排程決定（W5），在那之前雷雨不會嚇一跳
-            MowanPainter(Mowan.frame(parts, variant, hatOn, weather, clock, rain, still = still))
+            MowanPainter(Mowan.frame(parts, variant, hatOn, weather, clock, rain, still = still, bundleOn = bundleOn))
         }
         painter.draw(
             canvas, paddingLeft.toFloat(), paddingTop.toFloat(),

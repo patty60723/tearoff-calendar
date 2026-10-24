@@ -156,6 +156,7 @@ class MainActivity : Activity() {
             visibility = if (v3) View.VISIBLE else View.GONE
             parts = Mowan.partsOf(book.parts)
             hatOn = MowanSettings.hatOn(this@MainActivity)
+            bundleOn = MowanSettings.bundleOn(this@MainActivity)
             this.weather = weather
         }
     }

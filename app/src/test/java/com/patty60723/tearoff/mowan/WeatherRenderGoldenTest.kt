@@ -41,6 +41,8 @@ class WeatherRenderGoldenTest {
             val frame = Mowan.frame(
                 Mowan.partsOf(StoryEngine.unlocked(beats, page)), g.getInt("variant"), true, weather, t, g.getInt("rainStep"),
                 sinceStrikeMs = if (g.isNull("sinceStrike")) null else g.getDouble("sinceStrike"), still = still,
+                // 這份黃金數值匯出時沒有畫包袱；包袱另外在 BundleTest 比對
+                bundleOn = false,
             )
 
             // 頭：translate(dx dy) rotate(a 60.5 66)

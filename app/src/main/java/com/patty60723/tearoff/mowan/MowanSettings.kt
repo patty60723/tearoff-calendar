@@ -8,6 +8,7 @@ object MowanSettings {
     private const val PREFS = "mowan"
     private const val KEY_STORY_CARD = "storyCard"
     private const val KEY_HAT_ON = "paperHatOn"
+    private const val KEY_BUNDLE_ON = "bundleOn"
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -28,9 +29,19 @@ object MowanSettings {
         prefs(context).edit().putBoolean(KEY_HAT_ON, on).apply()
     }
 
+    /**
+     * 包袱有沒有背著（D-05 Confirmed）。「取得」由故事決定（第 14 頁解鎖，取得後永久擁有），這裡只存「背著」。
+     * 預設背著；可以自由卸下、再背上。目前切換入口只在除錯選單。
+     */
+    fun bundleOn(context: Context): Boolean = prefs(context).getBoolean(KEY_BUNDLE_ON, true)
+
+    fun setBundleOn(context: Context, on: Boolean) {
+        prefs(context).edit().putBoolean(KEY_BUNDLE_ON, on).apply()
+    }
+
     /** 故事從頭開始時，裝備狀態也回到預設 */
     fun resetEquipment(context: Context) {
-        prefs(context).edit().remove(KEY_HAT_ON).apply()
+        prefs(context).edit().remove(KEY_HAT_ON).remove(KEY_BUNDLE_ON).apply()
     }
 
     /** 天氣 → V3 場景。只有晴、雨有定案的設計；熱、陰、霧、冷、雪先用一般站姿（D-10）。 */

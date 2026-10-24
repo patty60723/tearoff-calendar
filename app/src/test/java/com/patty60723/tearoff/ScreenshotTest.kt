@@ -234,4 +234,56 @@ class ScreenshotTest {
         }
         File(out, "mowan-weather.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
+
+    /**
+     * 包袱 B1（W4）：第 13、14 頁、卸下包袱，以及第 14 頁各種姿勢。
+     * 第三列是同樣幾格把包袱附近放大 3 倍。
+     */
+    @Test
+    fun mowanBundle() {
+        val book = StoryBook(context)
+        class Cell(val text: String, val page: Int, val weather: Weather, val t: Double, val bundleOn: Boolean = true, val since: Double? = null)
+        val cells = listOf(
+            Cell("第 13 頁", 13, Weather.NONE, 0.0), Cell("第 14 頁 背著", 14, Weather.NONE, 0.0), Cell("第 14 頁 卸下", 14, Weather.NONE, 0.0, bundleOn = false),
+            Cell("晴：伸懶腰最高", 14, Weather.SUNNY, 2750.0), Cell("雨：撐傘", 14, Weather.RAINY, 1050.0), Cell("雷雨", 14, Weather.THUNDER, 2100.0),
+            Cell("雷雨：嚇一跳", 14, Weather.THUNDER, 5150.0, since = 150.0), Cell("冷：抱身", 14, Weather.COLD, 2300.0), Cell("熱：擦汗", 14, Weather.HOT, 1050.0),
+            Cell("陰", 14, Weather.CLOUDY, 1500.0), Cell("霧", 14, Weather.FOG, 2500.0), Cell("雪", 14, Weather.SNOW, 2000.0),
+        )
+        val zoom = listOf(cells[1], cells[3], cells[4], cells[5], cells[7], cells[2])
+        val cell = 200
+        val h = cell * 4 / 3
+        val cols = 6
+        val bitmap = Bitmap.createBitmap(cell * cols, h * 2 + cell, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(com.patty60723.tearoff.mowan.Mowan.IVORY)
+        val label = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = com.patty60723.tearoff.mowan.Mowan.INK
+            textSize = 20f
+        }
+        fun painter(c: Cell): com.patty60723.tearoff.mowan.MowanPainter {
+            val parts = com.patty60723.tearoff.mowan.Mowan.partsOf(com.patty60723.tearoff.story.StoryEngine.unlocked(book.beats, c.page))
+            return com.patty60723.tearoff.mowan.MowanPainter(com.patty60723.tearoff.mowan.Mowan.frame(
+                parts, 0, true, c.weather, c.t, com.patty60723.tearoff.mowan.Mowan.rainStepAt(c.t.toLong()),
+                sinceStrikeMs = c.since, bundleOn = c.bundleOn,
+            ))
+        }
+        cells.forEachIndexed { i, c ->
+            val x = (i % cols) * cell.toFloat()
+            val y = (i / cols) * h.toFloat()
+            painter(c).draw(canvas, x, y, cell.toFloat(), h.toFloat())
+            canvas.drawText(c.text, x + 8, y + 24, label)
+        }
+        // 放大：包袱附近（原型座標約 (47, 78)）放到格子中間，3 倍
+        zoom.forEachIndexed { i, c ->
+            val x = i * cell.toFloat()
+            val y = h * 2f
+            val s = cell / 40f
+            canvas.save()
+            canvas.clipRect(x, y, x + cell, y + cell)
+            painter(c).draw(canvas, x + cell / 2f - 47 * s, y + cell / 2f - 98 * s, 120 * s, 160 * s)
+            canvas.restore()
+            canvas.drawText(c.text, x + 8, y + 24, label)
+        }
+        File(out, "mowan-bundle.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
 }

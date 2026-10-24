@@ -24,6 +24,7 @@
 |---|---|---|---|
 | `app/src/test/resources/mowan/golden.json` | `node docs/prototypes/tools/export-golden.js` | 一般、晴、雨在第 1–14 頁的整張畫面（每一條筆畫），來源 `core.js` 的 `Renderer` | 0.011（原型輸出小數兩位） |
 | `app/src/test/resources/mowan/golden-weather.json` | `node docs/prototypes/tools/export-golden-weather.js` | 熱、陰、霧、雷雨、冷、雪 B 的姿勢參數，來源 `weather.js` | 1e-6 |
+| `app/src/test/resources/mowan/golden-bundle.json` | `node docs/prototypes/tools/export-golden-bundle.js` | 包袱 B1 自己的筆畫（同一張畫面有、沒有包袱的差），第 14 頁 × 一般、晴、雨、熱、陰、霧、雷雨、冷、雪共 19 張 | 座標 0.011、不透明度 0.0006 |
 | `app/src/test/resources/mowan/golden-weather-render.json` | `node docs/prototypes/tools/export-golden-weather-render.js` | 上面 6 種天氣的整張畫面（每一條筆畫），第 1、3、4、5、8、14 頁 × 2–3 個時間點，雪另有靜止畫面，共 96 張；來源 `weather.js` 的 `drawFrame` | 座標 0.011、不透明度 0.0006 |
 
 `golden-weather.json` 的內容：

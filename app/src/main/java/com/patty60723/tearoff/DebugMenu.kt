@@ -43,6 +43,7 @@ class DebugMenu(
             "看墨丸 V3…",
             "故事卡用墨丸 V3（現在：${if (MowanSettings.storyCard(activity)) "開" else "關"}）",
             "墨丸的紙帽（現在：${hatState()}）",
+            "墨丸的包袱（現在：${bundleState()}）",
         )
         AlertDialog.Builder(activity)
             .setTitle("除錯")
@@ -52,7 +53,7 @@ class DebugMenu(
                     1 -> setToday(today.plusDays(1))
                     2 -> setToday(null)
                     3 -> askPage()
-                    4 -> confirm("確定要從頭開始？名字和紙帽也會回到預設。") {
+                    4 -> confirm("確定要從頭開始？名字、紙帽和包袱也會回到預設。") {
                         book.reset()
                         MowanSettings.resetEquipment(activity)
                         refresh()
@@ -67,6 +68,10 @@ class DebugMenu(
                     }
                     10 -> {
                         MowanSettings.setHatOn(activity, !MowanSettings.hatOn(activity))
+                        refresh()
+                    }
+                    11 -> {
+                        MowanSettings.setBundleOn(activity, !MowanSettings.bundleOn(activity))
                         refresh()
                     }
                 }
@@ -132,11 +137,18 @@ class DebugMenu(
         return if (Capabilities.of(Mowan.partsOf(book.parts)).paperHat) on else "還沒拿到，拿到後$on"
     }
 
+    /** 包袱第 14 頁才拿到；拿到之前切換也會記住，拿到時就照這個狀態 */
+    private fun bundleState(): String {
+        val on = if (MowanSettings.bundleOn(activity)) "背著" else "卸下"
+        return if ("bundle" in Mowan.partsOf(book.parts)) on else "還沒拿到，拿到後$on"
+    }
+
     /** 墨丸 V3 的預覽：可以切頁數、天氣、紙帽，line boil 會自己動。 */
     private fun showMowan() {
         val density = activity.resources.displayMetrics.density
         val view = MowanView(activity).apply {
             hatOn = MowanSettings.hatOn(activity)
+            bundleOn = MowanSettings.bundleOn(activity)
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (320 * density).toInt())
         }
         val label = TextView(activity)

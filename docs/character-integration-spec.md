@@ -324,7 +324,7 @@ fun capabilitiesFor(page: Int): Capabilities
 | 雷雨：撐傘為主、偶發驚嚇 | ✓ | ✓ | ✓ 原型取樣格（含驚嚇前後） | **已實作**（W2 姿勢、W3 繪製）；打雷排程 Pending（W5）；故事卡未接（W6） |
 | 冷：輕抱、微抖 | ✓ | ✓ | ✓ 原型取樣格 | **已實作**（W2 姿勢、W3 繪製，黃金數值逐筆比對）；故事卡未接（W6）；連續播放的視覺驗收 Pending |
 | 雪：B 抬頭看雪、身體微縮 | ✓ | ✓ | ✓ 原型取樣格 | **已實作**（W2 姿勢、W3 繪製，黃金數值逐筆比對）；故事卡未接（W6）；連續播放的視覺驗收 Pending |
-| 包袱 B1 | ✓ | ✓ | ✓ 一般、伸懶腰、撐傘、雷雨、冷、霧、雪 B | Pending |
+| 包袱 B1 | ✓ | ✓ | ✓ 一般、伸懶腰、撐傘、雷雨、冷、霧、雪 B | **已實作**（W4，黃金數值逐筆比對；CI 截圖 `mowan-bundle.png`）；故事卡用 V3 時第 14 頁就會顯示；裝備切換只有除錯選單 |
 
 「原型取樣格」是指每種天氣在第 14 頁取 10 格、第 1–10 頁取代表格，加上財神帽、聖誕帽、玉兔耳朵各配 6 種天氣（`audit/a-time.png`、`b-growth.png`、`c-hats.png`）。
 以下都還**沒有**驗收（Pending）：
@@ -445,7 +445,7 @@ fun capabilitiesFor(page: Int): Capabilities
 
 - 圖層：
   - 在地面之後、傘柄之前，所以會在身體、手臂、圍巾、頭之後。
-  - Android 的 `Mowan.Layer` 要在 `GROUND` 和 `SHAFT` 之間加一層 `BUNDLE`。
+  - Android 的 `Mowan.Layer` 在 `GROUND` 和 `SHAFT` 之間加了 `BUNDLE`（W4 已實作）。
   - 背帶也畫在這一層，末端由之後畫的圍巾蓋住。
 - 形狀：
   - 收口的布袋、兩道淡皺褶、兩個布角、一個結、三顆半透明 Ivory 碎花點，外加一條背帶。
@@ -458,7 +458,7 @@ fun capabilitiesFor(page: Int): Capabilities
   - 往上提 1.6 × `raise`，以布結為中心轉 −6° × `raise`。
   - 沒有物理模擬。
 - 48px 不畫。
-- 第 14 頁取得後永久擁有，可以裝備、卸下（D-05 Confirmed）：跟紙帽一樣，「取得」看故事解鎖，「裝備」另外存。裝備 UI 還沒做。
+- 第 14 頁取得後永久擁有，可以裝備、卸下（D-05 Confirmed）：跟紙帽一樣，「取得」看故事解鎖，「裝備」另外存在 prefs `mowan` 的 `bundleOn`（預設背著；故事從頭開始時回到預設）。目前切換入口只有除錯選單「墨丸的包袱」，給使用者的入口還沒設計。
 - 布色 Sage `#91A49B`（D-20 Confirmed）。
 
 ### 5.6 需要修改的 Kotlin

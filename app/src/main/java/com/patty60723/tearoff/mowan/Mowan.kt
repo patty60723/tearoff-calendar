@@ -150,6 +150,27 @@ object Mowan {
         }
     }
 
+    // ---------- 包袱 B1（第 14 頁，docs/prototypes/src/weather.js） ----------
+    private object Bundle {
+        /** 以布結為支點，手舉高時包袱繞這裡擺 */
+        val PIVOT = Pt(48.0, 73.6)
+        /** 背帶：從結往脖子後面繞，末端藏在圍巾下面 */
+        val STRAP = pts(49.6, 72.6, 52.6, 71.2, 55.6, 70.6, 58.2, 70.8)
+        /** 收口的布袋 */
+        val SACK = Geometry.resample(pts(
+            38.6, 82.6, 38.4, 78.4, 40.6, 75.2, 44.4, 73.8, 47.8, 74.6, 51.4, 73.8,
+            54.2, 75.8, 55.2, 79.8, 54.2, 84.4, 50.8, 87.6, 45.4, 88.4, 40.8, 86.8,
+        ), 64)
+        val FOLD1 = pts(46.6, 75.4, 45.2, 78.6, 44.8, 82.0)
+        val FOLD2 = pts(49.2, 75.4, 50.6, 78.4, 50.8, 81.6)
+        /** 兩個布角（擺動後才取樣，跟原型一樣） */
+        val EAR_L = pts(46.4, 73.4, 43.4, 69.8, 44.4, 68.6, 47.8, 72.2)
+        val EAR_R = pts(49.2, 72.4, 52.0, 68.6, 53.4, 69.6, 50.4, 73.6)
+        val KNOT = Geometry.ellipsePts(48.0, 73.6, 2.3, 1.7)
+        /** 碎花：小、淡 */
+        val DOTS = pts(42.4, 81.4, 48.6, 84.4, 51.4, 79.4)
+    }
+
     // ---------- 故事解鎖 → 畫哪些部位 ----------
 
     /** chapter1.json 的 unlock 名稱 → 畫面上的部位。「一筆」跟頭一起出現（Q1），腮紅跟眼睛一起出現。 */
@@ -165,7 +186,7 @@ object Mowan {
         "redToes" to listOf("redToes"),
         "scarf" to listOf("scarf"),
         "paperHat" to listOf("paperHat"),
-        // bundle（第 14 頁）：V3 包袱還沒設計（Q21 TBD），先不畫
+        // bundle（第 14 頁）：包袱 B1；有沒有背著另外存（D-05，見 MowanSettings.bundleOn）
         "bundle" to listOf("bundle"),
     )
 
@@ -180,7 +201,7 @@ object Mowan {
     enum class Weather { NONE, SUNNY, RAINY, HOT, CLOUDY, FOG, THUNDER, COLD, SNOW }
 
     /** 原型的圖層順序；同一層裡按加入順序畫 */
-    enum class Layer { SKY, CLOUDS, RAIN, BACKDROP, GROUND, SHAFT, BODY, SCARF, HEAD, HAND, CANOPY, FRONT }
+    enum class Layer { SKY, CLOUDS, RAIN, BACKDROP, GROUND, BUNDLE, SHAFT, BODY, SCARF, HEAD, HAND, CANOPY, FRONT }
 
     /** 線性漸層（userSpaceOnUse），stops 是 (位置, 顏色, 不透明度) */
     data class Gradient(val x1: Double, val y1: Double, val x2: Double, val y2: Double, val stops: List<Triple<Float, Int, Float>>)
@@ -222,6 +243,7 @@ object Mowan {
      * @param umbrellaScale 傘的大小（D-03 未定，傾向原尺寸 1.0）
      * @param sinceStrikeMs 雷雨：打雷後經過的毫秒數，null 表示沒有打雷
      * @param still 關閉動畫時的靜止畫面（雪花不放在頭和臉上）
+     * @param bundleOn 包袱是否背著（裝備狀態，見 [MowanSettings.bundleOn]；第 14 頁前不管這個值都不畫）
      */
     fun frame(
         parts: Set<String>,
@@ -233,6 +255,7 @@ object Mowan {
         umbrellaScale: Double = 1.0,
         sinceStrikeMs: Double? = null,
         still: Boolean = false,
+        bundleOn: Boolean = true,
     ): Frame {
         val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
@@ -249,7 +272,7 @@ object Mowan {
             else -> if (umbrella) Poses.rainy(clockMs) else Poses.NORMAL
         }
         if (rainy && !umbrella) p = p.copy(face = Face.RAINY, flick = Flick.DROOPED)
-        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still)
+        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still, bundleOn)
     }
 
     /**
@@ -266,6 +289,7 @@ object Mowan {
         umbrellaScale: Double = 1.0,
         clockMs: Double = 0.0,
         still: Boolean = false,
+        bundleOn: Boolean = true,
     ): Frame {
         val ops = ArrayList<Op>()
         val v = variant
@@ -291,9 +315,9 @@ object Mowan {
             add(layer, r.stroke, INK, alpha, evenOdd = true)
             return r
         }
-        fun strokePath(layer: Layer, pts: List<Pt>, w0: Double, w1: Double, part: String, amp: Double, color: Int = INK, per: Int = 6, alpha: Float = 1f) {
+        fun strokePath(layer: Layer, pts: List<Pt>, w0: Double, w1: Double, part: String, amp: Double, color: Int = INK, per: Int = 6, alpha: Float = 1f, tip: Boolean = false) {
             val ph = Rng.phases(part, v)
-            add(layer, Geometry.brush(Geometry.catmull(pts, per), { t -> lerp(w0, w1, t) * Geometry.widthVar(ph, t, 0.1) }, { t -> Geometry.openNoise(ph, t, amp, false) }), color, alpha)
+            add(layer, Geometry.brush(Geometry.catmull(pts, per), { t -> lerp(w0, w1, t) * Geometry.widthVar(ph, t, 0.1) }, { t -> Geometry.openNoise(ph, t, amp, tip) }), color, alpha)
         }
         fun mistBand(layer: Layer, y: Double, w: Double, h: Double, dx: Double, part: String, alpha: Float) {
             val ph = Rng.phases(part, v)
@@ -376,6 +400,31 @@ object Mowan {
                 val wave = List(6) { j -> Pt(x + 1.6 * sin(j * 1.4 + clockMs / 300 + i), y0 - j * 2.2) }
                 strokePath(Layer.GROUND, wave, 0.9, 0.5, "heat$i", 0.05, PINK, per = 5, alpha = (sin(PI * u) * 0.9).toFloat())
             }
+        }
+
+        // ---- 包袱 B1：背在左肩後面（在身體、圍巾、頭、傘柄之前畫） ----
+        if ("bundle" in parts && bundleOn) {
+            owner = "bundle"
+            // 跟著上半身：身體上段左右移、發抖時跟著頭晃（用還沒落地前的姿勢算，跟原型一樣）
+            val bx = (pose.body[1].x - 61.4) * 0.8 + pose.headDx * 0.6
+            // 左手舉得越高，肩膀越往上：包袱被背帶提起一點，下緣往身體擺過來
+            val raise = if (caps.holdL) Geometry.clamp01((96 - pose.armL.last().y) / 50) else 0.0
+            val lift = -1.6 * raise
+            val tilt = Math.toRadians(-6 * raise)
+            val groundDy = if (caps.stand) 0.0 else GROUND_DY
+            fun at(pts: List<Pt>) = pts.map { q ->
+                val dx = q.x - Bundle.PIVOT.x
+                val dy = q.y - Bundle.PIVOT.y
+                Pt(Bundle.PIVOT.x + dx * cos(tilt) - dy * sin(tilt) + bx, Bundle.PIVOT.y + dx * sin(tilt) + dy * cos(tilt) + groundDy + lift)
+            }
+            strokePath(Layer.BUNDLE, at(Bundle.STRAP), 1.3, 1.1, "strap", 0.06)
+            ringPath(Layer.BUNDLE, at(Bundle.SACK), SAGE, "bundle", 1.3, 0.3)
+            strokePath(Layer.BUNDLE, at(Bundle.FOLD1), 0.7, 0.4, "fold1", 0.05, per = 5, alpha = 0.4f, tip = true)
+            strokePath(Layer.BUNDLE, at(Bundle.FOLD2), 0.7, 0.4, "fold2", 0.05, per = 5, alpha = 0.4f, tip = true)
+            ringPath(Layer.BUNDLE, Geometry.resample(at(Bundle.EAR_L), 32), SAGE, "earL", 1.0, 0.12)
+            ringPath(Layer.BUNDLE, Geometry.resample(at(Bundle.EAR_R), 32), SAGE, "earR", 1.0, 0.12)
+            ringPath(Layer.BUNDLE, at(Bundle.KNOT), SAGE, "knot", 1.1, 0.1)
+            for (d in at(Bundle.DOTS)) add(Layer.BUNDLE, PathData.ellipse(d.x, d.y, 0.55, 0.55), IVORY, 0.55f)
         }
 
         // ---- 傘柄（在身體後面） ----

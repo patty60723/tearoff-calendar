@@ -82,8 +82,10 @@ class MowanSceneTest {
     }
 
     @Test
-    fun pageFourteenLooksLikePageThirteen() {
-        // 包袱還沒設計（Q21），第 14 頁不能自己多畫東西
-        assertEquals(Mowan.frame(parts(13), 0).ops.size, Mowan.frame(parts(14), 0).ops.size)
+    fun pageFourteenOnlyAddsTheBundle() {
+        // 第 14 頁唯一的新東西是包袱（W4）；卸下包袱時跟第 13 頁一樣
+        val thirteen = Mowan.frame(parts(13), 0).ops.size
+        assertEquals(thirteen + 14, Mowan.frame(parts(14), 0).ops.size)
+        assertEquals(thirteen, Mowan.frame(parts(14), 0, bundleOn = false).ops.size)
     }
 }
