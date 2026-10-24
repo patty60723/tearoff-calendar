@@ -1,0 +1,2027 @@
+<title>墨丸天氣與包袱草案</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500&display=swap">
+<style>
+/* 版面：一張張「設計單」由上往下排，每張左邊是會動的墨丸，右邊是給設計師的規格 */
+:root {
+  --bg: #EFEAE1; --fg: #453D38; --muted: #6A6058; --paper: #F7F3EB; --edge: #DDD4C6; --chip: #E6DFD3;
+  --accent: #A85F53; --ink: #453D38;
+  --tag-p-bg: #e7f1fb; --tag-p-fg: #24507A; --tag-t-bg: #f9eeda; --tag-t-fg: #7A5212; --tag-c-bg: #e5f4e4; --tag-c-fg: #2F5D34; --tag-n-bg: #efedff; --tag-n-fg: #45307A;
+  --serif: 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif; --sans: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #23201D; --fg: #EDE6DA; --muted: #B3A99D; --edge: #4A433D; --chip: #34302B; --accent: #D79A8E;
+    --tag-p-bg: #22364a; --tag-p-fg: #bcd8f3; --tag-t-bg: #45371f; --tag-t-fg: #f0d29c; --tag-c-bg: #23392a; --tag-c-fg: #b9e2bd; --tag-n-bg: #312a4a; --tag-n-fg: #d4cbfa; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #23201D; --fg: #EDE6DA; --muted: #B3A99D; --edge: #4A433D; --chip: #34302B; --accent: #D79A8E;
+  --tag-p-bg: #22364a; --tag-p-fg: #bcd8f3; --tag-t-bg: #45371f; --tag-t-fg: #f0d29c; --tag-c-bg: #23392a; --tag-c-fg: #b9e2bd; --tag-n-bg: #312a4a; --tag-n-fg: #d4cbfa; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 64px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+main { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 30px; letter-spacing: .06em; text-wrap: balance; }
+h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 22px; text-wrap: balance; }
+h3 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 15px; }
+p { margin: 0; }
+.lede { color: var(--muted); font-size: 15px; max-width: 70ch; }
+header { display: flex; flex-direction: column; gap: 10px; }
+.tag { display: inline-block; font-size: 12px; border-radius: 6px; padding: 1px 7px; margin-right: 4px; vertical-align: 1px; white-space: nowrap; }
+.tag.c { background: var(--tag-c-bg); color: var(--tag-c-fg); }
+.tag.p { background: var(--tag-p-bg); color: var(--tag-p-fg); }
+.tag.t { background: var(--tag-t-bg); color: var(--tag-t-fg); }
+.tag.n { background: var(--tag-n-bg); color: var(--tag-n-fg); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; border-bottom: 1px solid var(--edge); }
+.btn { font: inherit; font-size: 14px; color: var(--fg); background: var(--chip); border: 0; border-radius: 999px; padding: 8px 14px; min-height: 40px; cursor: pointer; }
+.btn[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 12px; color: var(--muted); }
+a { color: var(--accent); }
+/* 總覽 */
+.overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.ov { background: var(--paper); border: 1px solid var(--edge); border-radius: 14px; padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 4px; color: #453D38; text-decoration: none; }
+.ov svg { width: 100%; height: auto; aspect-ratio: 3 / 4; }
+.ov b { font-family: var(--serif); font-size: 15px; }
+.ov span { font-size: 12px; color: #6A6058; line-height: 1.45; }
+/* 一張設計單 */
+.sheet { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.sheet > * { min-width: 0; }
+.stage { display: flex; flex-direction: column; gap: 10px; }
+.players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.players.one { grid-template-columns: minmax(0, 1fr); max-width: 220px; }
+.card { background: var(--paper); border: 1px solid var(--edge); border-radius: 14px; padding: 8px; color: #453D38; display: flex; flex-direction: column; gap: 4px; }
+.card svg { width: 100%; height: auto; aspect-ratio: 3 / 4; }
+.cap { font-size: 12px; color: #6A6058; text-align: center; line-height: 1.4; }
+.strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.strip.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.strip .card { padding: 4px; border-radius: 10px; }
+.strip .cap { font-size: 11px; }
+.label { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+.copy { font-family: var(--serif); font-size: 16px; }
+.spec { display: flex; flex-direction: column; gap: 12px; }
+dl { margin: 0; display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 8px 14px; font-size: 14px; }
+dt { color: var(--muted); }
+dd { margin: 0; }
+dd ul, .q ul { margin: 0; padding-left: 1.2em; }
+.ask { background: var(--paper); color: #453D38; border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.ask b { font-weight: 500; }
+section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 64px; }
+.q { display: flex; flex-direction: column; gap: 8px; font-size: 15px; max-width: 80ch; }
+.q li { margin-bottom: 6px; }
+@media (max-width: 760px) {
+  .sheet { grid-template-columns: minmax(0, 1fr); }
+  .players { max-width: 420px; }
+  dl { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<main>
+  <header>
+    <h1>墨丸天氣與包袱草案</h1>
+    <p class="lede">給設計師的草案：還沒有 V3 設計的五種天氣（熱、陰、霧、冷、雪），加上雷雨的完整版與第 14 頁的包袱。角色都是用正式的 V3 筆觸即時畫出來的，所以看得到 6 FPS 的 line boil，但姿勢、表情、道具都是草稿，用來說明意圖，細節請設計師重新決定。</p>
+    <p class="lede"><span class="tag c">不變</span>V3 本體（頭身比例、五官位置、一筆、筆觸強度）、天氣文案　<span class="tag n">草案</span>這頁所有的動作、表情、環境與包袱，全部沒有批准　<span class="tag t">待決定</span>每一項最後的「請設計師決定」</p>
+  </header>
+
+  <div class="bar" role="group" aria-label="播放控制">
+    <button class="btn" id="btn-play" type="button" aria-pressed="false">暫停</button>
+    <button class="btn" id="btn-slow" type="button" aria-pressed="false">慢速 0.5×</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <section aria-labelledby="h-all">
+    <h2 id="h-all">總覽</h2>
+    <p class="lede">都是第 14 頁的完整墨丸。晴天、雨天已經定案，放在最前面當對照。</p>
+    <div class="overview">
+      <a class="ov" href="#ref"><svg data-plain="sunny" data-live role="img" aria-label="晴天：伸懶腰（已定案）"></svg><b>晴<span class="tag c">已定案</span></b><span>伸懶腰 5.5 秒</span></a>
+      <a class="ov" href="#ref"><svg data-plain="rainy" data-live role="img" aria-label="雨天：撐傘（已定案）"></svg><b>雨<span class="tag c">已定案</span></b><span>撐傘 4.2 秒</span></a>
+      <a class="ov" href="#hot"><svg data-scene="hot" data-live role="img" aria-label="熱：擦汗"></svg><b>熱</b><span>擦汗、一筆被曬軟</span></a>
+      <a class="ov" href="#cloudy"><svg data-scene="cloudy" data-live role="img" aria-label="陰：抬頭看雲"></svg><b>陰</b><span>抬頭看雲飄過去</span></a>
+      <a class="ov" href="#fog"><svg data-scene="fog" data-live role="img" aria-label="霧：瞇眼、伸手摸索"></svg><b>霧</b><span>瞇眼、伸手摸索</span></a>
+      <a class="ov" href="#thunder"><svg data-scene="thunder" data-live role="img" aria-label="雷雨：雙手抱緊傘、被閃電嚇一跳"></svg><b>雷雨</b><span>抱緊傘、嚇一跳</span></a>
+      <a class="ov" href="#cold"><svg data-scene="cold" data-live role="img" aria-label="冷：抱住自己發抖"></svg><b>冷</b><span>抱住自己發抖、呼白氣</span></a>
+      <a class="ov" href="#snow"><svg data-scene="snow" data-live role="img" aria-label="雪：抱住自己發抖、下雪"></svg><b>雪</b><span>發抖＋飄雪、積雪</span></a>
+      <a class="ov" href="#bundle"><svg data-plain="normal" data-bundle="B1" data-live role="img" aria-label="包袱：背在背後"></svg><b>包袱</b><span>第 14 頁：背在背後</span></a>
+    </div>
+  </section>
+
+  <section id="hot" aria-labelledby="h-hot">
+    <h2 id="h-hot">熱</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players">
+          <div class="card"><svg data-scene="hot" data-opt="A" data-live role="img" aria-label="方案 A：擦汗"></svg><p class="cap"><span class="tag p">建議</span>A 擦汗</p></div>
+          <div class="card"><svg data-scene="hot" data-opt="B" data-live role="img" aria-label="方案 B：拿紙帽搧風"></svg><p class="cap">B 拿紙帽搧風</p></div>
+        </div>
+        <p class="label">A 的關鍵姿勢</p>
+        <div class="strip k3" data-keys="hot"></div>
+        <p class="label">成長階段（第 1、3、4、5、14 頁）</p>
+        <div class="strip" data-stages="hot"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">「好熱……一直擦汗。」</p>
+        <dl>
+          <dt>動作</dt><dd>A：右手沿著右臉頰外側上下擦兩下再放下，頭往手那邊歪一點。左邊太陽穴有一滴汗慢慢往下滑。3.2 秒一次。</dd>
+          <dt>表情</dt><dd>眼睛瞇成兩條線、嘴巴張開在喘氣、腮紅比平常深；一筆被曬軟垂下來（用雨天現有的「垂下」，沒有新增一筆的形狀）。</dd>
+          <dt>環境</dt><dd>太陽比晴天大一圈；地上三條 Dusty Pink 的熱氣往上飄。</dd>
+          <dt>為什麼擦臉頰</dt><dd>V3 的頭很大，手臂畫在頭的後面，手伸到額頭會整個被頭擋住，看不出在擦汗。</dd>
+          <dt>B 的問題</dt><dd>第 11 頁拿到紙帽後才能做；把帽子拿下來會跟「紙帽戴著」的狀態（D-05）打架；節日戴財神帽、聖誕帽時沒有紙帽可拿。</dd>
+          <dt>成長階段</dt><dd><ul><li>第 1 頁只有線：只有太陽與熱氣。</li><li>第 2–3 頁（沒有手）：一筆垂下、表情；第 3 頁起有汗滴。</li><li>第 4 頁起有右手：擦汗。</li></ul></dd>
+          <dt>跟節日</dt><dd>中秋可能遇到熱天：月餅拿在左手，右手擦汗，不衝突。右手拿著節日道具時改用左手擦；兩隻手都沒空就不擦。</dd>
+          <dt>48px</dt><dd>拿掉熱氣和汗滴，只留大太陽和垂下的一筆。</dd>
+          <dt>關閉動畫時</dt><dd>停在手貼著臉頰那一格，汗滴在半路。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>A 或 B；擦汗的手要多明顯；熱氣線的數量與顏色。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="cloudy" aria-labelledby="h-cloudy">
+    <h2 id="h-cloudy">陰</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players one">
+          <div class="card"><svg data-scene="cloudy" data-live role="img" aria-label="抬頭看雲"></svg><p class="cap">抬頭看雲</p></div>
+        </div>
+        <p class="label">關鍵姿勢</p>
+        <div class="strip k3" data-keys="cloudy"></div>
+        <p class="label">成長階段（第 1、3、4、5、14 頁）</p>
+        <div class="strip" data-stages="cloudy"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">「抬頭看看，雲飄過去了。」</p>
+        <dl>
+          <dt>動作</dt><dd>頭往後仰一點、眼睛往上看，跟著雲慢慢左右看。6 秒一次，是所有天氣裡最慢的。</dd>
+          <dt>表情</dt><dd>一般表情，只有視線改變。</dd>
+          <dt>環境</dt><dd>三朵雲從左往右飄（Phase 2A 原型裡已經有的雲，顏色 #EAE5DC）。</dd>
+          <dt>用到的部位</dt><dd>只有頭和眼睛，不用手，所以跟所有節日道具都不衝突。</dd>
+          <dt>成長階段</dt><dd>第 1 頁只有雲；第 2 頁只轉頭；第 3 頁起眼睛跟著雲。</dd>
+          <dt>48px</dt><dd>只留兩朵雲（原型 48px 已經是這樣）。</dd>
+          <dt>關閉動畫時</dt><dd>停在看右上方那一格，雲不動。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>陰天要不要再多一點「悶」的感覺（例如嘴巴、一筆）；雲的顏色在五色色票外，要不要收回色票裡。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="fog" aria-labelledby="h-fog">
+    <h2 id="h-fog">霧</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players one">
+          <div class="card"><svg data-scene="fog" data-live role="img" aria-label="瞇眼、伸手摸索"></svg><p class="cap">瞇眼、伸手摸索</p></div>
+        </div>
+        <p class="label">關鍵姿勢</p>
+        <div class="strip k3" data-keys="fog"></div>
+        <p class="label">成長階段（第 1、3、4、5、14 頁）</p>
+        <div class="strip" data-stages="fog"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">「起霧了，前面看不太清楚。」</p>
+        <dl>
+          <dt>動作</dt><dd>頭往前探、身體上半部往前傾一點，左手往前伸出去慢慢上下摸索。5 秒一次。</dd>
+          <dt>表情</dt><dd>眼睛瞇成扁扁的橢圓，嘴巴抿成一條線。</dd>
+          <dt>環境</dt><dd>三條橫的霧帶慢慢左右飄；最下面那條在角色前面，把腳蓋淡。</dd>
+          <dt>為什麼不用手遮額頭</dt><dd>跟熱天一樣，手到額頭會被頭擋住。</dd>
+          <dt>成長階段</dt><dd>第 1 頁只有霧；有頭以後探頭、瞇眼；第 5 頁有左手後才伸手。</dd>
+          <dt>跟節日</dt><dd>左手拿著節日道具（中秋的月餅）時不伸手，道具照拿，只探頭瞇眼。</dd>
+          <dt>48px</dt><dd>只留前面那條霧帶。</dd>
+          <dt>關閉動畫時</dt><dd>停在手伸最遠那一格。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>霧帶要多濃（會不會蓋掉太多角色）；伸手摸索會不會被看成在跟人揮手。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="thunder" aria-labelledby="h-thunder">
+    <h2 id="h-thunder">雷雨</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players one">
+          <div class="card"><svg data-scene="thunder" data-live role="img" aria-label="雙手抱緊傘，閃電時嚇一跳"></svg><p class="cap">抱緊傘、嚇一跳</p></div>
+        </div>
+        <p class="label">關鍵姿勢（平常、閃電、恢復）</p>
+        <div class="strip k3" data-keys="thunder"></div>
+        <p class="label">成長階段（第 1、3、4、5、14 頁）</p>
+        <div class="strip" data-stages="thunder"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">「轟隆隆！抱緊傘不要怕。」</p>
+        <dl>
+          <dt>動作</dt><dd>沿用雨天撐傘（已定案），左手也抓住傘柄，傘拿得比較直。每 4.2 秒打一次閃電：閃電出現約 0.3 秒，墨丸嚇一跳（眼睛變大、嘴巴張開、一筆豎起來、身體抖一下），再回到皺眉。</dd>
+          <dt>環境</dt><dd>雨比雨天密、斜；雲比陰天深（#CFC7BC）；閃電用 Dusty Pink。</dd>
+          <dt>安全</dt><dd>不閃整個畫面，只有閃電圖形出現；每 4.2 秒最多一次，遠低於會引發光敏感的頻率。</dd>
+          <dt>成長階段</dt><dd><ul><li>沒有右手（第 1–3 頁）：不撐傘，有頭以後會嚇一跳。</li><li>只有右手（第 4 頁）：單手撐傘。</li><li>第 5 頁起：雙手抱緊傘。</li></ul></dd>
+          <dt>跟節日</dt><dd>左手拿著節日道具時改回單手撐傘、道具照拿。春雨的「雨傘＋紅包」（已定案）因此不受影響。</dd>
+          <dt>48px</dt><dd>留傘和閃電，雨絲減少。</dd>
+          <dt>關閉動畫時</dt><dd>閃電靜止顯示，不嚇一跳、不抖。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>雙手抱傘的手勢；閃電的形狀與顏色；嚇一跳要多大。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="cold" aria-labelledby="h-cold">
+    <h2 id="h-cold">冷</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players one">
+          <div class="card"><svg data-scene="cold" data-live role="img" aria-label="抱住自己發抖"></svg><p class="cap">抱住自己發抖</p></div>
+        </div>
+        <p class="label">關鍵姿勢（平常、抖、呼白氣）</p>
+        <div class="strip k3" data-keys="cold"></div>
+        <p class="label">成長階段（第 1、3、4、5、14 頁）</p>
+        <div class="strip" data-stages="cold"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">「好冷，抱緊自己發抖。」</p>
+        <dl>
+          <dt>動作</dt><dd>雙手交叉抱住自己、縮脖子（頭往下沉一點、圍巾往上拉）。一陣一陣地抖：2.8 秒裡抖兩次，每次約 0.6 秒，幅度很小；中間呼出一團白氣。</dd>
+          <dt>表情</dt><dd>用力閉眼（∧ 形）、皺眉、牙齒打顫的波浪嘴、腮紅比平常深。</dd>
+          <dt>環境</dt><dd>沒有。冷看不見，只靠動作和表情。</dd>
+          <dt>成長階段</dt><dd><ul><li>沒有手：只縮脖子、發抖。</li><li>只有右手：右手抱住。</li><li>第 8 頁有嘴巴之後才呼白氣。</li></ul></dd>
+          <dt>跟節日</dt><dd>春節、聖誕常是冷天。手上拿著紅包時，那隻手不抱、紅包照拿，只用另一隻手抱（這個組合草案還沒畫）。</dd>
+          <dt>48px</dt><dd>不抖、不呼白氣，只留抱住的姿勢和表情。</dd>
+          <dt>關閉動畫時</dt><dd>不抖，停在抱住的姿勢。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>雙手交叉的畫法（小尺寸時容易看成打結）；冷天要不要加一點環境線索，例如結霜的地面。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="snow" aria-labelledby="h-snow">
+    <h2 id="h-snow">雪</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players">
+          <div class="card"><svg data-scene="snow" data-opt="A" data-live role="img" aria-label="方案 A：抱住自己發抖"></svg><p class="cap"><span class="tag p">建議</span>A 發抖</p></div>
+          <div class="card"><svg data-scene="snow" data-opt="B" data-live role="img" aria-label="方案 B：伸手接雪花"></svg><p class="cap">B 接雪花（要改文案）</p></div>
+        </div>
+        <p class="label">A 的關鍵姿勢</p>
+        <div class="strip k3" data-keys="snow"></div>
+        <p class="label">成長階段（第 1、3、4、5、14 頁）</p>
+        <div class="strip" data-stages="snow"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">「下雪了！冷得一直發抖。」</p>
+        <dl>
+          <dt>動作</dt><dd>A：跟冷天同一套（抱住自己、發抖、呼白氣），加上飄雪和地上的積雪。B：伸手接雪花、低頭看手上的雪，比較開心。</dd>
+          <dt>環境</dt><dd>雪花慢慢落下、左右飄；腳下一小堆積雪。雪用白色加細墨線，因為紙本身是米白色，不加線看不到。</dd>
+          <dt>B 的問題</dt><dd>跟文案「冷得一直發抖」不合。要用 B 就要改文案，文案不在這次的範圍裡。</dd>
+          <dt>優先度</dt><dd>台灣平地很少下雪，可以排在最後。</dd>
+          <dt>48px</dt><dd>只留三片雪花和積雪。</dd>
+          <dt>關閉動畫時</dt><dd>雪花停在半空，不抖。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>A 或 B；雪花和積雪的畫法；白色（#FFFFFF）在色票外，要不要改成 Ivory 加線。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="bundle" aria-labelledby="h-bundle">
+    <h2 id="h-bundle">包袱（第 14 頁）</h2>
+    <div class="sheet">
+      <div class="stage">
+        <div class="players">
+          <div class="card"><svg data-plain="normal" data-bundle="B1" data-live role="img" aria-label="方案 B1：背在背後"></svg><p class="cap"><span class="tag p">建議</span>B1 背在背後</p></div>
+          <div class="card"><svg data-plain="normal" data-bundle="B2" data-live role="img" aria-label="方案 B2：斜背在腰側"></svg><p class="cap">B2 斜背在腰側</p></div>
+        </div>
+        <p class="label">B1 跟天氣姿勢放在一起</p>
+        <div class="strip" data-bundle-combos="B1"></div>
+        <p class="label">B2 跟天氣姿勢放在一起</p>
+        <div class="strip" data-bundle-combos="B2"></div>
+      </div>
+      <div class="spec">
+        <p class="copy">第 14 頁：「……去把它們找回來吧！」墨丸背起小包袱，揮揮手，出發囉！</p>
+        <dl>
+          <dt>B1</dt><dd>布包背在背後，從左肩後面露出一角，打結的布角朝上；背帶從右肩斜到左腰。Sage 色的布加 Ivory 小點，像碎花布。</dd>
+          <dt>B1 的優點</dt><dd>不擋臉、不佔手，也不會碰到右腰拿東西的位置。跟舊版「包袱移到背後，不擋到臉」的決定一致。</dd>
+          <dt>B2</dt><dd>斜背在右腰側，背帶從左肩斜下來。包袱看得比較完整，但右手拿紅包時手的位置在右腰，會碰到。</dd>
+          <dt>兩案都要</dt><dd><ul><li>當成持續配件：跟紙帽一樣「拿到」看故事（第 14 頁），能不能拿下來跟 D-05 一起決定。</li><li>48px 不畫。</li><li>伸懶腰時手臂在包袱前面；聖誕襪掛在左上方（x 26–38），B1 不會重疊。</li></ul></dd>
+          <dt>顏色</dt><dd>草案用 Sage。撐傘時傘也是 Sage，兩個同色物件會同時出現。</dd>
+        </dl>
+        <p class="ask"><span class="tag t">請設計師決定</span><b>B1 或 B2；包袱的布色與花紋；背帶要不要畫出來。</b></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="ref" aria-labelledby="h-q">
+    <h2 id="h-q">還要決定的事</h2>
+    <div class="q">
+      <ul>
+        <li><b>晴天的文案和畫面對不上。</b>文案是「大晴天，戴上草帽出門！」，但已定案的 V3 晴天是伸懶腰，沒有草帽。要幫墨丸加一頂草帽，還是改文案？</li>
+        <li><b>色票外的顏色。</b>陰天的雲 #EAE5DC（Phase 2A 已在用）、雷雨的雲 #CFC7BC、雪 #FFFFFF。</li>
+        <li><b>新的表情。</b>熱、冷、霧、嚇一跳四種都只改眼睛和嘴巴的形狀，五官的位置、頭型都沒動。一筆只用現有的三種（一般、翹起、垂下）。</li>
+        <li><b>節日加天氣。</b>冷天抱住自己遇到紅包、霧天伸手遇到月餅，規則先寫在各項的「跟節日」裡，還沒畫成圖。</li>
+        <li><b>包袱跟紙帽一起決定能不能拿下來</b>（D-05）。</li>
+      </ul>
+      <p class="lede">定案後會照這頁的分項接進 App：每一種天氣都要有成長階段的降級、48px 的簡化，以及關閉動畫時的靜止畫面。</p>
+    </div>
+  </section>
+</main>
+<script>
+(() => {
+  const INK = '#453D38', TERRA = '#B96F62', PAPER = '#FCFAF5', SAGE = '#91A49B', PINK = '#D8ADA5';
+
+  // ---------- 預先決定的筆觸影格 ----------
+  // 每個部位、每張影格都有一組固定的相位，第一次用到時算好就存起來，之後完全重現。
+  const FRAMES = 5;
+  const SEQUENCE = [0, 3, 1, 4, 2];
+  const BOIL_MS = 1000 / 6;
+  const RAIN_MS = 1000 / 8;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  const phaseCache = new Map();
+  function ph(part, v) {
+    const key = part + '#' + v;
+    if (!phaseCache.has(key)) {
+      const r = mulberry32(hash(part) + v * 7919);
+      phaseCache.set(key, Array.from({ length: 6 }, () => r() * Math.PI * 2));
+    }
+    return phaseCache.get(key);
+  }
+
+  const TAU = Math.PI * 2;
+  // 開放筆畫的位移：兩端（關節、腳底）為 0，中間最大；'tip' 模式只有根部固定
+  function openNoise(p, t, amp, mode) {
+    const env = mode === 'tip' ? Math.pow(t, 1.1) : Math.pow(Math.sin(Math.PI * t), 0.8);
+    return amp * env * (0.6 * Math.sin(TAU * t + p[0]) + 0.3 * Math.sin(2 * TAU * t + p[1]) + 0.15 * Math.sin(3 * TAU * t + p[2]));
+  }
+  function widthVar(p, t, k) {
+    return 1 + k * (0.7 * Math.sin(TAU * 1.3 * t + p[3]) + 0.3 * Math.sin(TAU * 2.7 * t + p[4]));
+  }
+  // 封閉輪廓的位移：只用 2、3、5 次諧波，所以中心和大小不會跑掉
+  function loopNoise(p, a, amp) {
+    return amp * (0.55 * Math.sin(2 * a + p[0]) + 0.3 * Math.sin(3 * a + p[1]) + 0.15 * Math.sin(5 * a + p[2]));
+  }
+
+  // ---------- 幾何 ----------
+  function catmull(pts, perSeg) {
+    const out = [], n = pts.length;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, n - 1)];
+      for (let s = 0; s < perSeg; s++) {
+        const t = s / perSeg, t2 = t * t, t3 = t2 * t;
+        const f = (k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3);
+        out.push([f(0), f(1)]);
+      }
+    }
+    out.push(pts[n - 1].slice());
+    return out;
+  }
+  function normalAt(pts, i, closed) {
+    const n = pts.length;
+    const a = closed ? pts[(i - 1 + n) % n] : pts[Math.max(i - 1, 0)];
+    const b = closed ? pts[(i + 1) % n] : pts[Math.min(i + 1, n - 1)];
+    const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    return [-ty / l, tx / l];
+  }
+  const fmt = (p) => p[0].toFixed(2) + ' ' + p[1].toFixed(2);
+
+  /** 有粗細的筆畫，畫成實心形狀：中心線、寬度、垂直位移都隨位置 t 變 */
+  function brush(center, widthAt, offsetAt) {
+    const n = center.length;
+    const disp = center.map((c, i) => {
+      const t = i / (n - 1), nm = normalAt(center, i, false), o = offsetAt(t);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const L = [], R = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1), nm = normalAt(disp, i, false), w = widthAt(t) / 2;
+      L.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      R.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    const we = Math.max(widthAt(1) / 2, 0.05), ws = Math.max(widthAt(0) / 2, 0.05);
+    let d = 'M' + fmt(L[0]);
+    for (let i = 1; i < n; i++) d += 'L' + fmt(L[i]);
+    d += `A${we.toFixed(2)} ${we.toFixed(2)} 0 0 0 ${fmt(R[n - 1])}`;
+    for (let i = n - 2; i >= 0; i--) d += 'L' + fmt(R[i]);
+    d += `A${ws.toFixed(2)} ${ws.toFixed(2)} 0 0 0 ${fmt(L[0])}Z`;
+    return d;
+  }
+
+  /** 封閉的輪廓：回傳 [填色用的中心線, 輪廓筆畫（環）] */
+  function ring(loop, widthAt, offsetAt) {
+    const n = loop.length;
+    const disp = loop.map((c, i) => {
+      const a = (i / n) * TAU, nm = normalAt(loop, i, true), o = offsetAt(a);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const outer = [], inner = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU, nm = normalAt(disp, i, true), w = widthAt(a) / 2;
+      outer.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      inner.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    const loopD = (pts) => 'M' + pts.map(fmt).join('L') + 'Z';
+    return { fill: loopD(disp), stroke: loopD(outer) + loopD(inner.slice().reverse()), points: disp };
+  }
+
+  // ---------- 墨丸的造型 ----------
+  const HEAD_C = [60, 47.5];
+  const HEAD_N = 72;
+  function headBase(a) {
+    // 不對稱的手繪頭型：左下略寬，右上（一筆的根部附近）微微鼓起
+    const bump = 1.1 * Math.pow(Math.max(0, Math.cos(a + 1.15)), 4);
+    const rx = 22.5 * (1 + 0.035 * Math.sin(2 * a + 0.5)) + bump;
+    const ry = 20 * (1 + 0.03 * Math.cos(3 * a + 0.2)) + bump;
+    return [HEAD_C[0] + rx * Math.cos(a), HEAD_C[1] + ry * Math.sin(a)];
+  }
+  const HEAD_LOOP = Array.from({ length: HEAD_N }, (_, i) => headBase((i / HEAD_N) * TAU));
+  const ROOT_INDEX = Math.round(((-1.78 + TAU) % TAU) / TAU * HEAD_N); // 一筆的根部，在頭頂偏左
+
+  // 姿勢：每個場景、每個時間點的骨架控制點（主要動作，平滑）
+  function pose(scene, time) {
+    const P = {};
+    if (scene === 'normal') {
+      P.headAngle = 0;
+      P.body = [[60.5, 68.6], [61.4, 78], [59.6, 90], [61, 101]];
+      P.armL = [[60.5, 77], [55.5, 82.5], [52.6, 89], [51.6, 96]];
+      P.armR = [[60.8, 77], [65.8, 80.8], [68.8, 86.2], [67.6, 93]];
+      P.legL = [[61, 101], [59, 109], [57.6, 118], [57, 127], [52.4, 127.6]];
+      P.legR = [[61, 101], [64.8, 108], [66.8, 114], [69.2, 119.6], [70.6, 124.2], [71, 126.6], [75, 125.6]];
+      P.tail = [[54, 70.6], [53.2, 76], [53.4, 81.2], [51.8, 87.2]];
+      P.flick = 'normal'; P.face = 'normal';
+    } else if (scene === 'sunny') {
+      // 慢慢伸懶腰：5.5 秒一個來回
+      const s = (1 - Math.cos(TAU * time / 5500)) / 2;
+      P.headAngle = -4 - 8 * s;
+      P.body = [[60.5, 68.6], [62.6 + 1.2 * s, 78], [61.6 + 0.6 * s, 90], [61, 101]];
+      // 雙手往斜上方打開伸展，手一直在頭的外側
+      P.armL = [[60.5, 77], [53, 72 - 1.5 * s], [44.5 - 1.5 * s, 65 - 3 * s], [36.5 - 2.5 * s, 57 - 5 * s], [31 - 3 * s, 52 - 6 * s]];
+      P.armR = P.armL.map(([x, y], i) => i === 0 ? [60.8, 77] : [121.2 - x, y]);
+      P.legL = [[61, 101], [59, 109], [57.6, 118], [57, 127], [52.4, 127.6]];
+      P.legR = [[61, 101], [64.8, 108], [66.8, 114], [69.2, 119.6], [70.6, 124.2], [71, 126.6], [75, 125.6]];
+      const sway = (30 + 6 * Math.sin(TAU * time / 2600)) * Math.PI / 180;
+      const base = [[54, 70.6], [53.2, 76], [53.4, 81.2], [51.8, 87.2]];
+      P.tail = base.map(([x, y]) => {
+        const dx = x - 54, dy = y - 70.6;
+        return [54 + dx * Math.cos(sway) + dy * Math.sin(sway), 70.6 - dx * Math.sin(sway) + dy * Math.cos(sway)];
+      });
+      P.flick = 'perked'; P.face = 'sunny';
+    } else {
+      P.headAngle = 3;
+      P.umbrellaAngle = -10 + 1.8 * Math.sin(TAU * time / 4200); // 以手為支點輕輕晃
+      P.hand = [82, 78];
+      P.body = [[60.5, 68.6], [59.1, 79], [59.6, 90], [61, 101]];
+      P.armL = [[60.5, 77], [55, 80.2], [53.6, 85.6], [57.6, 87.6]];
+      P.armR = [[60.8, 77], [67, 80.6], [75, 81.4], [80.5, 79]];
+      P.legL = [[61, 101], [59.6, 109], [58.6, 118], [58, 127], [53.5, 127.5]];
+      P.legR = [[61, 101], [63, 109], [63.8, 118], [64.5, 127], [69, 127]];
+      P.tail = [[54, 70.6], [53.4, 76], [53.8, 81.6], [53.6, 88]];
+      P.flick = 'drooped'; P.face = 'rainy';
+    }
+    return P;
+  }
+
+  const FLICK = {
+    normal: [[0, 0], [-0.8, -6.5], [3.5, -12], [11, -14.5]],
+    perked: [[0, 0], [-0.5, -8], [4, -14], [11.5, -16.5]],
+    drooped: [[0, 0], [-2, -4], [-7, -5.5], [-12.5, -3]],
+  };
+
+  // 傘面的中心線（以握傘的手為原點）
+  const CANOPY = (() => {
+    const pts = [];
+    for (let i = 0; i <= 24; i++) {
+      const u = i / 24;
+      pts.push([-34 * Math.cos(Math.PI * u), -64 - 24 * Math.pow(Math.sin(Math.PI * u), 0.85)]);
+    }
+    for (let i = 1; i < 32; i++) {
+      const s = i / 32;
+      pts.push([34 - 68 * s, -64 - 3.2 * Math.sin(Math.PI * ((4 * s) % 1))]);
+    }
+    return pts;
+  })();
+
+  // ---------- 一個墨丸（建一次 DOM，之後只改屬性） ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(parent, tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  }
+
+  // =====================================================================
+  //  Phase 2A：天氣 × 節日 × 配件。角色幾何全部沿用 V3（上面的引擎），
+  //  下面只加「情境 → 插槽 → 動作 → 一張影格」的組合層。
+  // =====================================================================
+  const IVORY = '#F7F3EB';
+  // Phase 2A.2：演出（acting）、道具（props）、頭飾貼合（fit）都保留 v1，方便並排對照；預設用 v2
+  const STYLE = { acting: 'v2', props: 'v2', fit: 'warp' };
+  function withStyle(st, fn) { const old = { ...STYLE }; Object.assign(STYLE, st); try { return fn(); } finally { Object.assign(STYLE, old); } }
+  // 節日專屬色（Q8：允許少量），面積都很小
+  const FEST_RED = '#B5473A', MOON = '#EEE2C2', CAKE = '#D4AE78', CLOUD = '#EAE5DC';
+
+  // ---------- 小工具 ----------
+  const clamp01 = (u) => (u < 0 ? 0 : u > 1 ? 1 : u);
+  const ease = (u) => { u = clamp01(u); return u * u * (3 - 2 * u); };
+  const lerp = (a, b, u) => a + (b - a) * u;
+  const mixPts = (A, B, u) => A.map((p, i) => [lerp(p[0], B[i][0], u), lerp(p[1], B[i][1], u)]);
+  const seg = (t, a, b) => ease((t - a) / (b - a));
+  /** 0→1→0 的包絡：a 進、b 到頂、c 開始回、d 回到 0 */
+  const env = (t, a, b, c, d) => (t < a || t > d ? 0 : t < b ? seg(t, a, b) : t < c ? 1 : 1 - seg(t, c, d));
+  /** 關鍵影格：[[時間, 值], …]，段與段之間用 ease in-out；值可以是數字、[x, y] 或點陣列 */
+  function track(t, keys) {
+    if (t <= keys[0][0]) return keys[0][1];
+    for (let i = 1; i < keys.length; i++) {
+      if (t <= keys[i][0]) {
+        const [t0, a] = keys[i - 1], [t1, b] = keys[i], u = ease((t - t0) / (t1 - t0));
+        if (!Array.isArray(a)) return lerp(a, b, u);
+        return Array.isArray(a[0]) ? mixPts(a, b, u) : a.map((x, j) => lerp(x, b[j], u));
+      }
+    }
+    return keys[keys.length - 1][1];
+  }
+  /** 手剪紙的不規則輪廓：沿法線加固定的低頻起伏，再做一次圓角（同一個 seed 每次都一樣） */
+  function handCut(pts, seed, amp = 0.3) {
+    const r = mulberry32(hash(seed)), ph1 = r() * TAU, ph2 = r() * TAU;
+    const loop = resample(pts, 72);
+    const out = loop.map((p, i) => {
+      const n = normalAt(loop, i, true), a = (i / loop.length) * TAU;
+      const o = amp * (0.6 * Math.sin(3 * a + ph1) + 0.4 * Math.sin(7 * a + ph2));
+      return [p[0] + n[0] * o, p[1] + n[1] * o];
+    });
+    const sm = [];
+    for (let i = 0; i < out.length; i++) { const p = out[i], q = out[(i + 1) % out.length]; sm.push([0.75 * p[0] + 0.25 * q[0], 0.75 * p[1] + 0.25 * q[1]], [0.25 * p[0] + 0.75 * q[0], 0.25 * p[1] + 0.75 * q[1]]); }
+    return resample(sm, 64);
+  }
+  const circlePts = (cx, cy, r, n = 36) => Array.from({ length: n }, (_, i) => [cx + r * Math.cos((i / n) * TAU), cy + r * Math.sin((i / n) * TAU)]);
+  function resample(poly, N) {
+    const segs = poly.map((p, i) => { const q = poly[(i + 1) % poly.length]; return Math.hypot(q[0] - p[0], q[1] - p[1]); });
+    const total = segs.reduce((a, b) => a + b, 0), out = [];
+    let si = 0, acc = 0;
+    for (let k = 0; k < N; k++) {
+      const s = (k / N) * total;
+      while (acc + segs[si] < s) { acc += segs[si]; si++; }
+      const p = poly[si], q = poly[(si + 1) % poly.length], u = (s - acc) / segs[si];
+      out.push([p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u]);
+    }
+    return out;
+  }
+  const place = (pts, pl) => {
+    const c = Math.cos(pl.rot || 0), s = Math.sin(pl.rot || 0), k = pl.s || 1;
+    return pts.map(([x, y]) => [pl.x + (x * c - y * s) * k, pl.y + (x * s + y * c) * k]);
+  };
+  const bend = (pts, R) => pts.map(([x, y]) => [x, y + (x * x) / (2 * R)]);
+  const rotAbout = (p, deg, c) => {
+    const r = deg * Math.PI / 180, dx = p[0] - c[0], dy = p[1] - c[1];
+    return [c[0] + dx * Math.cos(r) - dy * Math.sin(r), c[1] + dx * Math.sin(r) + dy * Math.cos(r)];
+  };
+  function inside(pt, poly) {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  const minDist = (a, b) => { let m = Infinity; for (const p of a) for (const q of b) m = Math.min(m, Math.hypot(p[0] - q[0], p[1] - q[1])); return m; };
+  let seed = 12345;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+
+  // 腳尖墨水沾染（Q5 方案 B）需要的筆刷幾何
+  function brushGeom(center, widthAt, offsetAt) {
+    const n = center.length;
+    const disp = center.map((c, i) => { const t = i / (n - 1), nm = normalAt(center, i, false), o = offsetAt(t); return [c[0] + nm[0] * o, c[1] + nm[1] * o]; });
+    const L = [], R = [], W = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1), nm = normalAt(disp, i, false), w = widthAt(t) / 2;
+      W.push(w); L.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]); R.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    return { disp, L, R, W, n };
+  }
+  function geomPath(g, i0 = 0, scale = 1) {
+    const P = (arr, i) => scale === 1 ? arr[i] : [g.disp[i][0] + (arr[i][0] - g.disp[i][0]) * scale, g.disp[i][1] + (arr[i][1] - g.disp[i][1]) * scale];
+    const n = g.n, we = Math.max(g.W[n - 1] * scale, 0.05), ws = Math.max(g.W[i0] * scale, 0.05);
+    let d = 'M' + fmt(P(g.L, i0));
+    for (let i = i0 + 1; i < n; i++) d += 'L' + fmt(P(g.L, i));
+    d += `A${we.toFixed(2)} ${we.toFixed(2)} 0 0 0 ${fmt(P(g.R, n - 1))}`;
+    for (let i = n - 2; i >= i0; i--) d += 'L' + fmt(P(g.R, i));
+    d += i0 === 0 ? `A${ws.toFixed(2)} ${ws.toFixed(2)} 0 0 0 ${fmt(P(g.L, 0))}Z` : 'Z';
+    return d;
+  }
+
+  // ---------- 故事進度：解鎖順序沿用 chapter1.json ----------
+  const UNLOCKS = [[1, 'body', 'line'], [2, 'head', 'head'], [2, 'flick', 'head（Q1：一筆同時出現）'], [3, 'eyes', 'eyes'], [3, 'blush', 'eyes（腮紅時機 Q15 TBD）'],
+    [4, 'armR', 'armR'], [5, 'armL', 'armL'], [6, 'legL', 'legL'], [7, 'legR', 'legR'], [8, 'mouth', 'voice'], [9, 'redToes', 'redToes'],
+    [10, 'scarf', 'scarf'], [11, 'paperHat', 'paperHat'], [14, 'bundle', 'bundle']];
+  const partsAt = (page) => new Set(UNLOCKS.filter(([p]) => p <= page).map(([, k]) => k));
+
+  // ---------- 角色固定姿勢（V3 數值；新加的手臂姿勢以同一套骨架寫成） ----------
+  const NORMAL = pose('normal', 0);
+  const RAIN0 = pose('rainy', 0);
+  const mirror = (pts) => pts.map(([x, y], i) => (i === 0 ? [60.8, 77] : [121.3 - x, y]));
+  const ARM = {
+    L_DEF: NORMAL.armL, R_DEF: NORMAL.armR, L_RAINY: RAIN0.armL,
+    R_HOLD: [[60.8, 77], [66, 81.5], [70, 86.5], [72.5, 90]],
+    L_HOLD: [[60.5, 77], [55.3, 81.5], [51.3, 86.5], [48.8, 90]],
+    L_BOW: [[60.5, 77], [55, 81], [55.6, 85.5], [59.6, 86.6]],
+    R_BOW: [[60.8, 77], [66.3, 81], [65.8, 85.5], [61.8, 86.6]],
+    L_REACH: [[60.5, 77], [52.5, 75], [45, 71], [38.5, 67]],
+    L_TOAST: [[60.5, 77], [53.5, 73.5], [46.5, 69.5], [40, 65.5]],
+    L_LIFT: [[60.5, 77], [55, 79], [51, 82.5], [49, 85.5]],
+  };
+  ARM.R_TOAST = mirror(ARM.L_TOAST);
+  // Phase 2A.2 新增姿勢：拜年時手肘略抬、雙手在胸前偏下；舉月餅時先在腹前捧著
+  ARM.L_CHEST = [[60.5, 77], [55.4, 80.4], [55.4, 84.4], [58.9, 85.4]];
+  ARM.R_CHEST = [[60.8, 77], [65.9, 80.4], [65.9, 84.4], [62.4, 85.4]];
+  ARM.L_CRADLE = [[60.5, 77], [55.6, 81.4], [53.4, 86], [52.6, 89]];
+  ARM.R_CRADLE = mirror(ARM.L_CRADLE);
+  ARM.L_TOUCH = [[60.5, 77], [54, 75.2], [47, 74.2], [39.6, 73.4]];   // 手尖碰到 v2 襪子的腳尖（襪子掛在頭的左下外側）
+  ARM.R_LIFT = mirror(ARM.L_LIFT);
+  const HEAD_PIVOT = [60.5, 66];
+
+  // ---------- 配件與場景的形狀（原點＝錨點，往上為 −y） ----------
+  const R60 = (pts) => resample(pts, 60);
+  function halfDome(w, h, base) { const pts = []; for (let i = 0; i <= 16; i++) { const a = Math.PI + (i / 16) * Math.PI; pts.push([w * Math.cos(a), base + h * Math.sin(a)]); } return pts; }
+  const ellipse = (cx, cy, rx, ry, rot = 0) => Array.from({ length: 32 }, (_, i) => { const a = (i / 32) * TAU, x = rx * Math.cos(a), y = ry * Math.sin(a); return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)]; });
+  const HEADWEAR = {
+    paperHat: { name: '紙帽', theta: -0.98, sink: 0.8, bendR: 21,
+      shapes: [{ pts: R60([[-12, 0], [12, 0], [12, -3.6], [10.4, -3.6], [0.6, -17], [-10.4, -3.6], [-12, -3.6]]), fill: IVORY }],
+      lines: [[[-10.4, -3.6], [10.4, -3.6]], [[0.6, -15.6], [0.9, -9], [0.4, -3.6]]] },
+    caishen: { name: '財神帽', theta: -0.98, sink: 0.6, bendR: 21,
+      shapes: [
+        { pts: R60([[-9.6, 0], [9.6, 0], [9.6, -2.6], ...halfDome(8.2, 8.6, -2.4).reverse(), [-9.6, -2.6]]), fill: FEST_RED },
+        { pts: ellipse(11.6, -6.4, 3.3, 1.25, -0.3), fill: INK, detail: true },
+        { pts: ellipse(-11.6, -6.4, 3.3, 1.25, 0.3), fill: INK, detail: true },
+      ],
+      lines: [[[-9.2, -2.6], [9.2, -2.6]]] },
+    santa: { name: '聖誕帽', theta: -0.98, sink: 0.6, bendR: 21,
+      shapes: [
+        { pts: R60([[-9.2, -3.4], [9.2, -3.4], [9.8, -8], [11.8, -12.4], [14.6, -14.8], [12.4, -17.2], [6, -17.9], [0.5, -15.6], [-4.8, -10.6]]), fill: FEST_RED },
+        { pts: R60([[-11, 0], [11, 0], [11, -3.8], [-11, -3.8]]), fill: IVORY },
+        { pts: circlePts(15.2, -14.6, 2.7), fill: IVORY },
+      ], lines: [] },
+    ears: { name: '玉兔耳朵', multi: [{ theta: -0.92, tilt: 0.12 }, { theta: -0.56, tilt: 0.22 }], sink: 0.6, bendR: 40,
+      shapes: [{ pts: ellipse(0, -6.9, 2.3, 6.9), fill: IVORY }],
+      lines: [[[0, -2.6], [0.25, -7], [0, -11]]], lineColor: PINK },
+  };
+  // Phase 2A.2：每種頭飾的第二種戴法（B），只用在 Art Review 對照，沒有定案
+  HEADWEAR.caishenB = { ...HEADWEAR.caishen, name: '財神帽 B（正戴）', theta: -Math.PI / 2, bendR: 25 };
+  HEADWEAR.santaB = { ...HEADWEAR.santa, name: '聖誕帽 B（靠頂、帽尖垂右）', theta: -1.22,
+    shapes: [
+      { pts: R60([[-9.2, -3.4], [9.2, -3.4], [10.4, -7.4], [13.2, -9.6], [16.4, -9.2], [16.8, -11.8], [13.6, -13.6], [7, -15], [1, -13.6], [-4.6, -10]]), fill: FEST_RED },
+      { pts: R60([[-11, 0], [11, 0], [11, -3.8], [-11, -3.8]]), fill: IVORY },
+      { pts: circlePts(17.6, -8.2, 2.6), fill: IVORY },
+    ] };
+  HEADWEAR.earsB = { ...HEADWEAR.ears, name: '玉兔耳朵 B（一筆兩側各一）', multi: [{ theta: -2.28, tilt: -0.12 }, { theta: -0.86, tilt: 0.12 }] };
+  const HAND_PROPS = {
+    envelope: { name: '紅包', shapes: [{ pts: R60([[-3.3, -1.5], [3.3, -1.5], [3.3, 7.5], [-3.3, 7.5]]), fill: FEST_RED }], lines: [[[-3.1, -1.1], [0, 1.6], [3.1, -1.1]]], rot: 0.08 },
+    mooncake: { name: '月餅', shapes: [{ pts: circlePts(0, -3.4, 4.4), fill: CAKE }], rings: [[0, -3.4, 2.4]], rot: 0 },
+  };
+  function cloudLoop(w, h) {
+    const bumps = [[-w * 0.27, -h * 0.32, h * 0.48], [0, -h * 0.5, h * 0.62], [w * 0.26, -h * 0.34, h * 0.5]];
+    const top = [];
+    for (let i = 0; i <= 24; i++) {
+      const x = -w / 2 + (i / 24) * w;
+      let y = 0;
+      for (const [cx, cy, r] of bumps) if (Math.abs(x - cx) < r) y = Math.min(y, cy - Math.sqrt(r * r - (x - cx) * (x - cx)));
+      top.push([x, Math.min(y, -0.6)]);
+    }
+    return R60([...top, [w / 2, 0], [-w / 2, 0]]);
+  }
+  const CLOUDS = [{ x: 30, y: 10, w: 26, h: 11, sp: 1.1 }, { x: 100, y: 16, w: 30, h: 12, sp: 0.7 }, { x: 70, y: -4, w: 21, h: 9, sp: 0.9 }].map((c) => ({ ...c, loop: cloudLoop(c.w, c.h) }));
+  // 斗方春聯：轉 45° 的紅紙，中間一個「春」字（只有紅條認不出是春聯）
+  const COUPLET_C = [14, 25];
+  const COUPLET = R60([[14, 13.5], [25.5, 25], [14, 36.5], [2.5, 25]]);
+  // 「春」用墨丸同一套筆刷一筆一筆寫：三橫、撇、捺、日（以字中心為原點）
+  // kind：h 橫（起收筆頓）、v 豎、pie 撇（往下漸細）、na 捺（漸粗後收尖）
+  const CHUN = [
+    ['h', [[-4.0, -6.4], [0, -6.9], [3.9, -7.3]]],
+    ['h', [[-4.4, -4.0], [0, -4.5], [4.3, -4.9]]],
+    ['h', [[-6.8, -1.4], [0, -2.1], [6.6, -2.7]]],
+    ['pie', [[0.3, -8.8], [0.1, -4.6], [-1.6, -0.6], [-4.4, 2.6], [-7.6, 4.4]]],
+    ['na', [[0.4, -1.6], [2.4, 0.6], [5.0, 2.8], [8.2, 4.0]]],
+    ['v', [[-2.4, 2.2], [-2.5, 4.9], [-2.3, 7.6]]],
+    ['v', [[-2.4, 2.1], [0, 1.8], [2.5, 1.6], [2.55, 4.6], [2.4, 7.6]]],
+    ['h', [[-2.1, 4.8], [0, 4.6], [2.1, 4.5]]],
+    ['h', [[-2.1, 7.5], [0, 7.4], [2.2, 7.3]]],
+  ].map(([kind, pts]) => [kind, pts.map(([x, y]) => [x * 0.85, y * 0.85])]);
+  const CHUN_W = {
+    h: (t) => 1.2 - 0.5 * Math.sin(Math.PI * t) + 0.45 * Math.exp(-Math.pow((1 - t) / 0.1, 2)) + 0.25 * Math.exp(-Math.pow(t / 0.08, 2)),
+    v: (t) => 0.95 - 0.2 * Math.sin(Math.PI * t) + 0.25 * Math.exp(-Math.pow(t / 0.1, 2)),
+    pie: (t) => 1.35 - 1.2 * Math.pow(t, 0.8) + 0.08,
+    na: (t) => (0.35 + 1.75 * Math.pow(t, 1.8)) * (t > 0.82 ? Math.max(0.1, (1 - t) / 0.18) : 1),
+  };
+
+  const SOCK_CUFF = R60([[-4, 0], [4, 0], [4, 4], [-4, 4]]);
+  const SOCK_LEG = R60([[-3.5, 4], [3.5, 4], [3.5, 12], [6.8, 14.2], [7, 17.6], [3.6, 18.8], [-1.2, 17.4], [-3.5, 14]]);
+  const SOCK_TOP = [26, 44];
+  const GIFT = R60([[-6.5, 0], [6.5, 0], [6.5, -10.5], [-6.5, -10.5]]);
+  const GIFT_AT = [94, 127.6];
+  // ---- v2 道具形狀（手剪紙感；v1 保留給對照） ----
+  const PROPS_V2 = {
+    red: '#AE4E42', ow: 0.9, sockTop: [30, 58],
+    couplet: handCut([[14, 13.4], [25.6, 25], [14, 36.6], [2.4, 25]], 'couplet', 0.32),
+    sockLeg: handCut([[-3.4, 4], [3.4, 4], [3.6, 11.4], [5.2, 13.2], [7.4, 14.4], [7.8, 17], [6, 18.8], [2.4, 18.8], [-1.4, 17.4], [-3.4, 14.4]], 'sock', 0.22),
+    sockCuff: handCut([[-4.3, 0], [4.3, 0], [4.4, 4.4], [2.2, 4.8], [0, 4.4], [-2.2, 4.8], [-4.4, 4.4]], 'cuff', 0.22),
+    gift: handCut([[-6.2, 0], [6.3, 0], [6.1, -10.2], [-6.0, -10.4]], 'gift', 0.25),
+    envelope: handCut([[-3.3, -1.6], [3.4, -1.5], [3.3, 7.9], [-3.4, 8.0]], 'envelope', 0.18),
+    mooncake: Array.from({ length: 64 }, (_, i) => { const a = (i / 64) * TAU, r = 4.4 + 0.42 * Math.cos(8 * a); return [r * Math.cos(a), -3.6 + r * Math.sin(a)]; }),
+  };
+  const PROPS_V1 = { red: FEST_RED, ow: 1.35, sockTop: SOCK_TOP, couplet: COUPLET, sockLeg: SOCK_LEG, sockCuff: SOCK_CUFF, gift: GIFT };
+  const PS = () => (STYLE.props === 'v1' ? PROPS_V1 : PROPS_V2);
+
+  // ---------- 能力系統（Capability System）：故事解鎖了什麼，就只能做什麼 ----------
+  const GROUND_DY = 127.6 - 101;   // 沒有腳時，身體下端直接落在地面上（不懸空）
+  function getCapabilities(parts) {
+    const c = {
+      body: parts.has('body'),
+      head: parts.has('head'),
+      headTurn: parts.has('head'),
+      gaze: parts.has('eyes'),
+      expression: parts.has('eyes'),
+      smile: parts.has('mouth'),
+      holdR: parts.has('armR'),
+      holdL: parts.has('armL'),
+      stand: parts.has('legL') || parts.has('legR'),
+      walk: parts.has('legL') && parts.has('legR'),
+      costume: parts.has('head'),
+      paperHat: parts.has('paperHat'),
+    };
+    c.twoHands = c.holdR && c.holdL;
+    c.growthFocus = !c.holdR && !c.holdL;   // 成長焦點期：還沒有任何一隻手
+    c.stage = !c.head ? 'line' : c.growthFocus ? 'head' : !c.twoHands ? 'oneHand' : !c.walk ? 'twoHands' : 'full';
+    return c;
+  }
+  const CAP_LIST = [['body', '身體（一條線）'], ['headTurn', '頭部與轉頭'], ['gaze', '眼睛與視線'], ['expression', '閉眼笑表情'], ['smile', '嘴巴'],
+    ['holdR', '右手持物'], ['holdL', '左手持物'], ['twoHands', '雙手動作'], ['stand', '有腳支撐站立'], ['walk', '雙腳行走'], ['costume', '頭飾（有頭可戴）'], ['paperHat', '紙帽已取得']];
+  const STAGE_NAME = { line: '只有一條線', head: '有頭、沒有手', oneHand: '只有一隻手', twoHands: '雙手、還沒雙腳', full: '完整角色' };
+
+  // ---------- 節日物件分類：Environment／Character Prop／Costume ----------
+  const OBJECTS = {
+    couplet: { name: '春聯（斗方）', cls: 'Environment', slot: 'BACKDROP_L', anchor: '日曆裝訂環（頁面上緣）', layer: 'backdrop', support: '細繩掛在裝訂環上' },
+    sock: { name: '襪子', cls: 'Environment', slot: 'BACKDROP_L', anchor: '日曆裝訂環（頁面上緣）', layer: 'backdrop', support: '細繩掛在裝訂環上（故事：在裝訂環上掛襪子）' },
+    gift: { name: '禮物', cls: 'Environment', slot: 'GROUND_R', anchor: '地面右 (94, 127.6)', layer: 'ground', support: '放在地面，有影子' },
+    moon: { name: '月亮', cls: 'Environment', slot: 'SKY', anchor: '天空 (98, 6)', layer: 'sky', support: '天空，不需要支撐' },
+    envelope: { name: '紅包', cls: 'Character Prop', anchor: '手臂末端', layer: 'hand', support: '拿在手上' },
+    mooncake: { name: '月餅', cls: 'Character Prop', anchor: '手臂末端', layer: 'hand', support: '拿在手上' },
+    caishen: { name: '財神帽', cls: 'Costume', anchor: '頭輪廓 −0.98 rad', layer: 'head', support: '戴在頭上，跟著頭轉' },
+    santa: { name: '聖誕帽', cls: 'Costume', anchor: '頭輪廓 −0.98 rad', layer: 'head', support: '戴在頭上，跟著頭轉' },
+    ears: { name: '玉兔耳朵', cls: 'Costume', anchor: '頭輪廓 −0.92／−0.56 rad', layer: 'head', support: '戴在頭上，跟著頭轉' },
+    paperHat: { name: '紙帽', cls: 'Costume（個人配件）', anchor: '頭輪廓 −0.98 rad', layer: 'head', support: '戴在頭上，跟著頭轉' },
+    umbrella: { name: '雨傘', cls: 'Character Prop（天氣功能）', anchor: '右手握點', layer: 'shaft／canopy', support: '拿在手上' },
+    sun: { name: '太陽', cls: 'Environment（天氣）', anchor: '天空 (99, 4)', layer: 'sky', support: '天空' },
+    clouds: { name: '雲', cls: 'Environment（天氣）', anchor: '天空', layer: 'clouds', support: '天空' },
+    rain: { name: '雨', cls: 'Environment（天氣）', anchor: '全畫面', layer: 'rain', support: '—' },
+  };
+
+  // ---------- 節日資料（共用角色，只描述「今天在做什麼、用什麼東西」） ----------
+  const HOLIDAYS = {
+    spring: { name: '春節', costume: 'caishen', prop: 'envelope', propPref: 'R', env: ['couplet'], cue: 'couplet',
+      main: { kind: 'bow', name: '拜年：作揖、遞紅包', dur: 4200, key: 2300 }, idle: { kind: 'lookEnvelope', name: '看看紅包', dur: 2200, key: 900 } },
+    xmas: { name: '聖誕', costume: 'santa', prop: null, env: ['sock', 'gift'], cue: 'sock',
+      main: { kind: 'sock', name: '掛襪子、看禮物', dur: 4400, key: 2300 }, idle: { kind: 'peekGift', name: '偷看禮物', dur: 2000, key: 900 } },
+    moon: { name: '中秋', costume: 'ears', prop: 'mooncake', propPref: 'L', env: ['moon'], cue: 'moon',
+      main: { kind: 'toast', name: '舉月餅望月', dur: 4600, key: 2900 }, idle: { kind: 'gazeMoon', name: '抬頭望月', dur: 2600, key: 1200 } },
+  };
+  const WEATHER_NAME = { sunny: '晴', rainy: '雨', cloudy: '陰' };
+
+  // 每個動作聲明各降級層級需要的能力（由上往下找第一個符合的）
+  const LEVEL_NAME = { full: '完整版', rain: '雨天版（撐傘拜年）', oneHand: '單手版（成長階段只有一隻手）', point: '指向版（手構不到）', head: '頭部版', line: '線條版' };
+  const ACTION_SPEC = {
+    bow: [['full', '雙手空著＋紅包在手', '作揖、點頭兩次、遞紅包'], ['rain', '雙手都有，一手撐傘、一手拿紅包', '撐傘拜年：紅包舉在胸前、連傘一起點頭兩次、遞紅包'], ['oneHand', '成長階段只有一隻手＋紅包', '單手舉紅包、點頭兩次'], ['head', '頭', '轉向春聯點頭兩次'], ['line', '身體', '春聯淡入，線條扭一扭']],
+    lookEnvelope: [['full', '紅包在手', '低頭看紅包、微微舉起'], ['head', '頭', '轉頭看春聯'], ['line', '身體', '線條輕輕扭一下']],
+    sock: [['full', '空著的手＋有腳站著', '伸手碰襪子、轉頭看禮物'], ['point', '空著的手（沒有腳，構不到）', '舉手指向襪子'], ['head', '頭', '抬頭看襪子'], ['line', '身體', '襪子落下，線條扭一扭']],
+    peekGift: [['full', '頭＋禮物在場', '偷看禮物'], ['head', '頭', '抬頭看襪子'], ['line', '身體', '線條輕輕扭一下']],
+    toast: [['full', '一隻手拿月餅', '舉月餅望月'], ['head', '頭', '抬頭望月'], ['line', '身體', '月光變亮，線條扭一扭']],
+    gazeMoon: [['full', '頭', '抬頭望月'], ['line', '身體', '線條輕輕扭一下']],
+    cloudGlance: [['full', '頭', '抬頭看雲'], ['line', '身體', '線條輕輕扭一下']],
+    story: [['full', '頭', '看一眼今天的頁面'], ['line', '身體', '線條輕輕扭一下']],
+  };
+  function levelFor(kind, R) {
+    const c = R.caps, S = R.S;
+    const held = (id) => (S.HAND_R === id ? 'R' : S.HAND_L === id ? 'L' : null);
+    const free = ['L', 'R'].filter((h) => c['hold' + h] && !S['HAND_' + h]);
+    switch (kind) {
+      case 'bow': {
+        // 「已長出雙手但正在撐傘」跟「成長階段只有一隻手」是兩回事
+        const h = held('envelope');
+        if (!h) return c.head ? 'head' : 'line';
+        if (!c.twoHands) return 'oneHand';
+        return S['HAND_' + (h === 'R' ? 'L' : 'R')] ? 'rain' : 'full';
+      }
+      case 'lookEnvelope': return held('envelope') ? 'full' : c.head ? 'head' : 'line';
+      case 'sock': return free.length ? (c.stand ? 'full' : 'point') : c.head ? 'head' : 'line';
+      case 'peekGift': return c.head ? (S.GROUND_R === 'gift' ? 'full' : 'head') : 'line';
+      case 'toast': return held('mooncake') ? 'full' : c.head ? 'head' : 'line';
+      default: return c.head ? 'full' : 'line';
+    }
+  }
+
+  // ---------- 1. 顯示規則：每個物件都要有顯示條件、錨點、圖層與支撐 ----------
+  function resolve(ctx) {
+    const parts = partsAt(ctx.page), caps = getCapabilities(parts), H = HOLIDAYS[ctx.holiday];
+    const S = { HEAD_TOP: null, HAND_R: null, HAND_L: null, GROUND_R: null, GROUND_L: null, BACKDROP_L: null, SKY: null };
+    const objects = [];
+    const add = (id, shown, reason, extra) => objects.push({ id, shown, reason, ...OBJECTS[id], ...(extra || {}) });
+    const side = (h) => (h === 'R' ? '右' : '左');
+    // (1) 天氣：環境一直都在；雨傘是功能道具，要有手才拿得了
+    if (ctx.weather === 'rainy') {
+      add('rain', true, '雨天環境');
+      if (caps.holdR) { S.HAND_R = 'umbrella'; add('umbrella', true, '下雨，右手撐傘（天氣功能道具）'); }
+      else add('umbrella', false, '還沒有右手，不撐傘');
+    }
+    if (ctx.weather === 'cloudy') add('clouds', true, '陰天環境');
+    // (2) 節日手持道具（Character Prop）：只在有空著的手時出現，不改放地上
+    if (H && H.prop) {
+      if (caps.growthFocus) add(H.prop, false, '還沒有手：不出現看起來屬於墨丸的道具');
+      else {
+        const order = H.propPref === 'R' ? ['R', 'L'] : ['L', 'R'];
+        const h = order.find((x) => caps['hold' + x] && !S['HAND_' + x]);
+        if (h) {
+          S['HAND_' + h] = H.prop;
+          const why = h === order[0] ? `拿在${side(h)}手` : `改拿在${side(h)}手：${side(order[0])}手${S['HAND_' + order[0]] === 'umbrella' ? '在撐傘' : '還沒長出來'}`;
+          add(H.prop, true, why, { anchor: `${side(h)}手末端` });
+        } else add(H.prop, false, '沒有空著的手（不改放地上，避免像掉落的東西）');
+      }
+    }
+    // (3) 節日環境（Environment）：成長焦點期只留一個主線索，而且降低對比
+    if (H) for (const id of H.env) {
+      if (id === 'moon' && ctx.weather === 'rainy') { add(id, false, '下雨看不到月亮'); continue; }
+      if (caps.growthFocus && id !== H.cue) { add(id, false, '成長焦點期：只保留一個環境線索'); continue; }
+      S[OBJECTS[id].slot] = id;
+      add(id, true, caps.growthFocus ? '成長焦點期唯一的環境線索，對比降到 40%' : '節日環境');
+    }
+    // (4) 天氣的天空：節日的天空元素優先
+    if (ctx.weather === 'sunny') {
+      if (S.SKY === 'moon') add('sun', false, '天空已有月亮（節日主題優先）');
+      else { S.SKY = 'sun'; add('sun', true, caps.growthFocus ? '晴天；成長焦點期對比降到 55%' : '晴天'); }
+    }
+    // (5) 頭頂（Costume）：要有頭；成長焦點期不穿戴節日服飾
+    if (H) {
+      const c = H.costume;
+      if (!caps.head) add(c, false, '還沒有頭');
+      else if (caps.growthFocus) add(c, false, '成長焦點期：焦點留給剛長出來的部位');
+      else if (!ctx.headwear) add(c, false, '節日頭飾開關已關閉');
+      else { S.HEAD_TOP = c; add(c, true, '戴在頭上'); }
+    }
+    if (!caps.paperHat) add('paperHat', false, '第 11 頁才取得');
+    else if (!ctx.hatOn) add('paperHat', false, '使用者已換下');
+    else if (S.HEAD_TOP) add('paperHat', false, `頭頂今天給${OBJECTS[S.HEAD_TOP].name}，紙帽暫收（裝備狀態不變）`);
+    else { S.HEAD_TOP = 'paperHat'; add('paperHat', true, '個人配件，已裝備'); }
+    return { S, parts, caps, objects, low: caps.growthFocus, legacy: false };
+  }
+  /** 修正前（Phase 2A）的規則，只用來做前後對照 */
+  function resolveLegacy(ctx) {
+    const R = resolve(ctx), H = HOLIDAYS[ctx.holiday];
+    const S = { ...R.S };
+    if (H && H.prop && !R.caps.holdR && !R.caps.holdL) S.GROUND_L = H.prop;   // 舊規則：沒有手就放地上
+    if (H) for (const id of H.env) if (!(id === 'moon' && ctx.weather === 'rainy')) S[OBJECTS[id].slot] = id;
+    if (ctx.weather === 'sunny' && S.SKY !== 'moon') S.SKY = 'sun';
+    return { ...R, S, low: false, legacy: true };
+  }
+
+  // ---------- 2. 動作：依能力選層級，能力不夠就換整套動作，不是只把手藏起來 ----------
+  const wiggle = (P, a) => { P.body = P.body.map(([x, y], i) => [x + a * [0, 0.7, 1, 0][i], y]); };
+  const ACTIONS_V1 = {
+    bow(t, R, P, lv) {
+      const o = { lv };
+      if (lv === 'line') { o.wiggle = 2.4 * Math.sin((t / 600) * TAU) * env(t, 300, 600, 1600, 2200); o.cueIn = seg(t, 0, 900); return o; }
+      const nod = env(t, 600, 850, 900, 1250) + env(t, 1350, 1600, 1650, 2000);
+      const envHand = R.S.HAND_L === 'envelope' ? 'armL' : 'armR';
+      const BOW = { armL: ARM.L_BOW, armR: ARM.R_BOW }, LIFT = { armL: ARM.L_LIFT, armR: ARM.R_LIFT };
+      if (lv === 'full') {
+        // 雙手合到胸前作揖，之後拿紅包的那隻手遞出去，另一隻手放回
+        const inA = seg(t, 0, 600), outA = seg(t, 2000, 2600), back = seg(t, 2700, 3400);
+        for (const arm of ['armL', 'armR']) {
+          const joined = mixPts(P[arm], BOW[arm], inA);
+          o[arm] = arm === envHand ? mixPts(mixPts(joined, LIFT[arm], outA), P[arm], back) : mixPts(joined, P[arm], outA);
+        }
+      } else if (lv === 'rain') {
+        // 撐傘拜年：撐傘的手不離開握點，傘跟著點頭微微前傾；拿紅包的手舉到胸前再遞出
+        const inA = seg(t, 0, 600), outA = seg(t, 2000, 2600), back = seg(t, 2700, 3400);
+        o[envHand] = mixPts(mixPts(mixPts(P[envHand], BOW[envHand], inA), LIFT[envHand], outA), P[envHand], back);
+        o.umbrellaTilt = -4 * nod;
+      } else if (lv === 'oneHand') {
+        const hand = R.S.HAND_L === 'envelope' ? 'armL' : 'armR';
+        o[hand] = mixPts(mixPts(P[hand], hand === 'armL' ? ARM.L_LIFT : ARM.R_LIFT, seg(t, 0, 600)), P[hand], seg(t, 2800, 3400));
+      }
+      const toCouplet = lv === 'head' ? env(t, 0, 500, 2400, 3200) : 0;
+      o.headDy = 2.4 * nod; o.headAngle = 3 * nod - 5 * toCouplet;
+      o.gaze = [-0.8 * toCouplet, 0];
+      o.face = t > 2000 && t < 3000 ? 'sunny' : 'normal';
+      o.flick = t > 600 && t < 3000 ? 'perked' : 'normal';
+      return o;
+    },
+    lookEnvelope(t, R, P, lv) {
+      if (lv === 'line') return { lv, wiggle: 1.2 * Math.sin((t / 700) * TAU) * env(t, 0, 400, 1400, 2200) };
+      const e = env(t, 0, 500, 1300, 2200);
+      if (lv === 'head') return { lv, headAngle: -5 * e, gaze: [-0.8 * e, 0] };
+      const hand = R.S.HAND_L === 'envelope' ? 'armL' : 'armR', s = hand === 'armL' ? -1 : 1;
+      return { lv, headAngle: 5 * s * e, gaze: [0.7 * s * e, 0.7 * e], [hand]: mixPts(P[hand], hand === 'armL' ? ARM.L_LIFT : ARM.R_LIFT, 0.35 * env(t, 300, 700, 1200, 1800)) };
+    },
+    sock(t, R, P, lv) {
+      const o = { lv, sockDy: t < 300 ? -40 : t < 450 ? -24 : t < 600 ? -9 : 0 };   // 紙片般逐格落下
+      if (lv === 'line') { o.wiggle = 2.4 * Math.sin((t / 600) * TAU) * env(t, 600, 900, 1900, 2500); return o; }
+      const look = env(t, 0, 500, 1500, 2100);
+      o.headAngle = -4 * look; o.gaze = [-0.8 * look, -0.8 * look];
+      const hand = R.caps.holdL && !R.S.HAND_L ? 'armL' : R.caps.holdR && !R.S.HAND_R ? 'armR' : null;
+      if (hand && (lv === 'full' || lv === 'point')) o[hand] = mixPts(P[hand], hand === 'armL' ? ARM.L_REACH : ARM.R_LIFT, env(t, 700, 1350, 1500, 2300));
+      o.sockSwing = lv === 'full' && t > 1400 ? 9 * Math.exp(-(t - 1400) / 700) * Math.sin(((t - 1400) / 1000) * TAU * 1.4) : 0;
+      if (R.S.GROUND_R === 'gift') {
+        const gift = env(t, 2200, 2700, 3000, 3600);
+        o.headAngle += 5 * gift; o.gaze = [o.gaze[0] + 0.8 * gift, o.gaze[1] + 0.7 * gift];
+        o.face = t > 2500 && t < 3200 ? 'sunny' : 'normal';
+      }
+      return o;
+    },
+    peekGift(t, R, P, lv) {
+      if (lv === 'line') return { lv, wiggle: 1.2 * Math.sin((t / 700) * TAU) * env(t, 0, 400, 1200, 2000) };
+      const e = env(t, 0, 400, 1400, 2000);
+      return lv === 'full' ? { lv, headAngle: 5 * e, gaze: [0.8 * e, 0.6 * e] } : { lv, headAngle: -4 * e, gaze: [-0.8 * e, -0.8 * e] };
+    },
+    toast(t, R, P, lv) {
+      const o = { lv, glow: env(t, 1600, 2100, 2600, 3200) };
+      if (lv === 'line') { o.wiggle = 2.2 * Math.sin((t / 650) * TAU) * env(t, 1200, 1600, 2600, 3200); return o; }
+      const look = env(t, 0, 800, 2800, 3800);
+      o.headAngle = 4 * look; o.gaze = [0.8 * look, -0.9 * look]; o.flick = look > 0.5 ? 'perked' : 'normal';
+      if (lv === 'full') {
+        const hand = R.S.HAND_L === 'mooncake' ? 'armL' : 'armR';
+        o[hand] = mixPts(P[hand], hand === 'armL' ? ARM.L_TOAST : ARM.R_TOAST, env(t, 800, 1800, 2800, 3700));
+      }
+      o.face = t > 2000 && t < 2800 ? 'sunny' : 'normal';
+      return o;
+    },
+    gazeMoon(t, R, P, lv) {
+      if (lv === 'line') return { lv, wiggle: 1.2 * Math.sin((t / 700) * TAU) * env(t, 0, 400, 1800, 2600) };
+      const e = env(t, 0, 600, 1800, 2600);
+      return { lv, headAngle: 4 * e, gaze: [0.8 * e, -0.9 * e] };
+    },
+    cloudGlance(t, R, P, lv) {
+      if (lv === 'line') return { lv, wiggle: 1.2 * Math.sin((t / 700) * TAU) * env(t, 0, 400, 1600, 2400) };
+      const e = env(t, 0, 600, 1700, 2400);
+      return { lv, headAngle: -3 * e, gaze: [0.4 * e, -0.9 * e] };
+    },
+    story(t, R, P, lv) {
+      if (lv === 'line') return { lv, wiggle: 1.6 * Math.sin((t / 600) * TAU) * env(t, 0, 300, 1500, 2000) };
+      const e = env(t, 0, 400, 1500, 2000);
+      return { lv, headAngle: 6 * e, gaze: [0, 0.9 * e] };
+    },
+  };
+
+
+  // ---------- Phase 2A.2 演出：預備 → 動作 → 停留 → 收尾（只改 full／rain，其他層級沿用） ----------
+  const KEYPOSES = {
+    bow: [[0, '起始'], [700, '預備：看一眼紅包'], [1600, '動作：手到胸前、低頭'], [2300, '停留：拜年'], [3350, '收尾：遞出紅包']],
+    sock: [[0, '起始'], [700, '預備：抬頭看襪子'], [1700, '動作：伸手扶正'], [2300, '停留：確認掛好'], [3600, '收尾：看見禮物']],
+    toast: [[0, '起始'], [800, '預備：低頭看月餅'], [2000, '動作：慢慢舉起'], [2900, '停留：望月'], [4100, '收尾：放下、平靜']],
+  };
+  const ACTIONS = { ...ACTIONS_V1 };
+  ACTIONS.bow = function (t, R, P, lv) {
+    if (lv !== 'full' && lv !== 'rain') return ACTIONS_V1.bow(t, R, P, lv);
+    const env_ = R.S.HAND_L === 'envelope' ? 'armL' : 'armR', other = env_ === 'armL' ? 'armR' : 'armL';
+    const side = env_ === 'armL' ? -1 : 1;
+    const CH = { armL: ARM.L_CHEST, armR: ARM.R_CHEST }, LIFT = { armL: ARM.L_LIFT, armR: ARM.R_LIFT };
+    const o = { lv };
+    // 預備：看一眼手上的紅包（紅包微微抬起）→ 動作：雙手（或拿紅包的手）收到胸前、低頭 → 停留 → 收尾：抬頭、遞出、放回
+    o[env_] = track(t, [[0, P[env_]], [500, mixPts(P[env_], LIFT[env_], 0.3)], [900, mixPts(P[env_], LIFT[env_], 0.3)], [1500, CH[env_]], [2500, CH[env_]], [3050, LIFT[env_]], [3500, LIFT[env_]], [4200, P[env_]]]);
+    if (lv === 'full') o[other] = track(t, [[0, P[other]], [900, P[other]], [1500, CH[other]], [2500, CH[other]], [3050, P[other]]]);
+    o.headAngle = track(t, [[0, 0], [450, 5 * side], [900, 5 * side], [1450, 1.5], [2500, 1.5], [3100, 0]]);
+    o.headDy = track(t, [[0, 0], [900, 0], [1550, 2.8], [1750, 3.1], [2500, 3.1], [3050, -0.3], [3300, 0]]);
+    o.gaze = track(t, [[0, [0, 0]], [450, [0.7 * side, 0.8]], [900, [0.7 * side, 0.8]], [1450, [0, 0.6]], [2500, [0, 0.6]], [3000, [0.2 * side, 0]], [4200, [0, 0]]]);
+    o.face = t > 1550 && t < 2500 ? 'sunny' : t > 2900 && t < 3700 ? 'sunny' : 'normal';
+    o.flick = t > 2950 && t < 3600 ? 'perked' : 'normal';
+    if (lv === 'rain') o.umbrellaTilt = track(t, [[0, 0], [900, 0], [1550, -3.5], [2500, -3.5], [3100, 0.8], [3400, 0]]);
+    return o;
+  };
+  ACTIONS.sock = function (t, R, P, lv) {
+    if (lv !== 'full') return ACTIONS_V1.sock(t, R, P, lv);
+    const hand = R.caps.holdL && !R.S.HAND_L ? 'armL' : 'armR';
+    const o = { lv, sockDy: 0 };
+    // 襪子一開始有點歪；伸手把它扶正，放手後只剩很小的擺動
+    o.sockSwing = t < 1500 ? 11 : t < 1750 ? track(t, [[1500, 11], [1750, 0]]) : t < 2300 ? 0 : 2.2 * Math.exp(-(t - 2300) / 500) * Math.sin(((t - 2300) / 1000) * TAU * 1.6);
+    o[hand] = track(t, [[0, P[hand]], [800, P[hand]], [1500, ARM.L_TOUCH], [2300, ARM.L_TOUCH], [2900, P[hand]]]);
+    o.headAngle = track(t, [[0, 0], [600, -5], [1500, -4.5], [2050, -3.5], [2300, -4], [2800, 0], [3300, 6.5], [3600, 6], [4400, 0]]);
+    o.headDy = track(t, [[0, 0], [1950, 0], [2100, 0.9], [2300, 0], [3150, 0], [3350, -1.1], [3700, 0]]);
+    o.gaze = track(t, [[0, [0, 0]], [600, [-0.85, -0.85]], [2300, [-0.85, -0.85]], [2800, [0, 0]], [3250, [0.95, 0.75]], [4000, [0.95, 0.75]], [4400, [0, 0]]]);
+    o.face = t > 3350 && t < 4200 ? 'sunny' : 'normal';
+    o.flick = (t > 400 && t < 2300) || (t > 3250 && t < 4000) ? 'perked' : 'normal';
+    return o;
+  };
+  ACTIONS.toast = function (t, R, P, lv) {
+    if (lv !== 'full') return ACTIONS_V1.toast(t, R, P, lv);
+    const hand = R.S.HAND_L === 'mooncake' ? 'armL' : 'armR', side = hand === 'armL' ? -1 : 1;
+    const CR = hand === 'armL' ? ARM.L_CRADLE : ARM.R_CRADLE, UP = hand === 'armL' ? ARM.L_TOAST : ARM.R_TOAST;
+    const o = { lv };
+    o[hand] = track(t, [[0, P[hand]], [700, CR], [1100, CR], [2300, UP], [3300, UP], [4300, P[hand]]]);
+    o.headAngle = track(t, [[0, 0], [700, 4 * side], [1100, 4 * side], [2300, 2], [2700, 5], [3300, 5], [4300, 0]]);
+    o.headDy = track(t, [[0, 0], [700, 1.2], [1100, 1.2], [2000, 0], [2700, -0.6], [3300, -0.6], [4000, 0]]);
+    o.gaze = track(t, [[0, [0, 0]], [700, [0.6 * side, 0.9]], [1100, [0.6 * side, 0.9]], [2300, [0.4, -0.4]], [2700, [0.8, -0.9]], [3300, [0.8, -0.9]], [4300, [0, 0]]]);
+    o.face = t > 2700 && t < 3500 ? 'sunny' : 'normal';
+    o.flick = t > 2500 && t < 3500 ? 'perked' : 'normal';
+    o.glow = track(t, [[0, 0], [2500, 0], [2900, 1], [3300, 1], [3900, 0]]);
+    return o;
+  };
+
+  // ---------- 3. 動畫狀態機 ----------
+  // 優先權：1 故事事件 > 2 節日主要演出 > 3 節日限定待機 > 4 天氣日常動作 > 5 普通 Idle
+  const PRI = { STORY: 1, MAIN: 2, IDLE: 3, WEATHER: 4, BASE: 5 };
+  const MODE_NAME = { STORY: '故事事件', MAIN: '節日主要演出', IDLE: '節日限定待機', WEATHER: '天氣日常動作', BASE: '一般狀態' };
+  function Controller() {
+    this.mode = 'BASE'; this.action = null; this.start = 0; this.dur = 0; this.nextIdle = 0; this.nextBlink = 0; this.blinkUntil = 0;
+    this.fast = true; this.note = ''; this.reduced = false;
+    this.starts = { STORY: 0, MAIN: 0, IDLE: 0, WEATHER: 0 }; this.events = [];
+  }
+  Controller.prototype.log = function (msg) { this.events.unshift(msg); this.events.length = Math.min(this.events.length, 6); };
+  Controller.prototype.wait = function () { return this.fast ? 6000 + rnd() * 4000 : 20000 + rnd() * 20000; };
+  /** staticMode：減少動態時只顯示這個動作的靜態姿態（仍依時長結束） */
+  Controller.prototype.request = function (mode, action, now, staticMode, why) {
+    if (this.mode !== 'BASE' && PRI[mode] > PRI[this.mode]) {
+      this.note = `「${MODE_NAME[mode]}」被擋下：正在播「${MODE_NAME[this.mode]}」`;
+      this.log(this.note);
+      return false;
+    }
+    this.mode = mode; this.action = action; this.start = now; this.dur = action.dur; this.held = !!staticMode; this.note = '';
+    this.starts[mode]++;
+    this.log(why || `${MODE_NAME[mode]}：${action.name}`);
+    return true;
+  };
+  Controller.prototype.update = function (now, ctx) {
+    if (this.mode !== 'BASE' && now - this.start >= this.dur) {
+      const ended = this.mode, H = HOLIDAYS[ctx.holiday];
+      this.mode = 'BASE'; this.action = null; this.held = false; this.nextIdle = now + this.wait();
+      // 故事事件結束：回到當天的節日待機，不重播主要演出
+      if (ended === 'STORY') this.log(`故事事件結束 → 回到${H ? `${H.name}待機` : '一般狀態'}`);
+    }
+    if (this.mode === 'BASE' && !this.reduced && now >= this.nextIdle) {
+      const H = HOLIDAYS[ctx.holiday];
+      if (H) this.request('IDLE', H.idle, now);
+      else if (ctx.weather === 'cloudy') this.request('WEATHER', { kind: 'cloudGlance', name: '抬頭看雲（新原型）', dur: 2400, key: 1100 }, now);
+      else this.nextIdle = now + this.wait();
+    }
+    if (now >= this.nextBlink) { this.blinkUntil = now + 140; this.nextBlink = now + 3000 + rnd() * 3500; }
+  };
+  Controller.prototype.reset = function (now) { this.mode = 'BASE'; this.action = null; this.held = false; this.nextIdle = now + this.wait(); };
+
+  // ---------- 節日場次：首次出場、天氣更新、手動重播、待機、故事事件各走各的入口 ----------
+  // Android 對應：played 存在 SharedPreferences（key = 日期 + 節日），天氣更新只重算環境
+  function Session(ctrl, ctx) { this.ctrl = ctrl; this.ctx = ctx; this.day = 1; this.played = new Set(); }
+  Session.prototype.key = function (h) { return `day${this.day}:${h}`; };
+  /** 進入（或切換到）某個節日：今天第一次才播主要演出 */
+  Session.prototype.enterHoliday = function (now, staticMode) {
+    const c = this.ctrl, h = this.ctx.holiday, H = HOLIDAYS[h];
+    c.reset(now);
+    if (!H) { c.log('無節日：不觸發節日演出'); return; }
+    if (this.played.has(this.key(h))) { c.log(`今天已播過${H.name}主要演出：直接進入待機`); return; }
+    this.played.add(this.key(h));
+    c.request('MAIN', H.main, now, staticMode, `${H.name}首次出場：播放主要演出`);
+  };
+  /** 天氣只更新環境：不重設狀態機、不重播 */
+  Session.prototype.weatherChanged = function (prev) {
+    const c = this.ctrl;
+    c.log(`天氣更新：${WEATHER_NAME[prev]} → ${WEATHER_NAME[this.ctx.weather]}（不重播${c.mode !== 'BASE' ? `，${MODE_NAME[c.mode]}繼續` : ''}）`);
+  };
+  Session.prototype.replay = function (now, staticMode) {
+    const c = this.ctrl, H = HOLIDAYS[this.ctx.holiday];
+    if (!H) { c.log('無節日：忽略重播'); return false; }
+    if (c.mode === 'STORY') { c.log('故事事件進行中：重播被擋下'); return false; }
+    c.mode = 'BASE';
+    return c.request('MAIN', H.main, now, staticMode, `使用者手動重播：${H.name}主要演出`);
+  };
+  Session.prototype.previewIdle = function (now, staticMode) {
+    const H = HOLIDAYS[this.ctx.holiday];
+    return H ? this.ctrl.request('IDLE', H.idle, now, staticMode, `預覽${H.name}限定待機`) : false;
+  };
+  Session.prototype.story = function (now, staticMode) {
+    return this.ctrl.request('STORY', { kind: 'story', name: '看一眼今天的頁面（示意）', dur: 2000, key: 1000 }, now, staticMode, '故事事件插入');
+  };
+  Session.prototype.newDay = function (now, staticMode) { this.day++; this.ctrl.log(`模擬第 ${this.day} 天`); this.enterHoliday(now, staticMode); };
+
+  // ---------- 4. 組出一張影格 ----------
+  function buildFrame(ctx, R, act, clock, live) {
+    const H = HOLIDAYS[ctx.holiday], caps = R.caps;
+    const umbrella = R.S.HAND_R === 'umbrella';
+    let P;
+    if (!H && ctx.weather === 'sunny') P = pose('sunny', live ? clock : 2000);        // 沒有節日：V3 伸懶腰
+    else if (umbrella) P = pose('rainy', live ? clock : 1050);                           // V3 撐傘站姿與傘的擺動
+    else P = { ...NORMAL };
+    P = { ...P, headDy: 0, gaze: [0, 0] };
+    if (ctx.weather === 'rainy' && !umbrella && !H) { P.face = 'rainy'; P.flick = 'drooped'; }
+    if (ctx.weather === 'cloudy' && !H) { P.face = 'normal'; P.flick = 'normal'; }
+    if (H) { P.face = 'normal'; P.flick = 'normal'; P.headAngle = 0; }   // 表情屬於主題（Proposed）
+    if (R.S.HAND_R && R.S.HAND_R !== 'umbrella') P.armR = ARM.R_HOLD;
+    if (R.S.HAND_L) P.armL = ARM.L_HOLD;
+    const F = { P, props: { sockDy: 0, sockSwing: 0, glow: 0, cueIn: 1 }, level: null };
+    if (act && act.action && ACTIONS[act.action.kind]) {
+      const t = act.held ? act.action.key : clock - act.start;
+      const lv = levelFor(act.action.kind, R);
+      const o = (STYLE.acting === 'v1' ? ACTIONS_V1 : ACTIONS)[act.action.kind](t, R, P, lv);
+      for (const k of ['armL', 'armR', 'face', 'flick']) if (o[k]) P[k] = o[k];
+      if (o.headAngle != null) P.headAngle = (P.headAngle || 0) + o.headAngle;
+      if (o.umbrellaTilt && P.umbrellaAngle != null) P.umbrellaAngle += o.umbrellaTilt;
+      if (o.headDy != null) P.headDy = o.headDy;
+      // v2：低頭時脖子跟著下來一點（身體上端、圍巾），避免頭像是從圍巾上滑下來
+      if (STYLE.acting !== 'v1' && o.headDy) {
+        const nk = 0.45 * o.headDy;
+        P.neckDy = nk;
+        P.body = P.body.map(([x, y], i) => [x, y + nk * [1, 0.5, 0.15, 0][i]]);
+        P.tail = P.tail.map(([x, y]) => [x, y + nk]);
+      }
+      if (o.gaze) P.gaze = o.gaze;
+      if (o.wiggle) wiggle(P, act.held ? 0 : o.wiggle);
+      if (o.sockDy != null) F.props.sockDy = live && !act.held ? o.sockDy : 0;
+      if (o.sockSwing != null) F.props.sockSwing = live && !act.held ? o.sockSwing : 0;
+      if (o.glow != null) F.props.glow = o.glow;
+      if (o.cueIn != null) F.props.cueIn = act.held ? 1 : o.cueIn;
+      F.level = lv;
+    }
+    if (act && act.blink && P.face === 'normal') P.face = 'blink';
+    if ((P.face === 'sunny' || P.face === 'blink') && !caps.expression) P.face = 'normal';
+    if (!caps.gaze) P.gaze = [0, 0];
+    // 沒有腳：整個角色落在地面上（第 1–5 頁），不懸空
+    const dy = R.legacy || caps.stand ? 0 : GROUND_DY;
+    if (dy) {
+      for (const k of ['body', 'armL', 'armR', 'legL', 'legR', 'tail']) P[k] = P[k].map(([x, y]) => [x, y + dy]);
+      if (P.hand) P.hand = [P.hand[0], P.hand[1] + dy];
+      P.headDy += dy;
+    }
+    F.groundDy = dy;
+    return F;
+  }
+
+  // ---------- 5. 繪製（DOM 只建一次，之後只改屬性） ----------
+  function Pool(g) { this.g = g; this.items = []; this.i = 0; }
+  Pool.prototype.begin = function () { this.i = 0; };
+  Pool.prototype.path = function (d, attrs) {
+    let e = this.items[this.i];
+    if (!e) { e = el(this.g, 'path', {}); this.items.push(e); }
+    this.i++;
+    e.setAttribute('d', d);
+    for (const k of ['fill', 'opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-linecap']) {
+      if (attrs && attrs[k] != null) e.setAttribute(k, attrs[k]); else e.removeAttribute(k);
+    }
+    e.removeAttribute('display');
+    return e;
+  };
+  Pool.prototype.end = function () { for (let j = this.i; j < this.items.length; j++) this.items[j].setAttribute('display', 'none'); };
+  const circleD = (cx, cy, r) => `M${(cx - r).toFixed(2)} ${cy.toFixed(2)}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
+
+  /** 頭頂配件的位置：錨點取這一張影格的頭輪廓（跟一筆根部同一規則） */
+  function headPlace(theta, sink, headPts, tilt = 0) {
+    const idx = Math.round(((theta + TAU) % TAU) / TAU * HEAD_N) % HEAD_N;
+    const p = headPts[idx];
+    return { x: p[0] - Math.cos(theta) * sink, y: p[1] - Math.sin(theta) * sink, rot: theta + Math.PI / 2 + tilt };
+  }
+  /** 回傳頭頂配件在頭部座標裡的所有輪廓（繪製與檢查共用） */
+  /** v2 貼合：靠近帽緣的點沿著「這一格的頭輪廓」排列，越往上越接近剛體擺放（避免帽尖被拉歪） */
+  function conform(pts, theta, sink, headPts, tilt, bendR) {
+    const n = headPts.length, i0 = Math.round(((theta + TAU) % TAU) / TAU * n) % n;
+    const at = (s) => {   // 沿輪廓走 s 單位（正＝角度增加方向）
+      let i = i0, left = Math.abs(s), dir = s >= 0 ? 1 : -1;
+      for (let k = 0; k < n; k++) {
+        const a = headPts[(i + n) % n], b = headPts[(i + dir + n) % n], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (left <= d) { const u = left / d; return { p: [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u], t: dir > 0 ? [b[0] - a[0], b[1] - a[1]] : [a[0] - b[0], a[1] - b[1]] }; }
+        left -= d; i += dir;
+      }
+      return { p: headPts[i0], t: [1, 0] };
+    };
+    const rigid = place(bend(pts, bendR), headPlace(theta, sink, headPts, tilt));   // 上半部維持原本（彎曲後）的形狀
+    return pts.map(([x, y], j) => {
+      const h = -y, w = clamp01(1 - h / 9);
+      if (w <= 0) return rigid[j];
+      const { p, t } = at(x), l = Math.hypot(t[0], t[1]) || 1, N = [t[1] / l, -t[0] / l];
+      const c = [p[0] + N[0] * (h - sink), p[1] + N[1] * (h - sink)];
+      return [lerp(rigid[j][0], c[0], w), lerp(rigid[j][1], c[1], w)];
+    });
+  }
+  function headwearLoops(id, headPts) {
+    const W = HEADWEAR[id], warp = STYLE.fit === 'warp';
+    const spots = W.multi ? W.multi.map((m) => ({ theta: m.theta, tilt: m.tilt })) : [{ theta: W.theta, tilt: W.tilt || 0 }];
+    const anchors = spots.map((s) => headPlace(s.theta, W.sink, headPts, s.tilt));
+    const out = [];
+    spots.forEach((sp, k) => {
+      const pl = anchors[k];
+      const fit = (pts) => (warp && !W.multi ? conform(pts, sp.theta, W.sink, headPts, sp.tilt, W.bendR) : place(bend(pts, W.bendR), pl));
+      for (const s of W.shapes) out.push({ pts: fit(s.pts), fill: s.fill, detail: s.detail });
+      for (const l of W.lines) out.push({ line: fit(l), color: W.lineColor || INK });
+    });
+    return { out, anchors };
+  }
+
+  function Renderer(svg, cfg) {
+    const simple = cfg.px === 48, k = simple ? 1.75 : 1, boilK = simple ? 1.5 : 1;
+    const g = (attrs) => el(svg, 'g', attrs || {});
+    const L = {};
+    for (const n of ['sky', 'clouds', 'rain', 'backdrop', 'ground', 'shaft', 'body', 'scarf']) L[n] = new Pool(g());
+    L.headG = g(); L.head = new Pool(L.headG);
+    L.hand = new Pool(g());
+    L.canopyG = g(); L.canopy = new Pool(L.canopyG);
+    L.front = new Pool(g());
+    const defs = el(svg, 'defs', {});
+    const gid = 'f' + Math.random().toString(36).slice(2, 8);
+    const grads = {};
+    for (const p of ['legL', 'legR']) {
+      const lg = el(defs, 'linearGradient', { id: gid + p, gradientUnits: 'userSpaceOnUse' });
+      el(lg, 'stop', { offset: '0', 'stop-color': TERRA, 'stop-opacity': 0 });
+      el(lg, 'stop', { offset: '0.5', 'stop-color': TERRA, 'stop-opacity': 0.7 });
+      el(lg, 'stop', { offset: '1', 'stop-color': TERRA, 'stop-opacity': 0.95 });
+      grads[p] = lg;
+    }
+    const DROPS = simple ? [[10, 0], [114, 40], [16, 80]] : [[10, 0], [20, 52], [8, 95], [26, 30], [16, 120], [112, 18], [116, 70], [108, 110], [28, 85]];
+    let lastKey = '';
+    this.visible = true;
+    this.cfg = cfg;
+
+    const ringPath = (pool, pts, fill, part, v, w = 1.7, amp = 0.45, opacity) => {
+      const p = ph(part, v);
+      const r = ring(pts, (a) => w * k * (1 + 0.12 * Math.sin(2 * a + p[3])), (a) => loopNoise(p, a, amp * boilK));
+      pool.path(r.fill, { fill, opacity });
+      pool.path(r.stroke, { fill: INK, 'fill-rule': 'evenodd', opacity });
+      return r;
+    };
+    const strokePath = (pool, pts, w0, w1, part, v, amp = 0.15, color = INK, mode = 'both', per = 6, opacity) => {
+      const p = ph(part, v);
+      pool.path(brush(catmull(pts, per), (t) => lerp(w0, w1, t) * k * widthVar(p, t, 0.1), (t) => openNoise(p, t, amp * boilK, mode)), { fill: color, opacity });
+    };
+
+    /** F：buildFrame 的結果；R：插槽；ctx：情境；v：筆觸影格；rainStep：雨的 8 FPS 步數；clock：連續時間 */
+    this.render = function (F, R, ctx, v, rainStep, clock, mode48) {
+      const P = F.P, S = { ...R.S }, parts = R.parts;
+      // 48px 規則：只影響這一個尺寸的顯示
+      let detail = !simple || mode48 === 'full';
+      if (simple && mode48 === 'single' && ctx.holiday !== 'none') {
+        const keep = { spring: 'BACKDROP_L', xmas: 'HEAD_TOP', moon: 'SKY' }[ctx.holiday];
+        for (const s of ['HEAD_TOP', 'HAND_L', 'HAND_R', 'GROUND_R', 'GROUND_L', 'BACKDROP_L', 'SKY']) if (s !== keep && S[s] !== 'umbrella' && S[s] !== 'sun') S[s] = null;
+      }
+      if (simple && mode48 === 'simple') { if (S.BACKDROP_L === 'sock') S.BACKDROP_L = null; if (S.GROUND_R === 'gift') S.GROUND_R = 'gift'; }
+      const key = JSON.stringify([v, rainStep, Math.round(clock / 33), P.headAngle, P.headDy, P.gaze, P.face, P.flick, P.body[1], P.armL, P.armR, P.umbrellaAngle, S, ctx.umb, mode48, F.props, [...parts].length, R.low, R.legacy, STYLE]);
+      if (key === lastKey) return;
+      lastKey = key;
+      const drawn = [];
+      this.drawn = drawn;
+      // 成長焦點期：節日環境線索降到 40%，天氣的天空降到 55%；修正前（legacy）沒有這條規則
+      const envOp = (R.low ? 0.4 : 1) * F.props.cueIn, skyOp = R.low ? 0.55 : 1, hang = !R.legacy;
+      for (const n in L) if (L[n] instanceof Pool) L[n].begin();
+      const rainy = ctx.weather === 'rainy', umbrella = S.HAND_R === 'umbrella';
+
+      // ---- 天空 ----
+      if (S.SKY === 'sun') {
+        L.sky.path(circleD(99, 4, 8.5), { fill: PINK, opacity: 0.75 * skyOp });
+        L.sky.path(circleD(99, 4, 12), { fill: 'none', stroke: PINK, 'stroke-width': 1.1 * k, opacity: skyOp });
+        drawn.push('sun');
+      }
+      if (S.SKY === 'moon') {
+        // 不畫外圈光環（那是太陽的語彙）；舉月餅時才有一層很淡的月光
+        if (F.props.glow > 0) L.sky.path(circleD(98, 6, 12.5), { fill: MOON, opacity: 0.45 * F.props.glow * envOp });
+        ringPath(L.sky, circlePts(98, 6, 9.5), MOON, 'moon', v, 1.2, 0.3, envOp);
+        drawn.push('moon');
+        // 月面的淡影，讓它一看就是月亮
+        if (!simple && envOp > 0.5) {
+          L.sky.path('M93.2 3.6a2.6 1.9 -0.3 1 0 5.2 0a2.6 1.9 -0.3 1 0 -5.2 0Z', { fill: '#D8C9A2', opacity: 0.8 });
+          L.sky.path('M99.4 8.6a2.1 1.5 0.2 1 0 4.2 0a2.1 1.5 0.2 1 0 -4.2 0Z', { fill: '#D8C9A2', opacity: 0.7 });
+          L.sky.path('M98.6 1.6a1.1 0.8 0 1 0 2.2 0a1.1 0.8 0 1 0 -2.2 0Z', { fill: '#D8C9A2', opacity: 0.6 });
+        }
+      }
+      // ---- 雲（陰天，新原型）：慢慢往右飄 ----
+      if (ctx.weather === 'cloudy') {
+        CLOUDS.forEach((c, i) => {
+          const x = ((c.x + (clock / 1000) * c.sp + 30) % 170) - 30;
+          if (simple && i === 2) return;
+          ringPath(L.clouds, place(c.loop, { x, y: c.y }), CLOUD, 'cloud' + i, v, 1.5, 0.5);
+        });
+        drawn.push('clouds');
+      }
+      // ---- 雨（獨立 8 FPS） ----
+      if (rainy) {
+        DROPS.forEach(([x0, y0]) => {
+          const y = ((y0 + rainStep * 7) % 150) - 20;
+          L.rain.path(`M${x0} ${y}L${x0 - 1.6} ${y + 7}`, { fill: 'none', stroke: SAGE, 'stroke-width': 1.5 * k, 'stroke-linecap': 'round' });
+        });
+        drawn.push('rain');
+      }
+      // ---- 背景（春聯、襪子） ----
+      // 支撐：春聯與襪子都用細繩掛在頁面上緣的日曆裝訂環上
+      const hangFrom = (x, yTop, part) => {
+        L.backdrop.path(circleD(x, -17.2, 1.5), { fill: 'none', stroke: INK, 'stroke-width': 0.9 * k, opacity: Math.max(envOp, 0.35) });
+        strokePath(L.backdrop, [[x, -15.7], [x + 0.3, (yTop - 15.7) / 2], [x, yTop]], 0.7, 0.7, part, v, 0.08, INK, 'both', 6, Math.max(envOp, 0.35));
+      };
+      if (S.BACKDROP_L === 'couplet') {
+        if (hang) hangFrom(COUPLET_C[0], 14.5, 'cplString');
+        ringPath(L.backdrop, PS().couplet, PS().red, 'couplet', v, PS().ow, 0.35, 0.85 * envOp);
+        if (!simple || mode48 === 'full') CHUN.forEach(([kind, pts], i) => {
+          const p = ph('chun' + i, v), w = CHUN_W[kind];
+          const world = pts.map(([x, y]) => [COUPLET_C[0] + x, COUPLET_C[1] + y]);
+          L.backdrop.path(brush(catmull(world, 7), (t) => 1.0 * k * w(t) * widthVar(p, t, 0.08), (t) => openNoise(p, t, 0.12 * boilK, 'both')), { fill: INK, opacity: Math.max(envOp, 0.3) });
+        });
+        drawn.push('couplet');
+      }
+      if (S.BACKDROP_L === 'sock') {
+        const ST = PS().sockTop, dy = F.props.sockDy, top = [ST[0], ST[1] + dy];
+        const pl = { x: top[0], y: top[1], rot: (F.props.sockSwing * Math.PI) / 180 };
+        if (hang) hangFrom(ST[0], top[1], 'string');
+        ringPath(L.backdrop, place(PS().sockLeg, pl), PS().red, 'sock', v, PS().ow, 0.3, envOp);
+        ringPath(L.backdrop, place(PS().sockCuff, pl), IVORY, 'cuff', v, PS().ow, 0.25, envOp);
+        if (STYLE.props !== 'v1' && detail) strokePath(L.backdrop, place([[1.2, 15.6], [3.4, 16.9], [6.2, 16.3]], pl), 0.6, 0.45, 'sockToe', v, 0.06, INK, 'both', 6, 0.55 * envOp);
+        drawn.push('sock');
+      }
+      // ---- 地面 ----
+      L.ground.path(`M${62 - (rainy ? 20 : 16)} 128.6a${rainy ? 20 : 16} ${rainy ? 2.6 : 2.2} 0 1 0 ${rainy ? 40 : 32} 0a${rainy ? 20 : 16} ${rainy ? 2.6 : 2.2} 0 1 0 ${rainy ? -40 : -32} 0Z`, { fill: rainy ? SAGE : INK, opacity: rainy ? 0.28 : 0.07 });
+      if (S.GROUND_R === 'gift') {
+        L.ground.path(`M${GIFT_AT[0] - 9} ${GIFT_AT[1] + 0.6}a9 1.6 0 1 0 18 0a9 1.6 0 1 0 -18 0Z`, { fill: INK, opacity: 0.08 });
+        ringPath(L.ground, place(PS().gift, { x: GIFT_AT[0], y: GIFT_AT[1] }), SAGE, 'gift', v, PS().ow, 0.3);
+        drawn.push('gift');
+        if (detail && STYLE.props !== 'v1') {
+          // v2：細一點的緞帶、像手綁的蝴蝶結（兩個線圈＋小結），蓋子有一道淡淡的接縫
+          const G = (pts) => pts.map(([x, y]) => [GIFT_AT[0] + x, GIFT_AT[1] + y]);
+          strokePath(L.ground, G([[-6, -7.7], [0, -7.9], [6.1, -7.6]]), 0.55, 0.55, 'lid', v, 0.06, INK, 'both', 6, 0.5);
+          strokePath(L.ground, G([[0.2, -0.5], [0, -5], [0.3, -10]]), 0.95, 0.95, 'rib1', v, 0.08, PS().red);
+          strokePath(L.ground, G([[0.2, -10.2], [-2.4, -13.4], [-4.4, -12.2], [-2.6, -10.6], [0.1, -10.2]]), 0.85, 0.7, 'loopL', v, 0.08, PS().red, 'both', 5);
+          strokePath(L.ground, G([[0.3, -10.2], [2.8, -13.0], [4.6, -11.6], [2.8, -10.4], [0.3, -10.2]]), 0.85, 0.7, 'loopR', v, 0.08, PS().red, 'both', 5);
+          strokePath(L.ground, G([[0.1, -10.2], [-1.2, -8.4], [-2.4, -7.0]]), 0.8, 0.35, 'tailL', v, 0.08, PS().red, 'tip', 5);
+        }
+        if (detail && STYLE.props === 'v1') {
+          strokePath(L.ground, [[GIFT_AT[0], GIFT_AT[1] - 0.6], [GIFT_AT[0] + 0.2, GIFT_AT[1] - 5.5], [GIFT_AT[0], GIFT_AT[1] - 10.2]], 1.3, 1.3, 'rib1', v, 0.12, FEST_RED);
+          strokePath(L.ground, [[GIFT_AT[0] - 6.2, GIFT_AT[1] - 5.6], [GIFT_AT[0], GIFT_AT[1] - 5.4], [GIFT_AT[0] + 6.2, GIFT_AT[1] - 5.6]], 1.3, 1.3, 'rib2', v, 0.12, FEST_RED);
+          ringPath(L.ground, ellipse(GIFT_AT[0] - 2.2, GIFT_AT[1] - 12.2, 2.2, 1.4, -0.4), FEST_RED, 'bowL', v, 1, 0.2);
+          ringPath(L.ground, ellipse(GIFT_AT[0] + 2.2, GIFT_AT[1] - 12.2, 2.2, 1.4, 0.4), FEST_RED, 'bowR', v, 1, 0.2);
+        }
+      }
+      if (S.GROUND_L) { drawHandProp(L.ground, S.GROUND_L, { x: 42, y: 127.2, rot: S.GROUND_L === 'envelope' ? -1.35 : 0 }, v); drawn.push(S.GROUND_L); }
+
+      // ---- 傘柄（在身體後面） ----
+      const umbS = ctx.umb;
+      if (umbrella) {
+        const tr = (pts) => place(pts, { x: P.hand[0], y: P.hand[1], rot: (P.umbrellaAngle * Math.PI) / 180, s: umbS });
+        const shaft = tr([[0, -64], [0, -30], [0, 7]]);
+        drawn.push('umbrella');
+        L.shaft.path(brush(catmull(shaft, 6), () => 2.2 * k, () => 0) + brush(catmull(tr([[0, 7], [-1.5, 11.4], [-5, 11]]), 6), () => 2.2 * k, () => 0), { fill: INK });
+      }
+
+      // ---- 身體 ----
+      const limb = (part, pts, w0, w1, amp) => {
+        const p = ph(part, v);
+        return brushGeom(catmull(pts, 9), (t) => (w0 + (w1 - w0) * t) * k * widthVar(p, t, 0.13), (t) => openNoise(p, t, amp * boilK, 'both'));
+      };
+      for (const [name, w0, w1] of [['legL', 3.1, 2.3], ['legR', 3.0, 2.2]]) {
+        if (!parts.has(name)) continue;
+        const lg = limb(name, P[name], w0, w1, 0.45);
+        L.body.path(geomPath(lg), { fill: INK });
+        if (parts.has('redToes') && (!simple || mode48 === 'full')) {
+          const j0 = lg.n - 7, a = lg.disp[j0], b = lg.disp[lg.n - 1], gr = grads[name];
+          gr.setAttribute('x1', a[0].toFixed(2)); gr.setAttribute('y1', a[1].toFixed(2)); gr.setAttribute('x2', b[0].toFixed(2)); gr.setAttribute('y2', b[1].toFixed(2));
+          L.body.path(geomPath(lg, j0, 1.12), { fill: `url(#${gr.id})` });
+        }
+      }
+      if (parts.has('body')) L.body.path(geomPath(limb('body', P.body, 3.1, 2.8, 0.5)), { fill: INK });
+      if (parts.has('armL')) L.body.path(geomPath(limb('armL', P.armL, 2.9, 2.1, 0.45)), { fill: INK });
+      if (parts.has('armR')) L.body.path(geomPath(limb('armR', P.armR, 2.9, 2.1, 0.45)), { fill: INK });
+
+      // ---- 圍巾 ----
+      if (parts.has('scarf')) {
+        const sk = simple ? 1.5 : 1, pb = ph('band', v), pt = ph('tail', v), ps = ph('split', v);
+        const nk = P.neckDy || 0;
+        L.scarf.path(brush(catmull([[51, 68.6 + nk], [55.5, 71.3 + nk], [64, 71.4 + nk], [70, 67.6 + nk]], 8), (t) => (4.4 + 0.6 * Math.sin(Math.PI * t)) * sk * widthVar(pb, t, 0.12), (t) => openNoise(pb, t, 0.4 * boilK, 'both')), { fill: TERRA });
+        L.scarf.path(brush(catmull(P.tail, 9), (t) => (3.9 - 1.9 * t) * sk * widthVar(pt, t, 0.14), (t) => openNoise(pt, t, 0.7 * boilK, 'tip')), { fill: TERRA });
+        if (!simple) {
+          const end = P.tail[P.tail.length - 1], mid = P.tail[2];
+          L.scarf.path(brush(catmull([mid, [(mid[0] + end[0]) / 2 + 1.8, (mid[1] + end[1]) / 2 + 0.6], [end[0] + 4, end[1] + 1.2]], 6), (t) => (1.6 - 1.1 * t) * widthVar(ps, t, 0.15), (t) => openNoise(ps, t, 0.35, 'tip')), { fill: TERRA });
+        }
+      }
+
+      // ---- 頭（頭飾、五官、一筆都在頭部座標裡，跟著頭轉） ----
+      L.headG.setAttribute('transform', `translate(0 ${(P.headDy || 0).toFixed(2)}) rotate(${(P.headAngle || 0).toFixed(2)} 60.5 66)`);
+      if (parts.has('head')) {
+        const phd = ph('head', v), heavy = 2.35 + 0.3 * Math.sin(phd[5]);
+        const head = ring(HEAD_LOOP, (a) => (2.4 * (1 + 0.13 * (0.7 * Math.sin(2 * a + phd[3]) + 0.3 * Math.sin(3 * a + phd[4]))) + 1.1 * Math.pow(Math.max(0, Math.cos(a - heavy)), 3)) * k, (a) => loopNoise(phd, a, 0.75 * boilK));
+        L.head.path(head.fill, { fill: PAPER });
+        L.head.path(head.stroke, { fill: INK, 'fill-rule': 'evenodd' });
+        // 五官
+        const gz = P.gaze || [0, 0];
+        const pe = ph('eyes', v), eyeR = (simple ? 3.3 : 1.95) * (1 + 0.05 * Math.sin(pe[0]));
+        const faceBrush = (part, pts, w) => { const p = ph(part, v); L.head.path(brush(catmull(pts, 6), (t) => w * k * (0.85 + 0.15 * Math.sin(Math.PI * t)) * widthVar(p, t, 0.08), (t) => openNoise(p, t, 0.12, 'both')), { fill: INK }); };
+        if (parts.has('blush') && !simple) {
+          const op = P.face === 'sunny' ? 1 : P.face === 'rainy' ? 0.55 : 0.85;
+          L.head.path(`M43.8 52.8a3.2 1.6 0 1 0 6.4 0a3.2 1.6 0 1 0 -6.4 0Z`, { fill: PINK, opacity: op });
+          L.head.path(`M69.3 52.3a3.2 1.6 0 1 0 6.4 0a3.2 1.6 0 1 0 -6.4 0Z`, { fill: PINK, opacity: op });
+        }
+        if (parts.has('eyes')) {
+          if (P.face === 'sunny' || P.face === 'blink') {
+            faceBrush('lidL', [[49.6, 47.1], [52, 48.1], [54.4, 47.1]].map(([x, y]) => [x + gz[0] * 0.5, y + gz[1] * 0.5]), simple ? 1.4 : 1.7);
+            faceBrush('lidR', [[64.6, 46.6], [67, 47.6], [69.4, 46.6]].map(([x, y]) => [x + gz[0] * 0.5, y + gz[1] * 0.5]), simple ? 1.4 : 1.7);
+          } else {
+            const eyes = P.face === 'rainy' ? [[52.4, 47], [67.2, 46.6]] : [[52, 46.8], [67, 46.3]];
+            L.head.path(circleD(eyes[0][0] + gz[0] + 0.1 * Math.sin(pe[1]), eyes[0][1] + gz[1], eyeR), { fill: INK });
+            L.head.path(circleD(eyes[1][0] + gz[0] + 0.1 * Math.sin(pe[2]), eyes[1][1] + gz[1], eyeR), { fill: INK });
+          }
+          if (P.face === 'rainy' && !simple) {
+            faceBrush('browL', [[49.5, 43.6], [51.8, 42.9], [54, 42.1]], 1.5);
+            faceBrush('browR', [[69.8, 43.1], [67.6, 42.4], [65.4, 41.6]], 1.5);
+          }
+        }
+        if (parts.has('mouth') && !simple) {
+          const mouth = P.face === 'rainy' ? [[57.6, 55], [60, 54.2], [62.4, 55]] : P.face === 'sunny' ? [[57.5, 54.6], [60, 56.6], [62.5, 54.4]] : [[57.4, 54.6], [60, 56.2], [62.6, 54.4]];
+          faceBrush('mouth', mouth, 1.9);
+        }
+        // 頭頂配件
+        if (S.HEAD_TOP) {
+          drawn.push(S.HEAD_TOP);
+          const hw = headwearLoops(S.HEAD_TOP, head.points);
+          hw.out.forEach((o, i) => {
+            if (o.pts) { if (!o.detail || detail) ringPath(L.head, o.pts, o.fill === FEST_RED ? PS().red : o.fill, S.HEAD_TOP + i, v, STYLE.props === 'v1' ? 1.6 : 1.35, 0.4); }
+            else if (detail) strokePath(L.head, o.line, 1.0, 0.8, S.HEAD_TOP + 'l' + i, v, 0.12, o.color);
+          });
+        }
+        // 一筆：永遠在最前面
+        if (parts.has('flick')) {
+          const root = head.points[ROOT_INDEX], pf = ph('flick', v);
+          L.head.path(brush(catmull(FLICK[P.flick || 'normal'].map(([x, y]) => [root[0] + x, root[1] + y + 1.2]), 9), (t) => (0.35 + 3.6 * Math.pow(1 - t, 0.85)) * (simple ? 1.6 : 1) * widthVar(pf, t, 0.18), (t) => openNoise(pf, t, 1.4 * boilK, 'tip')), { fill: INK });
+        }
+      }
+
+      // ---- 手上的節日道具（錨點＝手臂末端） ----
+      for (const [slot, arm] of [['HAND_R', 'armR'], ['HAND_L', 'armL']]) {
+        const id = S[slot];
+        if (!id || id === 'umbrella' || !parts.has(arm)) continue;
+        const h = P[arm][P[arm].length - 1];
+        drawn.push(id);
+        drawHandProp(L.hand, id, { x: h[0], y: h[1], rot: HAND_PROPS[id].rot * (slot === 'HAND_L' ? -1 : 1) }, v);
+      }
+
+      // ---- 傘面與拳頭 ----
+      if (umbrella) {
+        L.canopyG.setAttribute('transform', `translate(${P.hand[0]} ${P.hand[1]}) rotate(${P.umbrellaAngle.toFixed(2)}) scale(${umbS})`);
+        const pc = ph('canopy', v);
+        const canopy = ring(CANOPY, (a) => (2.2 * k / umbS) * (1 + 0.12 * Math.sin(2 * a + pc[3])), (a) => loopNoise(pc, a, 0.45 * boilK));
+        L.canopy.path(canopy.fill, { fill: SAGE });
+        L.canopy.path(canopy.stroke, { fill: INK, 'fill-rule': 'evenodd' });
+        if (!simple) L.canopy.path('M-17,-64 Q-13,-79 0,-88 M17,-64 Q13,-79 0,-88 M0,-88 L0,-92', { fill: 'none', stroke: INK, 'stroke-width': 1.5 * k / umbS, 'stroke-linecap': 'round' });
+        L.front.path(circleD(P.hand[0], P.hand[1], 3.2 * (simple ? 1.3 : 1)), { fill: PAPER, stroke: INK, 'stroke-width': 2.2 * k });
+      }
+      for (const n in L) if (L[n] instanceof Pool) L[n].end();
+    };
+
+    function drawHandProp(pool, id, pl, v) {
+      const D = HAND_PROPS[id];
+      if (STYLE.props !== 'v1') {
+        // v2：手剪紙的紅包（封口、小圓封）；花邊月餅（只留內圈，避免像鈕扣）
+        if (id === 'envelope') {
+          ringPath(pool, place(PROPS_V2.envelope, pl), PROPS_V2.red, 'env', v, PROPS_V2.ow, 0.22);
+          if (detail()) {
+            strokePath(pool, place([[-3.0, -1.0], [-0.2, 1.9], [3.1, -1.0]], pl), 0.6, 0.55, 'envFlap', v, 0.06, INK, 'both', 6, 0.7);
+            pool.path(circleD(...place([[0, 2.8]], pl)[0], 0.5), { fill: IVORY, opacity: 0.75 });
+          }
+        } else {
+          ringPath(pool, place(PROPS_V2.mooncake, pl), CAKE, 'cake', v, PROPS_V2.ow, 0.2);
+          if (detail()) {
+            const rr = ring(place(circlePts(0, -3.6, 2.5, 28), pl), () => 0.55 * k, () => 0);
+            pool.path(rr.stroke, { fill: INK, 'fill-rule': 'evenodd', opacity: 0.55 });
+          }
+        }
+        return;
+      }
+      D.shapes.forEach((s, i) => ringPath(pool, place(s.pts, pl), s.fill, id + i, v, 1.3, 0.3));
+      if (detail()) {
+        (D.lines || []).forEach((l, i) => strokePath(pool, place(l, pl), 0.8, 0.7, id + 'l' + i, v, 0.08));
+        (D.rings || []).forEach(([cx, cy, r], i) => { const rr = ring(place(circlePts(cx, cy, r, 24), pl), () => 0.7 * k, () => 0); pool.path(rr.stroke, { fill: INK, 'fill-rule': 'evenodd', opacity: 0.7 }); });
+      }
+    }
+    function detail() { return !simple; }
+  }
+
+  // =====================================================================
+  //  天氣與包袱草案：角色本體沿用 V3（engine.js、core.js），這裡只加新的姿勢、表情與環境。
+  //  全部是草案（Proposed），沒有批准。
+  // =====================================================================
+  const STORM = '#CFC7BC';   // 雷雨的雲：比陰天的雲深一點（色票外，面積小）
+  const SNOW_FILL = '#FFFFFF';
+
+  // ---------- 小工具 ----------
+  const ARM5 = {
+    R_DEF: [[60.8, 77], [64.3, 79.6], [67.4, 83.2], [69.1, 87.8], [67.6, 93]],
+    L_DEF: [[60.5, 77], [56.8, 80.6], [54, 85], [52.6, 90.2], [51.6, 96]],
+    // 擦汗：手到右邊太陽穴（被頭擋住一點點，看起來像貼著頭）
+    // 手沿著右臉頰外側上下擦（太陽穴在頭的後面，手伸過去會被頭擋住）
+    R_WIPE_LO: [[60.8, 77], [67.5, 74.5], [74, 70.5], [79, 65], [82.4, 59.6]],
+    R_WIPE_HI: [[60.8, 77], [68.5, 73], [76, 67], [82, 59.5], [85.2, 51.6]],
+    // 搧風（拿紙帽）：手在臉旁邊
+    R_FAN: [[60.8, 77], [68.5, 73.5], [75.5, 68.5], [80.5, 63.5], [83, 58.5]],
+    // 起霧：左手往前伸、摸索
+    L_GROPE_LO: [[60.5, 77], [54, 79.5], [47, 80.5], [40.5, 80], [35, 79]],
+    L_GROPE_HI: [[60.5, 77], [54, 78], [47, 77.5], [40.5, 76], [35, 74]],
+    // 好冷：雙手交叉抱住自己
+    L_HUG: [[60.5, 77], [54.6, 80.2], [53.8, 85.2], [58.4, 88.4], [65.6, 87.4]],
+    R_HUG: [[60.8, 77], [66.6, 80.2], [67.4, 85.2], [62.8, 88.6], [55.6, 87.6]],
+    // 接雪花：右手往外伸、手心朝上
+    R_CATCH: [[60.8, 77], [66.5, 80], [72, 82], [78, 82.3], [82.5, 80.6]],
+  };
+
+  /** 讓身體上半部抖一下（腳不動） */
+  function jitter(P, dx) {
+    if (!dx) return;
+    const up = (y) => clamp01((101 - y) / 33);
+    for (const k of ['body', 'armL', 'armR', 'tail']) P[k] = P[k].map(([x, y]) => [x + dx * up(y), y]);
+    P.headDx = (P.headDx || 0) + dx;
+  }
+
+  function basePose() {
+    const N = pose('normal', 0);
+    return { ...N, armL: ARM5.L_DEF, armR: ARM5.R_DEF, headAngle: 0, headDy: 0, gaze: [0, 0], face: 'normal', flick: 'normal', fx: {} };
+  }
+
+  // ---------- 各天氣的姿勢（t：毫秒） ----------
+  const SCENES = {
+    hot: {
+      name: '熱', mood: 'HOT', line: '好熱……一直擦汗。', period: 3200, keys: [0, 900, 2000],
+      env: ['bigSun', 'heat'],
+      pose(t, caps, opt) {
+        const P = basePose();
+        P.face = 'hot'; P.flick = 'drooped';
+        P.fx.sweat = (t % 3200) / 3200;
+        if (opt === 'B') {
+          // B：拿下紙帽搧風
+          if (caps.holdR && caps.paperHat) {
+            P.armR = ARM5.R_FAN;
+            P.fx.fanHat = Math.sin(TAU * t / 400) * 0.45;
+            P.fx.hatOff = true;
+            P.headAngle = 3;
+          }
+          return P;
+        }
+        if (caps.holdR) {
+          const lo = ARM5.R_WIPE_LO, hi = ARM5.R_WIPE_HI;
+          P.armR = track(t % 3200, [[0, ARM5.R_DEF], [500, lo], [900, hi], [1300, lo], [1700, hi], [2200, ARM5.R_DEF]]);
+          P.headAngle = track(t % 3200, [[0, 0], [500, 4], [1700, 4], [2200, 0]]);
+        }
+        return P;
+      },
+    },
+    cloudy: {
+      name: '陰', mood: 'CLOUDY', line: '抬頭看看，雲飄過去了。', period: 6000, keys: [0, 1500, 4500],
+      env: ['clouds'],
+      pose(t, caps) {
+        const P = basePose();
+        const s = Math.sin(TAU * t / 6000);
+        P.headAngle = -3 + 3 * s;
+        P.headDy = -0.6;
+        P.gaze = caps.gaze ? [1.4 * s, -1.9] : [0, 0];
+        return P;
+      },
+    },
+    fog: {
+      name: '霧', mood: 'FOG', line: '起霧了，前面看不太清楚。', period: 5000, keys: [0, 1250, 3750],
+      env: ['mist'],
+      pose(t, caps) {
+        const P = basePose();
+        P.face = 'fog';
+        P.headAngle = -4;
+        P.headDy = 0.8;
+        P.body = P.body.map(([x, y], i) => [x - [1.2, 0.8, 0.3, 0][i], y]);
+        if (caps.holdL) P.armL = mixPts(ARM5.L_GROPE_LO, ARM5.L_GROPE_HI, (1 - Math.cos(TAU * t / 2500)) / 2);
+        return P;
+      },
+    },
+    thunder: {
+      name: '雷雨', mood: 'THUNDER', line: '轟隆隆！抱緊傘不要怕。', period: 4200, keys: [0, 1500, 2600],
+      env: ['storm', 'heavyRain', 'bolt'],
+      pose(t, caps) {
+        const u = t % 4200;
+        const startle = env(u, 1400, 1500, 1800, 2300);
+        let P;
+        if (caps.holdR) {
+          P = { ...basePose(), ...pose('rainy', 0) };
+          P.armL = ARM5.L_DEF; P.armR = pose('rainy', 0).armR;
+          P.umbrellaAngle = -6 + 0.8 * Math.sin(TAU * t / 4200);
+          P.hand = [80.5, 79];
+          P.armR = [[60.8, 77], [66.5, 80.6], [73.5, 81.4], [79, 79.6]];
+          // 左手也抓住傘柄：抱緊傘
+          if (caps.holdL) {
+            const g = place([[0, 6]], { x: P.hand[0], y: P.hand[1], rot: (P.umbrellaAngle * Math.PI) / 180 })[0];
+            P.armL = [[60.5, 77], [66, 82], [73.5, 85.4], [g[0], g[1]]];
+            P.fx.leftOnShaft = true;
+          }
+        } else {
+          P = basePose();
+        }
+        P.face = startle > 0.3 ? 'startle' : 'rainy';
+        P.flick = startle > 0.3 ? 'perked' : 'drooped';
+        P.headAngle = (P.headAngle || 0) + 2 * startle;
+        jitter(P, 0.7 * startle * Math.sin(TAU * u / 90));
+        P.fx.bolt = env(u, 1380, 1420, 1650, 1750);
+        return P;
+      },
+    },
+    cold: {
+      name: '冷', mood: 'COLD', line: '好冷，抱緊自己發抖。', period: 2800, keys: [0, 300, 1300],
+      env: ['coldGround'],
+      pose(t, caps) {
+        const P = basePose();
+        coldPose(P, t, caps);
+        return P;
+      },
+    },
+    snow: {
+      name: '雪', mood: 'SNOW', line: '下雪了！冷得一直發抖。', period: 2800, keys: [0, 300, 1300],
+      env: ['snow'],
+      pose(t, caps, opt) {
+        const P = basePose();
+        if (opt === 'B') {
+          // B：伸手接雪花（文案要改，見頁面說明）
+          if (caps.holdR) P.armR = ARM5.R_CATCH;
+          P.gaze = caps.gaze ? [1.6, 1.4] : [0, 0];
+          P.headAngle = 5;
+          P.face = 'normal';
+          P.fx.flakeOnHand = caps.holdR;
+          return P;
+        }
+        coldPose(P, t, caps);
+        return P;
+      },
+    },
+  };
+
+  function coldPose(P, t, caps) {
+    const u = t % 2800;
+    P.face = 'cold'; P.flick = 'drooped';
+    if (caps.holdL) P.armL = ARM5.L_HUG;
+    if (caps.holdR) P.armR = ARM5.R_HUG;
+    // 縮脖子
+    P.headDy = 1.2;
+    P.fx.scarfUp = 1;
+    // 一陣一陣地抖
+    const burst = Math.max(env(u, 0, 60, 600, 700), env(u, 1400, 1460, 2000, 2100));
+    jitter(P, 0.75 * burst * Math.sin(TAU * u / 85));
+    P.fx.breath = caps.smile ? env(u, 800, 1000, 1300, 1700) : 0;
+    P.fx.breathU = clamp01((u - 800) / 900);
+  }
+
+  // ---------- 繪製：一次組出整張 SVG（草案頁面不需要省 DOM） ----------
+  const fx2 = (n) => n.toFixed(2);
+  function drawFrame(o) {
+    // o: { P, parts, v, clock, scene, bundle, simple }
+    const { P, parts, v } = o;
+    const caps = getCapabilities(parts);
+    const k = 1, out = [];
+    const path = (d, a) => out.push(`<path d="${d}"${a || ''}/>`);
+    const fill = (c, op) => ` fill="${c}"${op != null && op < 1 ? ` opacity="${op.toFixed(3)}"` : ''}`;
+    const ringP = (pts, f, part, w = 1.7, amp = 0.45, op) => {
+      const p = ph(part, v);
+      const r = ring(pts, (a) => w * k * (1 + 0.12 * Math.sin(2 * a + p[3])), (a) => loopNoise(p, a, amp));
+      path(r.fill, fill(f, op));
+      path(r.stroke, fill(INK, op) + ' fill-rule="evenodd"');
+      return r;
+    };
+    const strokeP = (pts, w0, w1, part, amp = 0.15, color = INK, mode = 'both', per = 6, op) => {
+      const p = ph(part, v);
+      path(brush(catmull(pts, per), (t) => lerp(w0, w1, t) * k * widthVar(p, t, 0.1), (t) => openNoise(p, t, amp, mode)), fill(color, op));
+    };
+    const env_ = new Set(o.envList || []);
+    const low = caps.growthFocus, skyOp = low ? 0.55 : 1;
+    const clock = o.clock;
+    const dy = caps.stand ? 0 : GROUND_DY;   // 沒有腳時整個角色落在地面上
+
+    // ---- 天空 ----
+    if (env_.has('bigSun')) {
+      path(circleD(99, 4, 10.5), fill(PINK, 0.85 * skyOp));
+      path(circleD(99, 4, 14.5), ` fill="none" stroke="${PINK}" stroke-width="1.2" opacity="${skyOp}"`);
+    }
+    if (env_.has('clouds') || env_.has('storm')) {
+      const storm = env_.has('storm');
+      CLOUDS.forEach((c, i) => {
+        const x = storm ? c.x : ((c.x + (clock / 1000) * c.sp + 30) % 170) - 30;
+        ringP(place(c.loop, { x, y: c.y - (storm ? 2 : 0) }), storm ? STORM : CLOUD, 'cloud' + i, 1.5, 0.5, low ? 0.7 : 1);
+      });
+    }
+    if (env_.has('bolt') && P.fx.bolt > 0) {
+      const bolt = [[2, 0], [8, 0], [4.2, 8], [9.5, 8], [-1.5, 24], [1.6, 12], [-3.5, 12]];
+      ringP(resample(place(bolt, { x: 96, y: 14 }), 40), PINK, 'bolt', 1.1, 0.15, P.fx.bolt);
+    }
+    // ---- 雨、雪 ----
+    if (env_.has('heavyRain')) {
+      const step = Math.floor(clock / 125);
+      const D = [[10, 0], [20, 52], [8, 95], [26, 30], [16, 120], [112, 18], [116, 70], [108, 110], [28, 85], [4, 60], [118, 40], [100, 128], [34, 10]];
+      D.forEach(([x0, y0]) => {
+        const y = ((y0 + step * 9) % 150) - 20;
+        path(`M${x0} ${y}L${x0 - 2.6} ${y + 8}`, ` fill="none" stroke="${SAGE}" stroke-width="1.6" stroke-linecap="round"`);
+      });
+    }
+    const flakes = [[12, 0, 1.6], [26, 40, 1.3], [8, 78, 1.8], [104, 12, 1.5], [114, 58, 1.3], [98, 96, 1.7], [30, 104, 1.2], [118, 120, 1.5], [44, 20, 1.2], [84, 30, 1.3]];
+    if (env_.has('snow')) {
+      flakes.forEach(([x0, y0, r], i) => {
+        const y = ((y0 + clock / 1000 * 9) % 150) - 20, x = x0 + 2.2 * Math.sin(clock / 900 + i);
+        path(circleD(x, y, r), ` fill="${SNOW_FILL}" stroke="${INK}" stroke-width="0.6"`);
+      });
+    }
+    // ---- 霧（後面那一層） ----
+    const mistBand = (y, w, h, dx, part, op) => {
+      const pts = resample([[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2 + h / 2, 0], [w / 2, h / 2], [-w / 2, h / 2], [-w / 2 - h / 2, 0]], 48);
+      const p = ph(part, v);
+      const r = ring(place(pts, { x: 60 + dx, y }), () => 0.01, (a) => loopNoise(p, a, 0.6));
+      path(r.fill, fill(CLOUD, op));
+    };
+    if (env_.has('mist')) {
+      mistBand(22, 70, 7, 18 * Math.sin(clock / 4200), 'mist0', 0.8);
+      mistBand(112, 120, 9, 14 * Math.sin(clock / 3600 + 1), 'mist1', 0.85);
+    }
+    // ---- 地面 ----
+    if (env_.has('snow') || env_.has('coldGround')) {
+      if (env_.has('snow')) ringP(resample([[38, 129.5], [50, 126.4], [62, 125.8], [76, 126.4], [86, 129.5]], 48), SNOW_FILL, 'snowMound', 0.9, 0.2);
+      else path(`M44 128.6a18 2.4 0 1 0 36 0a18 2.4 0 1 0 -36 0Z`, fill(INK, 0.07));
+    } else if (env_.has('heavyRain')) {
+      path(`M40 128.6a22 2.8 0 1 0 44 0a22 2.8 0 1 0 -44 0Z`, fill(SAGE, 0.3));
+    } else {
+      path(`M46 128.6a16 2.2 0 1 0 32 0a16 2.2 0 1 0 -32 0Z`, fill(INK, 0.07));
+    }
+    if (env_.has('heat')) {
+      // 地面上的熱氣：三條往上飄的波浪線
+      [[30, 0], [92, 0.4], [102, 0.75]].forEach(([x, ph0], i) => {
+        const u = ((clock / 1800) + ph0) % 1;
+        const y0 = 124 - 14 * u;
+        const pts = Array.from({ length: 6 }, (_, j) => [x + 1.6 * Math.sin(j * 1.4 + clock / 300 + i), y0 - j * 2.2]);
+        strokeP(pts, 0.9, 0.5, 'heat' + i, 0.05, PINK, 'both', 5, Math.sin(Math.PI * u) * 0.9);
+      });
+    }
+
+    // ---- 包袱（B1 背在背後：在身體前面畫之前） ----
+    if (o.bundle === 'B1' && parts.has('bundle')) drawBundle('B1', 'back');
+
+    // ---- 傘柄 ----
+    const umbrella = P.hand && parts.has('armR');
+    if (umbrella && dy) P.hand = [P.hand[0], P.hand[1] + dy];   // 沒有腳時傘跟著手一起落下
+    if (umbrella) {
+      const tr = (pts) => place(pts, { x: P.hand[0], y: P.hand[1], rot: (P.umbrellaAngle * Math.PI) / 180, s: 1 });
+      path(brush(catmull(tr([[0, -64], [0, -30], [0, 7]]), 6), () => 2.2, () => 0) + brush(catmull(tr([[0, 7], [-1.5, 11.4], [-5, 11]]), 6), () => 2.2, () => 0), fill(INK));
+    }
+
+    // ---- 身體 ----
+    const limb = (part, pts, w0, w1, amp) => {
+      const p = ph(part, v);
+      return brushGeom(catmull(pts, 9), (t) => (w0 + (w1 - w0) * t) * widthVar(p, t, 0.13), (t) => openNoise(p, t, amp, 'both'));
+    };
+    const sh = (pts) => pts.map(([x, y]) => [x, y + dy]);
+    for (const [name, w0, w1] of [['legL', 3.1, 2.3], ['legR', 3.0, 2.2]]) {
+      if (!parts.has(name)) continue;
+      const lg = limb(name, sh(P[name]), w0, w1, 0.45);
+      path(geomPath(lg), fill(INK));
+      if (parts.has('redToes')) {
+        const j0 = lg.n - 7, a = lg.disp[j0], b = lg.disp[lg.n - 1], id = o.uid + name;
+        out.push(`<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${fx2(a[0])}" y1="${fx2(a[1])}" x2="${fx2(b[0])}" y2="${fx2(b[1])}"><stop offset="0" stop-color="${TERRA}" stop-opacity="0"/><stop offset="0.5" stop-color="${TERRA}" stop-opacity="0.7"/><stop offset="1" stop-color="${TERRA}" stop-opacity="0.95"/></linearGradient></defs>`);
+        path(geomPath(lg, j0, 1.12), ` fill="url(#${id})"`);
+      }
+    }
+    if (parts.has('body')) path(geomPath(limb('body', sh(P.body), 3.1, 2.8, 0.5)), fill(INK));
+    if (parts.has('armL')) path(geomPath(limb('armL', sh(P.armL), 2.9, 2.1, 0.45)), fill(INK));
+    if (parts.has('armR')) path(geomPath(limb('armR', sh(P.armR), 2.9, 2.1, 0.45)), fill(INK));
+
+    // ---- 圍巾 ----
+    if (parts.has('scarf')) {
+      const pb = ph('band', v), pt = ph('tail', v), ps = ph('split', v);
+      const up = P.fx.scarfUp ? -1.6 : 0, wide = P.fx.scarfUp ? 1.25 : 1, jx = P.headDx || 0;
+      path(brush(catmull([[51 + jx, 68.6 + up], [55.5 + jx, 71.3 + up], [64 + jx, 71.4 + up], [70 + jx, 67.6 + up]], 8), (t) => (4.4 + 0.6 * Math.sin(Math.PI * t)) * wide * widthVar(pb, t, 0.12), (t) => openNoise(pb, t, 0.4, 'both')), fill(TERRA));
+      path(brush(catmull(P.tail, 9), (t) => (3.9 - 1.9 * t) * widthVar(pt, t, 0.14), (t) => openNoise(pt, t, 0.7, 'tip')), fill(TERRA));
+      const end = P.tail[P.tail.length - 1], mid = P.tail[2];
+      path(brush(catmull([mid, [(mid[0] + end[0]) / 2 + 1.8, (mid[1] + end[1]) / 2 + 0.6], [end[0] + 4, end[1] + 1.2]], 6), (t) => (1.6 - 1.1 * t) * widthVar(ps, t, 0.15), (t) => openNoise(ps, t, 0.35, 'tip')), fill(TERRA));
+    }
+    // 包袱的背帶畫在身體前面
+    if (o.bundle && parts.has('bundle')) drawBundle(o.bundle, 'front');
+
+    // ---- 頭 ----
+    const headDy = (P.headDy || 0) + dy;
+    out.push(`<g transform="translate(${fx2(P.headDx || 0)} ${fx2(headDy)}) rotate(${fx2(P.headAngle || 0)} 60.5 66)">`);
+    if (parts.has('head')) {
+      const phd = ph('head', v), heavy = 2.35 + 0.3 * Math.sin(phd[5]);
+      const head = ring(HEAD_LOOP, (a) => 2.4 * (1 + 0.13 * (0.7 * Math.sin(2 * a + phd[3]) + 0.3 * Math.sin(3 * a + phd[4]))) + 1.1 * Math.pow(Math.max(0, Math.cos(a - heavy)), 3), (a) => loopNoise(phd, a, 0.75));
+      path(head.fill, fill(PAPER));
+      path(head.stroke, fill(INK) + ' fill-rule="evenodd"');
+      drawFace(P);
+      if (parts.has('paperHat') && !P.fx.hatOff && o.hatOn !== false) {
+        const hw = headwearLoops('paperHat', head.points);
+        hw.out.forEach((h, i) => {
+          if (h.pts) ringP(h.pts, h.fill, 'paperHat' + i, 1.35, 0.4);
+          else strokeP(h.line, 1.0, 0.8, 'paperHatl' + i, 0.12, h.color);
+        });
+      }
+      if (parts.has('flick')) {
+        const root = head.points[ROOT_INDEX], pf = ph('flick', v);
+        path(brush(catmull(FLICK[P.flick || 'normal'].map(([x, y]) => [root[0] + x, root[1] + y + 1.2]), 9), (t) => (0.35 + 3.6 * Math.pow(1 - t, 0.85)) * widthVar(pf, t, 0.18), (t) => openNoise(pf, t, 1.4, 'tip')), fill(INK));
+      }
+      // 汗滴：從左邊太陽穴往下滑
+      if (P.fx.sweat != null && parts.has('eyes')) {
+        const u = P.fx.sweat, yy = 38 + 8 * ease(u);
+        const drop = Array.from({ length: 32 }, (_, i) => {
+          const a = (i / 32) * TAU, r = 2.3;
+          const pinch = Math.pow(Math.max(0, -Math.sin(a)), 3);
+          return [35.4 + r * Math.cos(a) * (1 - 0.85 * pinch), yy + r * Math.sin(a) - 3.4 * pinch];
+        });
+        ringP(drop, SAGE, 'sweat', 0.9, 0.08, Math.min(1, 1.6 * Math.sin(Math.PI * clamp01(u * 1.1))));
+      }
+    }
+    out.push('</g>');
+
+    // ---- 手上：拿下來的紙帽、雪花 ----
+    if (P.fx.fanHat != null && parts.has('armR')) {
+      const h = sh(P.armR)[4];
+      const pl = { x: h[0] + 1, y: h[1] - 1, rot: -0.5 + P.fx.fanHat };
+      ringP(place(HEADWEAR.paperHat.shapes[0].pts, pl), IVORY, 'paperHat0', 1.35, 0.4);
+      HEADWEAR.paperHat.lines.forEach((l, i) => strokeP(place(l, pl), 1.0, 0.8, 'paperHatl' + (i + 1), 0.12));
+    }
+    if (P.fx.flakeOnHand) {
+      const h = sh(P.armR)[4];
+      path(circleD(h[0] + 0.6, h[1] - 3.2, 1.6), ` fill="${SNOW_FILL}" stroke="${INK}" stroke-width="0.6"`);
+    }
+
+    // ---- 傘面、拳頭 ----
+    if (umbrella) {
+      out.push(`<g transform="translate(${P.hand[0]} ${P.hand[1]}) rotate(${fx2(P.umbrellaAngle)})">`);
+      const pc = ph('canopy', v);
+      const c = ring(CANOPY, (a) => 2.2 * (1 + 0.12 * Math.sin(2 * a + pc[3])), (a) => loopNoise(pc, a, 0.45));
+      path(c.fill, fill(SAGE));
+      path(c.stroke, fill(INK) + ' fill-rule="evenodd"');
+      path('M-17,-64 Q-13,-79 0,-88 M17,-64 Q13,-79 0,-88 M0,-88 L0,-92', ` fill="none" stroke="${INK}" stroke-width="1.5" stroke-linecap="round"`);
+      out.push('</g>');
+      path(circleD(P.hand[0], P.hand[1], 3.2), ` fill="${PAPER}" stroke="${INK}" stroke-width="2.2"`);
+      if (P.fx.leftOnShaft) {
+        const g = sh(P.armL)[3];
+        path(circleD(g[0], g[1], 3.0), ` fill="${PAPER}" stroke="${INK}" stroke-width="2.1"`);
+      }
+    }
+    // ---- 前面那層霧、呼出的白氣 ----
+    if (env_.has('mist')) mistBand(97, 92, 8, -16 * Math.sin(clock / 3000), 'mist2', 0.62);
+    if (P.fx.breath > 0 && parts.has('mouth')) {
+      const u = P.fx.breathU, s = 0.9 + 0.7 * u;
+      ringP(place(cloudLoop(9, 5), { x: 73 + 8 * u + (P.headDx || 0), y: 58 + headDy - 3 * u, s }), CLOUD, 'breath', 0.7, 0.12, P.fx.breath);
+    }
+    return out.join('');
+
+    // ---------- 頭裡面：五官 ----------
+    function drawFace(P) {
+      const gz = P.gaze || [0, 0];
+      const faceBrush = (part, pts, w) => { const p = ph(part, v); path(brush(catmull(pts.map(([x, y]) => [x + gz[0] * 0.5, y + gz[1] * 0.5]), 6), (t) => w * (0.85 + 0.15 * Math.sin(Math.PI * t)) * widthVar(p, t, 0.08), (t) => openNoise(p, t, 0.12, 'both')), fill(INK)); };
+      const face = caps.expression ? P.face : 'normal';
+      if (parts.has('blush')) {
+        const op = { sunny: 1, rainy: 0.55, hot: 1, cold: 1, startle: 0.7, fog: 0.7 }[face] ?? 0.85;
+        path('M43.8 52.8a3.2 1.6 0 1 0 6.4 0a3.2 1.6 0 1 0 -6.4 0Z', fill(PINK, op));
+        path('M69.3 52.3a3.2 1.6 0 1 0 6.4 0a3.2 1.6 0 1 0 -6.4 0Z', fill(PINK, op));
+      }
+      if (parts.has('eyes')) {
+        const pe = ph('eyes', v), eyeR = 1.95 * (1 + 0.05 * Math.sin(pe[0]));
+        const E = [[52, 46.8], [67, 46.3]];
+        if (face === 'hot') {
+          faceBrush('lidL', [[50, 47.6], [52, 47.9], [54.2, 47.5]], 1.6);
+          faceBrush('lidR', [[64.9, 47.1], [67, 47.4], [69.2, 47.0]], 1.6);
+        } else if (face === 'cold') {
+          // 用力閉眼：∧ 形
+          faceBrush('lidL', [[49.8, 48.2], [52, 46.6], [54.2, 47.9]], 1.6);
+          faceBrush('lidR', [[64.8, 47.7], [67, 46.1], [69.2, 47.4]], 1.6);
+        } else if (face === 'fog') {
+          // 瞇眼：扁的橢圓
+          for (const [i, [x, y]] of E.entries()) {
+            const cx = x + gz[0] + 0.1 * Math.sin(pe[1 + i]), cy = y + gz[1] + 0.4;
+            path(`M${fx2(cx - 2.3)} ${fx2(cy)}a2.3 1.0 0 1 0 4.6 0a2.3 1.0 0 1 0 -4.6 0Z`, fill(INK));
+          }
+        } else if (face === 'startle') {
+          E.forEach(([x, y], i) => path(circleD(x + 0.1 * Math.sin(pe[1 + i]), y - 0.4, eyeR * 1.3), fill(INK)));
+        } else if (face === 'sunny') {
+          faceBrush('lidL', [[49.6, 47.1], [52, 48.1], [54.4, 47.1]], 1.7);
+          faceBrush('lidR', [[64.6, 46.6], [67, 47.6], [69.4, 46.6]], 1.7);
+        } else {
+          const eyes = face === 'rainy' ? [[52.4, 47], [67.2, 46.6]] : E;
+          eyes.forEach(([x, y], i) => path(circleD(x + gz[0] + 0.1 * Math.sin(pe[1 + i]), y + gz[1], eyeR), fill(INK)));
+        }
+        if (face === 'rainy' || face === 'cold' || face === 'startle') {
+          faceBrush('browL', [[49.5, 43.6], [51.8, 42.9], [54, 42.1]], 1.5);
+          faceBrush('browR', [[69.8, 43.1], [67.6, 42.4], [65.4, 41.6]], 1.5);
+        }
+      }
+      if (parts.has('mouth')) {
+        if (face === 'hot' || face === 'startle') {
+          // 張開的小嘴（喘氣、嚇一跳）
+          const p = ph('mouthO', v);
+          const r = ring(ellipse(60 + gz[0] * 0.5, 55.6, face === 'hot' ? 1.5 : 1.3, face === 'hot' ? 1.2 : 1.5), () => 1.3, (a) => loopNoise(p, a, 0.05));
+          path(r.stroke, fill(INK) + ' fill-rule="evenodd"');
+        } else {
+          const mouth = {
+            rainy: [[57.6, 55], [60, 54.2], [62.4, 55]],
+            sunny: [[57.5, 54.6], [60, 56.6], [62.5, 54.4]],
+            cold: [[57.2, 55.2], [58.6, 54.3], [60, 55.2], [61.4, 54.3], [62.8, 55.2]],
+            fog: [[57.8, 55.5], [60, 55.8], [62.2, 55.3]],
+          }[face] || [[57.4, 54.6], [60, 56.2], [62.6, 54.4]];
+          faceBrush('mouth', mouth, face === 'cold' ? 1.6 : 1.9);
+        }
+      }
+    }
+
+    // ---------- 包袱 ----------
+    function drawBundle(kind, layer) {
+      const jx = P.headDx || 0;
+      if (kind === 'B1') {
+        // 背在背後：布包從左肩後面露出來，結在上面；背帶從右肩斜到左腰
+        if (layer === 'back') {
+          const body = resample([[37.5, 79], [40, 73.8], [46, 71.6], [52.4, 73], [54.6, 78.4], [53.6, 85.4], [47.6, 88.6], [40.6, 87.4], [37, 83.4]], 60);
+          ringP(place(body, { x: jx * 0.5, y: dy }), SAGE, 'bundle', 1.35, 0.35);
+          const knot = [[46.6, 72.2], [44, 67.6], [47.4, 68.2], [48.4, 71.6], [50.4, 67.4], [52.4, 70.4], [49.6, 73]];
+          ringP(resample(place(knot, { x: jx * 0.5, y: dy }), 40), SAGE, 'bundleKnot', 1.1, 0.2);
+          // 布上的小點（像碎花布）
+          [[42, 80], [47.5, 77.5], [49.6, 83.4], [43.6, 85]].forEach(([x, y]) => path(circleD(x + jx * 0.5, y + dy, 0.75), fill(IVORY)));
+        } else {
+          strokeP(place([[64.6, 72.6], [61.6, 78], [57.6, 84.4], [53.4, 88.6]], { x: jx * 0.6, y: dy }), 1.1, 1.0, 'strap', 0.1, INK);
+        }
+      } else {
+        // B2：斜背在右腰側，背帶從左肩斜下來
+        if (layer === 'front') {
+          strokeP(place([[56, 72.4], [60.6, 79.6], [65.4, 86.8], [70.2, 92.6]], { x: jx * 0.6, y: dy }), 1.1, 1.0, 'strap', 0.1, INK);
+          const body = resample([[66.2, 95.2], [69.4, 91.4], [75, 90.6], [79.2, 93.6], [79.4, 99.4], [75.6, 102.8], [69.4, 102.4], [66, 99.4]], 60);
+          ringP(place(body, { x: 0, y: dy }), SAGE, 'bundle', 1.35, 0.35);
+          const knot = [[71.4, 91.6], [69.6, 87.6], [72.4, 88.4], [73.4, 91.2], [75.6, 87.8], [76.8, 90.6], [74.6, 92.4]];
+          ringP(resample(place(knot, { x: 0, y: dy }), 40), SAGE, 'bundleKnot', 1.1, 0.2);
+          [[70.6, 97.2], [75.6, 95.6], [74.8, 100.4]].forEach(([x, y]) => path(circleD(x, y + dy, 0.75), fill(IVORY)));
+        }
+      }
+    }
+  }
+
+  // 一般站姿（包袱比較用）
+  const PLAIN = {
+    normal: { name: '一般', period: 0, keys: [0], env: [], pose: () => basePose() },
+    sunny: { name: '晴', period: 5500, keys: [2000], env: ['bigSun'], pose: (t) => ({ ...basePose(), ...pose('sunny', t), headDy: 0, gaze: [0, 0], fx: {}, face: 'sunny', flick: 'perked' }) },
+    rainy: { name: '雨', period: 4200, keys: [1050], env: ['heavyRain'], pose: (t) => ({ ...basePose(), ...pose('rainy', t), headDy: 0, gaze: [0, 0], fx: {}, face: 'rainy', flick: 'drooped' }) },
+  };
+  // ---------- 頁面：會動的墨丸、靜態縮圖 ----------
+  let uid = 0;
+  const STAGES = [[1, '只有線'], [3, '有頭'], [4, '一隻手'], [5, '雙手'], [14, '完整']];
+  function sceneOf(svg) {
+    return svg.dataset.scene ? SCENES[svg.dataset.scene] : PLAIN[svg.dataset.plain];
+  }
+  function render(svg, { scene, opt, page, t, v, bundle }) {
+    const parts = partsAt(page), caps = getCapabilities(parts);
+    const P = scene.pose(t, caps, opt);
+    svg.setAttribute('viewBox', '0 -20 120 160');
+    svg.innerHTML = drawFrame({ P, parts, v, clock: t, envList: scene.env, bundle, uid: 'g' + (uid++) });
+  }
+  function thumb(container, scene, page, t, label, bundle) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', label);
+    const cap = document.createElement('p');
+    cap.className = 'cap';
+    cap.textContent = label;
+    card.append(svg, cap);
+    container.append(card);
+    render(svg, { scene, opt: 'A', page, t, v: 0, bundle });
+  }
+  document.querySelectorAll('[data-keys]').forEach((el) => {
+    const sc = SCENES[el.dataset.keys];
+    sc.keys.forEach((t) => thumb(el, sc, 14, t, `${(t / 1000).toFixed(1)} 秒`));
+  });
+  document.querySelectorAll('[data-stages]').forEach((el) => {
+    const sc = SCENES[el.dataset.stages];
+    STAGES.forEach(([page, name]) => thumb(el, sc, page, sc.keys[1], `第 ${page} 頁・${name}`));
+  });
+  document.querySelectorAll('[data-bundle-combos]').forEach((el) => {
+    const b = el.dataset.bundleCombos;
+    [['normal', PLAIN.normal], ['伸懶腰', PLAIN.sunny], ['撐傘', PLAIN.rainy], ['冷', SCENES.cold], ['熱', SCENES.hot]]
+      .forEach(([name, sc]) => thumb(el, sc, 14, sc.keys[sc.keys.length > 1 ? 1 : 0], name === 'normal' ? '一般' : name, b));
+  });
+
+  const live = [...document.querySelectorAll('svg[data-live]')].map((svg) => ({
+    svg, scene: sceneOf(svg), opt: svg.dataset.opt || 'A', bundle: svg.dataset.bundle || null, key: '', visible: true,
+  }));
+  // 看不到的就不重畫
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { const p = live.find((x) => x.svg === e.target); if (p) p.visible = e.isIntersecting; }));
+    live.forEach((p) => io.observe(p.svg));
+  }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let playing = !reduce, speed = 1, clock = 0, last = performance.now();
+  const btnPlay = document.getElementById('btn-play'), btnSlow = document.getElementById('btn-slow'), status = document.getElementById('status');
+  function label() {
+    btnPlay.textContent = playing ? '暫停' : '播放';
+    btnPlay.setAttribute('aria-pressed', String(!playing));
+    btnSlow.setAttribute('aria-pressed', String(speed !== 1));
+    status.textContent = playing ? '' : (reduce ? '系統設定為減少動態，按「播放」才會動' : '已暫停');
+  }
+  btnPlay.addEventListener('click', () => { playing = !playing; last = performance.now(); label(); });
+  btnSlow.addEventListener('click', () => { speed = speed === 1 ? 0.5 : 1; label(); });
+  function frame(now) {
+    if (playing) clock += (now - last) * speed;
+    last = now;
+    const v = SEQUENCE[Math.floor(clock / BOIL_MS) % FRAMES];
+    for (const p of live) {
+      if (!p.visible) continue;
+      const period = p.scene.period || 1;
+      // 停住的時候用代表姿勢
+      const t = playing || clock > 0 ? clock : p.scene.keys[p.scene.keys.length > 1 ? 1 : 0];
+      const key = v + ':' + Math.round(t / 33) + ':' + period;
+      if (key === p.key) continue;
+      p.key = key;
+      render(p.svg, { scene: p.scene, opt: p.opt, page: 14, t, v, bundle: p.bundle });
+    }
+    requestAnimationFrame(frame);
+  }
+  label();
+  requestAnimationFrame(frame);
+})();
+</script>

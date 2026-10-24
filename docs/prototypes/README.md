@@ -10,6 +10,7 @@
 | `mowan-festival.html` | Phase 2A.1 節日 × 天氣 × 成長階段原型（狀態機、能力系統、回歸測試） |
 | `mowan-art-review.html` | Phase 2A.2 演出關鍵姿勢、道具精修 |
 | `mowan-hat-umbrella.html` | Phase 2A.2 頭飾 A/B/C、雨傘原尺寸 vs −5%（最新的原型程式） |
+| `mowan-weather-draft.html` | 給設計師的草案：熱、陰、霧、雷雨、冷、雪與第 14 頁包袱（全部未批准） |
 | `src/engine.js`、`src/core.js` | 從 `mowan-hat-umbrella.html` 拆出來的原型程式，給匯出工具用 |
 | `tools/export-golden.js` | 匯出黃金數值，給 Android 的 JVM 測試比對 |
 
