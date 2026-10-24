@@ -1,0 +1,425 @@
+<title>墨丸成長階段草稿</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #EFEAE1; --fg: #453D38; --muted: #6F655E; --paper: #F7F3EB; --paper-edge: #DDD4C6;
+  --accent: #B96F62; --chip: #E6DFD3; --tbd: #9A6B1F;
+  --serif: 'Noto Serif TC', 'Songti TC', serif; --sans: 'Noto Sans TC', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #23201D; --fg: #EDE6DA; --muted: #B3A99D; --paper-edge: #4A433D; --chip: #34302B; --accent: #D08B7E; --tbd: #E0B25E; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #23201D; --fg: #EDE6DA; --muted: #B3A99D; --paper-edge: #4A433D; --chip: #34302B; --accent: #D08B7E; --tbd: #E0B25E; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 40px; }
+main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 26px; letter-spacing: .06em; }
+.lede { margin: 6px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 66ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.label { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; background: var(--chip); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button, .btn { font: inherit; font-size: 14px; color: var(--fg); background: transparent; border: 0; border-radius: 999px; padding: 8px 14px; min-height: 40px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--paper); color: #453D38; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.btn { background: var(--chip); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.card { background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 14px; padding: 10px 10px 12px; display: flex; flex-direction: column; gap: 6px; color: #453D38; }
+.card svg { width: 100%; height: auto; aspect-ratio: 3 / 4; display: block; }
+.card h2 { margin: 0; font-family: var(--serif); font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; gap: 6px; }
+.card h2 span { font-family: var(--sans); font-size: 12px; font-weight: 400; color: #6F655E; }
+.card p { margin: 0; font-size: 12px; line-height: 1.55; color: #6F655E; }
+.tag { display: inline-block; font-size: 11px; border-radius: 6px; padding: 1px 6px; margin-right: 4px; }
+.tag.c { background: #e5f4e4; color: #2F5D34; }
+.tag.p { background: #e7f1fb; color: #24507A; }
+.tag.t { background: #f9eeda; color: #7A5212; }
+.card.changed { outline: 2px solid var(--accent); outline-offset: -2px; }
+.legend { font-size: 13px; color: var(--muted); line-height: 1.7; margin: 0; }
+.note { font-size: 13px; line-height: 1.7; background: var(--paper); color: #453D38; border: 1px dashed var(--paper-edge); border-radius: 12px; padding: 12px 14px; margin: 0; }
+</style>
+
+<main>
+  <header>
+    <h1>墨丸成長階段草稿</h1>
+    <p class="lede">依故事第一章第 1–14 頁的解鎖順序，只用 V3 已定稿的部件畫出每一頁的樣子。解鎖順序沒有改，還沒解鎖的部件不會提早出現。V3 沒有的部件（紅腳尖、紙帽、包袱）不在這裡設計，只標成 TBD。</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="選項">
+    <span class="label">頭頂一筆出現的時間</span>
+    <div class="seg" role="group" aria-label="頭頂一筆方案">
+      <button type="button" data-flick="A" aria-pressed="true">方案 A：第 2 頁跟頭一起</button>
+      <button type="button" data-flick="B" aria-pressed="false">方案 B：第 12 頁取名時</button>
+    </div>
+    <button type="button" class="btn" id="boil" aria-pressed="true">筆觸沸騰：開</button>
+  </div>
+  <p class="legend"><span class="tag c">Confirmed</span>部件造型取自 V3 原型　<span class="tag p">Proposed</span>部件與頁數的對應是本草稿的提案　<span class="tag t">TBD</span>尚未設計、待決定。紅框＝這一頁外觀有變化。</p>
+
+  <section class="grid" id="grid" aria-label="成長階段"></section>
+
+  <p class="note">方案 C（第 1 頁的「一條墨線」就是頭頂一筆）沒有畫出來：故事第 1 頁的墨線之後要長出頭、手、腳，它在 V3 裡是身體那一筆；若改成頭頂一筆，第 1 頁會變成「只有一撮頭髮」，和第 2 頁「小墨線戴上圓圈」的故事敘述衝突。僅列在文件中供比較。</p>
+</main>
+
+<script>
+(() => {
+  const INK = '#453D38', TERRA = '#B96F62', PAPER = '#FCFAF5', SAGE = '#91A49B', PINK = '#D8ADA5';
+
+  // ---------- 預先決定的筆觸影格 ----------
+  // 每個部位、每張影格都有一組固定的相位，第一次用到時算好就存起來，之後完全重現。
+  const FRAMES = 5;
+  const SEQUENCE = [0, 3, 1, 4, 2];
+  const BOIL_MS = 1000 / 6;
+  const RAIN_MS = 1000 / 8;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  const phaseCache = new Map();
+  function ph(part, v) {
+    const key = part + '#' + v;
+    if (!phaseCache.has(key)) {
+      const r = mulberry32(hash(part) + v * 7919);
+      phaseCache.set(key, Array.from({ length: 6 }, () => r() * Math.PI * 2));
+    }
+    return phaseCache.get(key);
+  }
+
+  const TAU = Math.PI * 2;
+  // 開放筆畫的位移：兩端（關節、腳底）為 0，中間最大；'tip' 模式只有根部固定
+  function openNoise(p, t, amp, mode) {
+    const env = mode === 'tip' ? Math.pow(t, 1.1) : Math.pow(Math.sin(Math.PI * t), 0.8);
+    return amp * env * (0.6 * Math.sin(TAU * t + p[0]) + 0.3 * Math.sin(2 * TAU * t + p[1]) + 0.15 * Math.sin(3 * TAU * t + p[2]));
+  }
+  function widthVar(p, t, k) {
+    return 1 + k * (0.7 * Math.sin(TAU * 1.3 * t + p[3]) + 0.3 * Math.sin(TAU * 2.7 * t + p[4]));
+  }
+  // 封閉輪廓的位移：只用 2、3、5 次諧波，所以中心和大小不會跑掉
+  function loopNoise(p, a, amp) {
+    return amp * (0.55 * Math.sin(2 * a + p[0]) + 0.3 * Math.sin(3 * a + p[1]) + 0.15 * Math.sin(5 * a + p[2]));
+  }
+
+  // ---------- 幾何 ----------
+  function catmull(pts, perSeg) {
+    const out = [], n = pts.length;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, n - 1)];
+      for (let s = 0; s < perSeg; s++) {
+        const t = s / perSeg, t2 = t * t, t3 = t2 * t;
+        const f = (k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3);
+        out.push([f(0), f(1)]);
+      }
+    }
+    out.push(pts[n - 1].slice());
+    return out;
+  }
+  function normalAt(pts, i, closed) {
+    const n = pts.length;
+    const a = closed ? pts[(i - 1 + n) % n] : pts[Math.max(i - 1, 0)];
+    const b = closed ? pts[(i + 1) % n] : pts[Math.min(i + 1, n - 1)];
+    const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    return [-ty / l, tx / l];
+  }
+  const fmt = (p) => p[0].toFixed(2) + ' ' + p[1].toFixed(2);
+
+  /** 有粗細的筆畫，畫成實心形狀：中心線、寬度、垂直位移都隨位置 t 變 */
+  function brush(center, widthAt, offsetAt) {
+    const n = center.length;
+    const disp = center.map((c, i) => {
+      const t = i / (n - 1), nm = normalAt(center, i, false), o = offsetAt(t);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const L = [], R = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1), nm = normalAt(disp, i, false), w = widthAt(t) / 2;
+      L.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      R.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    const we = Math.max(widthAt(1) / 2, 0.05), ws = Math.max(widthAt(0) / 2, 0.05);
+    let d = 'M' + fmt(L[0]);
+    for (let i = 1; i < n; i++) d += 'L' + fmt(L[i]);
+    d += `A${we.toFixed(2)} ${we.toFixed(2)} 0 0 0 ${fmt(R[n - 1])}`;
+    for (let i = n - 2; i >= 0; i--) d += 'L' + fmt(R[i]);
+    d += `A${ws.toFixed(2)} ${ws.toFixed(2)} 0 0 0 ${fmt(L[0])}Z`;
+    return d;
+  }
+
+  /** 封閉的輪廓：回傳 [填色用的中心線, 輪廓筆畫（環）] */
+  function ring(loop, widthAt, offsetAt) {
+    const n = loop.length;
+    const disp = loop.map((c, i) => {
+      const a = (i / n) * TAU, nm = normalAt(loop, i, true), o = offsetAt(a);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const outer = [], inner = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU, nm = normalAt(disp, i, true), w = widthAt(a) / 2;
+      outer.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      inner.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    const loopD = (pts) => 'M' + pts.map(fmt).join('L') + 'Z';
+    return { fill: loopD(disp), stroke: loopD(outer) + loopD(inner.slice().reverse()), points: disp };
+  }
+
+  // ---------- 墨丸的造型 ----------
+  const HEAD_C = [60, 47.5];
+  const HEAD_N = 72;
+  function headBase(a) {
+    // 不對稱的手繪頭型：左下略寬，右上（一筆的根部附近）微微鼓起
+    const bump = 1.1 * Math.pow(Math.max(0, Math.cos(a + 1.15)), 4);
+    const rx = 22.5 * (1 + 0.035 * Math.sin(2 * a + 0.5)) + bump;
+    const ry = 20 * (1 + 0.03 * Math.cos(3 * a + 0.2)) + bump;
+    return [HEAD_C[0] + rx * Math.cos(a), HEAD_C[1] + ry * Math.sin(a)];
+  }
+  const HEAD_LOOP = Array.from({ length: HEAD_N }, (_, i) => headBase((i / HEAD_N) * TAU));
+  const ROOT_INDEX = Math.round(((-1.78 + TAU) % TAU) / TAU * HEAD_N); // 一筆的根部，在頭頂偏左
+
+  // 姿勢：每個場景、每個時間點的骨架控制點（主要動作，平滑）
+  function pose(scene, time) {
+    const P = {};
+    if (scene === 'normal') {
+      P.headAngle = 0;
+      P.body = [[60.5, 68.6], [61.4, 78], [59.6, 90], [61, 101]];
+      P.armL = [[60.5, 77], [55.5, 82.5], [52.6, 89], [51.6, 96]];
+      P.armR = [[60.8, 77], [65.8, 80.8], [68.8, 86.2], [67.6, 93]];
+      P.legL = [[61, 101], [59, 109], [57.6, 118], [57, 127], [52.4, 127.6]];
+      P.legR = [[61, 101], [64.8, 108], [66.8, 114], [69.2, 119.6], [70.6, 124.2], [71, 126.6], [75, 125.6]];
+      P.tail = [[54, 70.6], [53.2, 76], [53.4, 81.2], [51.8, 87.2]];
+      P.flick = 'normal'; P.face = 'normal';
+    } else if (scene === 'sunny') {
+      // 慢慢伸懶腰：5.5 秒一個來回
+      const s = (1 - Math.cos(TAU * time / 5500)) / 2;
+      P.headAngle = -4 - 8 * s;
+      P.body = [[60.5, 68.6], [62.6 + 1.2 * s, 78], [61.6 + 0.6 * s, 90], [61, 101]];
+      // 雙手往斜上方打開伸展，手一直在頭的外側
+      P.armL = [[60.5, 77], [53, 72 - 1.5 * s], [44.5 - 1.5 * s, 65 - 3 * s], [36.5 - 2.5 * s, 57 - 5 * s], [31 - 3 * s, 52 - 6 * s]];
+      P.armR = P.armL.map(([x, y], i) => i === 0 ? [60.8, 77] : [121.2 - x, y]);
+      P.legL = [[61, 101], [59, 109], [57.6, 118], [57, 127], [52.4, 127.6]];
+      P.legR = [[61, 101], [64.8, 108], [66.8, 114], [69.2, 119.6], [70.6, 124.2], [71, 126.6], [75, 125.6]];
+      const sway = (30 + 6 * Math.sin(TAU * time / 2600)) * Math.PI / 180;
+      const base = [[54, 70.6], [53.2, 76], [53.4, 81.2], [51.8, 87.2]];
+      P.tail = base.map(([x, y]) => {
+        const dx = x - 54, dy = y - 70.6;
+        return [54 + dx * Math.cos(sway) + dy * Math.sin(sway), 70.6 - dx * Math.sin(sway) + dy * Math.cos(sway)];
+      });
+      P.flick = 'perked'; P.face = 'sunny';
+    } else {
+      P.headAngle = 3;
+      P.umbrellaAngle = -10 + 1.8 * Math.sin(TAU * time / 4200); // 以手為支點輕輕晃
+      P.hand = [82, 78];
+      P.body = [[60.5, 68.6], [59.1, 79], [59.6, 90], [61, 101]];
+      P.armL = [[60.5, 77], [55, 80.2], [53.6, 85.6], [57.6, 87.6]];
+      P.armR = [[60.8, 77], [67, 80.6], [75, 81.4], [80.5, 79]];
+      P.legL = [[61, 101], [59.6, 109], [58.6, 118], [58, 127], [53.5, 127.5]];
+      P.legR = [[61, 101], [63, 109], [63.8, 118], [64.5, 127], [69, 127]];
+      P.tail = [[54, 70.6], [53.4, 76], [53.8, 81.6], [53.6, 88]];
+      P.flick = 'drooped'; P.face = 'rainy';
+    }
+    return P;
+  }
+
+  const FLICK = {
+    normal: [[0, 0], [-0.8, -6.5], [3.5, -12], [11, -14.5]],
+    perked: [[0, 0], [-0.5, -8], [4, -14], [11.5, -16.5]],
+    drooped: [[0, 0], [-2, -4], [-7, -5.5], [-12.5, -3]],
+  };
+
+  // 傘面的中心線（以握傘的手為原點）
+  const CANOPY = (() => {
+    const pts = [];
+    for (let i = 0; i <= 24; i++) {
+      const u = i / 24;
+      pts.push([-34 * Math.cos(Math.PI * u), -64 - 24 * Math.pow(Math.sin(Math.PI * u), 0.85)]);
+    }
+    for (let i = 1; i < 32; i++) {
+      const s = i / 32;
+      pts.push([34 - 68 * s, -64 - 3.2 * Math.sin(Math.PI * ((4 * s) % 1))]);
+    }
+    return pts;
+  })();
+
+  // ---------- 一個墨丸（建一次 DOM，之後只改屬性） ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(parent, tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  }
+
+  // ---------- 成長階段 ----------
+  // 解鎖順序沿用 chapter1.json：line, head, eyes, armR, armL, legL, legR, voice, redToes, scarf, paperHat, (name), bundle
+  const STAGES = [
+    { page: 1, unlock: 'line', title: '一條墨線', adds: ['body'], status: 'p', note: '墨線＝身體那一筆。' },
+    { page: 2, unlock: 'head', title: '借來的頭', adds: ['head'], status: 'p', note: '頭輪廓與頭部填色。' },
+    { page: 3, unlock: 'eyes', title: '兩顆墨點', adds: ['eyes', 'blush'], status: 'p', note: '眼睛。腮紅也放這一頁是提案，可改到第 8 頁。' },
+    { page: 4, unlock: 'armR', title: '一隻手', adds: ['armR'], status: 'p', note: '名稱沿用程式碼；左右以畫面還是角色為準待確認。' },
+    { page: 5, unlock: 'armL', title: '兩隻手', adds: ['armL'], status: 'p', note: '' },
+    { page: 6, unlock: 'legL', title: '一隻腳', adds: ['legL'], status: 'p', note: '' },
+    { page: 7, unlock: 'legR', title: '會走路了', adds: ['legR'], status: 'p', note: '' },
+    { page: 8, unlock: 'voice', title: '第一句話', adds: ['mouth'], status: 'p', note: '「聲音」對應到嘴巴。' },
+    { page: 9, unlock: 'redToes', title: '紅腳尖', adds: [], status: 't', note: 'V3 沒有紅腳尖，外觀不變。要不要加、怎麼加待決定。' },
+    { page: 10, unlock: 'scarf', title: '紅圍巾', adds: ['scarf'], status: 'p', note: '圍巾帶、尾巴、分岔一起出現。' },
+    { page: 11, unlock: 'paperHat', title: '紙帽', adds: [], status: 't', note: '紙帽未設計，也和頭頂一筆搶位置，見文件衝突表。' },
+    { page: 12, unlock: '（取名）', title: '名字', adds: [], status: 'p', note: '' },
+    { page: 13, unlock: '—', title: '宜與忌', adds: [], status: 'c', note: '故事本頁沒有解鎖。' },
+    { page: 14, unlock: 'bundle', title: '小包袱', adds: [], status: 't', note: '包袱未設計，外觀暫時不變。' },
+  ];
+  const TAGS = { c: ['c', 'Confirmed'], p: ['p', 'Proposed'], t: ['t', 'TBD'] };
+
+  function partsAt(page, option) {
+    const s = new Set();
+    for (const st of STAGES) if (st.page <= page) st.adds.forEach((p) => s.add(p));
+    if (s.has('head') && (option === 'A' || page >= 12)) s.add('flick');
+    return s;
+  }
+
+  function Growth(svg) {
+    const g = {};
+    g.shadow = el(svg, 'ellipse', { cx: 62, cy: 128.6, rx: 16, ry: 2.2, fill: INK, opacity: 0.07 });
+    for (const p of ['legL', 'legR', 'body', 'armL', 'armR']) g[p] = el(svg, 'path', { fill: INK });
+    for (const p of ['band', 'tail', 'split']) g[p] = el(svg, 'path', { fill: TERRA });
+    g.head = el(svg, 'g', {});
+    g.headFill = el(g.head, 'path', { fill: PAPER });
+    g.headRing = el(g.head, 'path', { fill: INK, 'fill-rule': 'evenodd' });
+    g.flick = el(g.head, 'path', { fill: INK });
+    g.blushL = el(g.head, 'ellipse', { cx: 47, cy: 52.8, rx: 3.2, ry: 1.6, fill: PINK, opacity: 0.85 });
+    g.blushR = el(g.head, 'ellipse', { cx: 72.5, cy: 52.3, rx: 3.2, ry: 1.6, fill: PINK, opacity: 0.85 });
+    g.eyeL = el(g.head, 'circle', { fill: INK, cy: 46.8 });
+    g.eyeR = el(g.head, 'circle', { fill: INK, cy: 46.3 });
+    g.mouth = el(g.head, 'path', { fill: INK });
+    const P = pose('normal', 0);
+    const show = (e, on) => e.setAttribute('display', on ? 'inline' : 'none');
+
+    this.render = function (parts, v) {
+      const limb = (part, pts, w0, w1, amp) => {
+        const p = ph(part, v);
+        return brush(catmull(pts, 9), (t) => (w0 + (w1 - w0) * t) * widthVar(p, t, 0.13), (t) => openNoise(p, t, amp, 'both'));
+      };
+      const limbs = { body: [3.1, 2.8, 0.5], armL: [2.9, 2.1, 0.45], armR: [2.9, 2.1, 0.45], legL: [3.1, 2.3, 0.45], legR: [3.0, 2.2, 0.45] };
+      for (const name in limbs) {
+        show(g[name], parts.has(name));
+        if (parts.has(name)) g[name].setAttribute('d', limb(name, P[name], ...limbs[name]));
+      }
+      const scarf = parts.has('scarf');
+      for (const p of ['band', 'tail', 'split']) show(g[p], scarf);
+      if (scarf) {
+        const pb = ph('band', v), pt = ph('tail', v), ps = ph('split', v);
+        g.band.setAttribute('d', brush(catmull([[51, 68.6], [55.5, 71.3], [64, 71.4], [70, 67.6]], 8),
+          (t) => (4.4 + 0.6 * Math.sin(Math.PI * t)) * widthVar(pb, t, 0.12), (t) => openNoise(pb, t, 0.4, 'both')));
+        g.tail.setAttribute('d', brush(catmull(P.tail, 9), (t) => (3.9 - 1.9 * t) * widthVar(pt, t, 0.14), (t) => openNoise(pt, t, 0.7, 'tip')));
+        const end = P.tail[P.tail.length - 1], mid = P.tail[2];
+        g.split.setAttribute('d', brush(catmull([mid, [(mid[0] + end[0]) / 2 + 1.8, (mid[1] + end[1]) / 2 + 0.6], [end[0] + 4, end[1] + 1.2]], 6),
+          (t) => (1.6 - 1.1 * t) * widthVar(ps, t, 0.15), (t) => openNoise(ps, t, 0.35, 'tip')));
+      }
+      show(g.head, parts.has('head'));
+      if (parts.has('head')) {
+        const phd = ph('head', v);
+        const heavy = 2.35 + 0.3 * Math.sin(phd[5]);
+        const head = ring(HEAD_LOOP,
+          (a) => 2.4 * (1 + 0.13 * (0.7 * Math.sin(2 * a + phd[3]) + 0.3 * Math.sin(3 * a + phd[4]))) + 1.1 * Math.pow(Math.max(0, Math.cos(a - heavy)), 3),
+          (a) => loopNoise(phd, a, 0.75));
+        g.headFill.setAttribute('d', head.fill);
+        g.headRing.setAttribute('d', head.stroke);
+        show(g.flick, parts.has('flick'));
+        if (parts.has('flick')) {
+          const root = head.points[ROOT_INDEX], pf = ph('flick', v);
+          g.flick.setAttribute('d', brush(catmull(FLICK.normal.map(([x, y]) => [root[0] + x, root[1] + y + 1.2]), 9),
+            (t) => (0.35 + 3.6 * Math.pow(1 - t, 0.85)) * widthVar(pf, t, 0.18), (t) => openNoise(pf, t, 1.4, 'tip')));
+        }
+        const pe = ph('eyes', v), r = (1.95 * (1 + 0.05 * Math.sin(pe[0]))).toFixed(2);
+        show(g.eyeL, parts.has('eyes')); show(g.eyeR, parts.has('eyes'));
+        g.eyeL.setAttribute('cx', (52 + 0.1 * Math.sin(pe[1])).toFixed(2)); g.eyeL.setAttribute('r', r);
+        g.eyeR.setAttribute('cx', (67 + 0.1 * Math.sin(pe[2])).toFixed(2)); g.eyeR.setAttribute('r', r);
+        show(g.blushL, parts.has('blush')); show(g.blushR, parts.has('blush'));
+        show(g.mouth, parts.has('mouth'));
+        if (parts.has('mouth')) {
+          const pm = ph('mouth', v);
+          g.mouth.setAttribute('d', brush(catmull([[57.4, 54.6], [60, 56.2], [62.6, 54.4]], 6),
+            (t) => 1.9 * (0.85 + 0.15 * Math.sin(Math.PI * t)) * widthVar(pm, t, 0.08), (t) => openNoise(pm, t, 0.12, 'both')));
+        }
+      }
+    };
+  }
+
+  // ---------- 卡片 ----------
+  const grid = document.getElementById('grid');
+  const cards = STAGES.map((st) => {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `<h2>第 ${st.page} 頁 <span>${st.unlock}</span></h2>`;
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 -20 120 160');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', `第 ${st.page} 頁的墨丸`);
+    card.appendChild(svg);
+    const title = document.createElement('p');
+    title.innerHTML = `<strong style="color:#453D38">${st.title}</strong>`;
+    const meta = document.createElement('p');
+    card.append(title, meta);
+    grid.appendChild(card);
+    return { st, card, meta, m: new Growth(svg) };
+  });
+
+  const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const state = { option: 'A', boil: !reducedQuery.matches, time: 0 };
+
+  function describe(st) {
+    let status = st.status, note = st.note;
+    if (st.page === 2) note = state.option === 'A' ? '頭輪廓、填色，加上頭頂一筆（方案 A）。' : '只有頭輪廓與填色，還沒有頭頂一筆（方案 B）。';
+    if (st.page === 12) {
+      if (state.option === 'B') { note = '取名「一筆」的同時長出頭頂一筆（方案 B）。預設名「一筆」與角色名「墨丸」的關係待確認。'; status = 'p'; }
+      else { note = '方案 A：外觀不變。'; status = 'c'; }
+    }
+    const [cls, label] = TAGS[status];
+    return `<span class="tag ${cls}">${label}</span>${note}`;
+  }
+
+  function draw() {
+    const step = state.boil ? Math.floor(state.time / BOIL_MS) : 0;
+    const v = SEQUENCE[step % SEQUENCE.length];
+    let prev = null;
+    for (const c of cards) {
+      const parts = partsAt(c.st.page, state.option);
+      c.m.render(parts, v);
+      const key = [...parts].sort().join();
+      c.card.classList.toggle('changed', prev !== null && key !== prev);
+      if (prev === null) c.card.classList.add('changed');
+      prev = key;
+    }
+  }
+  function updateText() { for (const c of cards) c.meta.innerHTML = describe(c.st); }
+
+  let raf = 0, last = 0;
+  function frame(now) {
+    raf = 0;
+    if (!state.boil || document.hidden) return;
+    if (last) state.time += Math.min(now - last, 250);
+    last = now;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  const boilBtn = document.getElementById('boil');
+  function sync() {
+    boilBtn.setAttribute('aria-pressed', String(state.boil));
+    boilBtn.textContent = state.boil ? '筆觸沸騰：開' : '筆觸沸騰：關';
+    updateText(); draw();
+    if (state.boil && !document.hidden && !raf) { last = 0; raf = requestAnimationFrame(frame); }
+  }
+  document.querySelectorAll('[data-flick]').forEach((b) => b.addEventListener('click', () => {
+    state.option = b.dataset.flick;
+    document.querySelectorAll('[data-flick]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    sync();
+  }));
+  boilBtn.addEventListener('click', () => { state.boil = !state.boil; sync(); });
+  document.addEventListener('visibilitychange', sync);
+  reducedQuery.addEventListener?.('change', (e) => { if (e.matches) state.boil = false; sync(); });
+  sync();
+})();
+</script>

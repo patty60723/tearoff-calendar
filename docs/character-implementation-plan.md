@@ -1,6 +1,6 @@
 # 墨丸 V3 — 實作計畫（Phase 2B）
 
-> 狀態：**Proposed，等待確認**。所有階段都還沒開始。
+> 狀態：階段順序已確認（2026-10-24）。P0、P1 已完成，P2 之後還沒開始。
 > 相關文件：[整合規格](character-integration-spec.md)・[未定案事項](character-open-decisions.md)
 
 ## 排序原則
@@ -29,6 +29,8 @@
 
 ## P0 — 原型原始碼入庫 + 黃金數值匯出
 
+> **完成**：`docs/prototypes/`（6 個原型 HTML、`src/`、`tools/export-golden.js`），黃金數值在 `app/src/test/resources/mowan/golden-static.json`（第 1–14 頁、第 14 頁 5 張筆觸影格、脫下紙帽，共 19 張影格）。
+
 - **目標**：讓移植有可以核對的依據，不靠記憶或猜測。
 - **檔案**：
   - `docs/prototypes/`（V3 line boil、festival v7、hat / umbrella 原型 HTML + README）
@@ -42,6 +44,16 @@
 - **複雜度**：低。
 
 ## P1 — V3 靜態 renderer
+
+> **完成（範圍：一般站姿）**：
+> - `…/mowan/Rng.kt`、`PathData.kt`、`Geometry.kt`、`Mowan.kt`：純 Kotlin，輸出一張影格的繪圖清單。
+> - `…/mowan/MowanPainter.kt`、`MowanView.kt`：Android 端，Path 在建構時就轉好，onDraw 不配置物件。
+> - `MowanGoldenTest`：亂數、頭部輪廓、14 頁部位、19 張影格的每一條筆畫都跟原型一致（誤差 0.011 以內）。
+> - 除錯選單「看墨丸 V3（靜態預覽）」：切頁數、筆觸影格、紙帽。故事卡和 Widget 仍然是舊火柴人。
+> - `ScreenshotTest.mowanPages` 產生 `mowan-pages.png`（CI 截圖）。
+> - 預設名字改成「墨丸」（D-08）。
+> - 包袱（第 14 頁）V3 還沒設計（Q21），所以第 14 頁的外觀跟第 13 頁一樣，沒有自己畫。
+> - 還沒做：天氣姿勢與臉部表情（P2）、48px 簡化（P5）、節日（P6）。
 
 - **目標**：在 App 裡畫出靜態的完整墨丸（第 14 頁外觀、normal 姿勢、boil 變體 0），外觀跟原型一致。
 - **檔案（新）**：

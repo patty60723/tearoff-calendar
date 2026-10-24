@@ -27,7 +27,7 @@ data class StoryContext(
 }
 
 object StoryEngine {
-    const val DEFAULT_NAME = "一筆"
+    const val DEFAULT_NAME = "墨丸"
 
     fun chapterOf(page: Int) = when {
         page <= 14 -> 1

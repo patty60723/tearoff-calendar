@@ -114,4 +114,33 @@ class ScreenshotTest {
         pad.holdPeel(rightCorner = true, x = pad.width * 0.42f, y = pad.height * 0.62f)
         save("app-peel", root, root.width, root.height, background = false)
     }
+
+    /** 墨丸 V3（靜態）：第 1–14 頁一排排，最後一排是第 14 頁的 5 張筆觸影格和脫下紙帽 */
+    @Test
+    fun mowanPages() {
+        val book = StoryBook(context)
+        val cell = 240
+        val cols = 7
+        val rows = 3
+        val h = cell * 4 / 3
+        val bitmap = Bitmap.createBitmap(cell * cols, h * rows, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(com.patty60723.tearoff.mowan.Mowan.IVORY)
+        val label = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = com.patty60723.tearoff.mowan.Mowan.INK
+            textSize = 22f
+        }
+        fun drawCell(index: Int, page: Int, variant: Int, hatOn: Boolean, text: String) {
+            val parts = com.patty60723.tearoff.mowan.Mowan.partsOf(com.patty60723.tearoff.story.StoryEngine.unlocked(book.beats, page))
+            val frame = com.patty60723.tearoff.mowan.Mowan.frame(parts, variant, hatOn)
+            val x = (index % cols) * cell.toFloat()
+            val y = (index / cols) * h.toFloat()
+            com.patty60723.tearoff.mowan.MowanPainter(frame).draw(canvas, x, y, cell.toFloat(), h.toFloat())
+            canvas.drawText(text, x + 10, y + 28, label)
+        }
+        for (page in 1..14) drawCell(page - 1, page, 0, true, "第 $page 頁")
+        for (v in 0 until 5) drawCell(14 + v, 14, v, true, "影格 ${v + 1}")
+        drawCell(19, 14, 0, false, "脫下紙帽")
+        File(out, "mowan-pages.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
 }

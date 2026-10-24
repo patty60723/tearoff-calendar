@@ -1,0 +1,1085 @@
+<title>墨丸設計決策預覽</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #EFEAE1; --fg: #453D38; --muted: #6F655E; --paper: #F7F3EB; --paper-edge: #DDD4C6;
+  --accent: #B96F62; --chip: #E6DFD3;
+  --serif: 'Noto Serif TC', 'Songti TC', serif; --sans: 'Noto Sans TC', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #23201D; --fg: #EDE6DA; --muted: #B3A99D; --paper-edge: #4A433D; --chip: #34302B; --accent: #D08B7E; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #23201D; --fg: #EDE6DA; --muted: #B3A99D; --paper-edge: #4A433D; --chip: #34302B; --accent: #D08B7E; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+main { max-width: 1060px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 26px; letter-spacing: .06em; }
+h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 20px; }
+h3 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 16px; color: #453D38; }
+.lede, .sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 70ch; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; position: sticky; top: 0; z-index: 2; background: var(--bg); padding-block: 8px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 999px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button, .btn { font: inherit; font-size: 14px; color: var(--fg); background: transparent; border: 0; border-radius: 999px; padding: 8px 14px; min-height: 40px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--paper); color: #453D38; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.btn { background: var(--chip); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.notice { margin: 0; font-size: 13px; color: var(--accent); }
+.card { background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 14px; padding: 14px; color: #453D38; display: flex; flex-direction: column; gap: 10px; }
+.card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.poses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.poses figure, .sizes figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.poses svg { width: 100%; max-width: 200px; height: auto; aspect-ratio: 3 / 4; }
+figcaption { font-size: 12px; color: #6F655E; }
+.sizes { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; border-top: 1px dashed #DDD4C6; padding-top: 10px; }
+.pc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; font-size: 13px; line-height: 1.65; }
+.pc ul { margin: 4px 0 0; padding-left: 18px; }
+.pc b { font-weight: 500; }
+.tag { display: inline-block; font-size: 11px; border-radius: 6px; padding: 1px 6px; margin-right: 4px; vertical-align: 1px; }
+.tag.c { background: #e5f4e4; color: #2F5D34; }
+.tag.p { background: #e7f1fb; color: #24507A; }
+.tag.t { background: #f9eeda; color: #7A5212; }
+.toes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.zoom svg { width: 100%; height: auto; aspect-ratio: 2 / 1; background: #FCFAF5; border-radius: 10px; }
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.stage svg.big { width: 100%; max-width: 280px; height: auto; aspect-ratio: 3 / 4; margin: 0 auto; display: block; }
+.storytext { font-family: var(--serif); font-size: 15px; line-height: 1.9; margin: 0; }
+.storytext span { transition: background-color .3s; border-radius: 4px; }
+.storytext span.on { background: #f9ece7; }
+.steps { display: flex; gap: 6px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.steps li { padding: 4px 10px; border-radius: 999px; background: #EFE8DC; color: #6F655E; }
+.steps li.on { background: #453D38; color: #F7F3EB; }
+.collection { border: 1px solid #DDD4C6; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.collection .item { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.collection svg { width: 40px; height: 40px; }
+.collection .btn { background: #E6DFD3; color: #453D38; }
+.log { margin: 0; padding: 8px 12px; list-style: none; font-size: 12px; line-height: 1.7; color: #6F655E; background: #EFE8DC; border-radius: 10px; max-height: 150px; overflow: auto; font-variant-numeric: tabular-nums; }
+.toast { font-size: 13px; color: #2F5D34; background: #e5f4e4; border-radius: 999px; padding: 4px 12px; align-self: flex-start; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--paper); color: #453D38; border-radius: 12px; overflow: hidden; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #DDD4C6; vertical-align: top; }
+th { font-weight: 500; background: #EFE8DC; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ok { color: #2F5D34; } .warn { color: #8A4B12; } .bad { color: #9B2C2C; }
+@media (max-width: 700px) {
+  .pc, .stage, .toes { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+
+<main>
+  <header>
+    <h1>墨丸設計決策預覽</h1>
+    <p class="lede">Phase 1.5 視覺驗證。角色造型、比例、配色與 6 FPS Line Boil 全部沿用 V3 原型，沒有重新設計；紙帽與紅腳尖是這次新畫的<b>比較方案</b>，都還沒定案，也沒有放進正式 App。</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="全域播放控制">
+    <button type="button" class="btn" id="animated" aria-pressed="true">6 FPS Line Boil</button>
+    <button type="button" class="btn" id="play">暫停</button>
+    <span class="status" id="status" aria-live="polite"></span>
+  </div>
+  <p class="notice" id="rm-note" hidden>你的裝置開啟了「減少動態」，筆觸沸騰與角色動作都已停用，顯示靜態畫面；第 11 頁演出改成逐步顯示結果。</p>
+
+  <section aria-labelledby="h-hat">
+    <div>
+      <h2 id="h-hat">1. 紙帽 × 頭頂一筆：三個方案</h2>
+      <p class="sub">每列一個方案：Normal、傾斜（Sunny 伸懶腰，頭部 −4°→−12°）、Rainy 撐傘，下面是 160／96／48px。頭部輪廓、一筆長度、圍巾位置都沒有動；一筆永遠畫在紙帽前面。</p>
+    </div>
+    <div id="hats" style="display:flex;flex-direction:column;gap:14px"></div>
+  </section>
+
+  <section aria-labelledby="h-toes">
+    <div>
+      <h2 id="h-toes">2. 第 9 頁紅腳尖：三個方案</h2>
+      <p class="sub">上方是腳部放大；下面是 160／96／48px 全身。紅色一律用色票內的 Terracotta #B96F62（真正的「朱紅」屬於色票擴充 Q8，尚未決定）。腳的線條與比例沒有改，紅色是疊在原本筆畫上的。</p>
+    </div>
+    <div class="toes" id="toes"></div>
+  </section>
+
+  <section aria-labelledby="h-acq">
+    <div>
+      <h2 id="h-acq">3. 第 11 頁：取得紙帽</h2>
+      <p class="sub">故事文字與觸發順序照舊，只在文字下方配上演出。可以逐步切換，也可以整段播放。墨丸的手只有約 19 單位長，碰不到頭頂（比例已凍結），所以「戴上」是用手輕輕往上一送、紙帽落在頭上。</p>
+    </div>
+    <div class="card">
+      <div class="controls" style="position:static;background:none;padding:0" role="group" aria-label="演出控制">
+        <div class="seg" role="group" aria-label="紙帽方案">
+          <button type="button" data-acqhat="A" aria-pressed="true">方案 A</button>
+          <button type="button" data-acqhat="B" aria-pressed="false">方案 B</button>
+          <button type="button" data-acqhat="C" aria-pressed="false">方案 C</button>
+        </div>
+        <button type="button" class="btn" id="prev">上一步</button>
+        <button type="button" class="btn" id="next">下一步</button>
+        <button type="button" class="btn" id="playall">整段播放</button>
+      </div>
+      <div class="stage">
+        <svg class="big" id="acq" viewBox="0 -20 120 160" role="img" aria-label="第 11 頁取得紙帽的演出"></svg>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <ol class="steps" id="steps"></ol>
+          <p class="storytext" id="story"></p>
+          <p class="status" id="stepnote"></p>
+          <span class="toast" id="toast" hidden>已收進配件收藏：紙帽</span>
+          <div class="collection">
+            <div class="item"><svg id="collect-icon" viewBox="-14 -20 28 24" aria-hidden="true"></svg><div><div>紙帽</div><div class="status" id="own">尚未取得</div></div></div>
+            <button type="button" class="btn" id="equip" disabled>戴上</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn" id="replay">重播第 11 頁</button>
+            <button type="button" class="btn" id="resetdemo">重設示範</button>
+          </div>
+          <ul class="log" id="log" aria-live="polite"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-check">
+    <div>
+      <h2 id="h-check">4. Line Boil 相容性檢查（頁面即時計算）</h2>
+      <p class="sub">用跟畫面相同的幾何，把 5 張筆觸影格 × Normal／Sunny 時間軸／Rainy 時間軸全部跑過一次得到的數字。單位是 viewBox 單位（頭寬 45）。</p>
+    </div>
+    <div class="table-wrap"><table id="check"></table></div>
+    <div class="table-wrap"><table id="check-toes"></table></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const INK = '#453D38', TERRA = '#B96F62', PAPER = '#FCFAF5', SAGE = '#91A49B', PINK = '#D8ADA5';
+
+  // ---------- 預先決定的筆觸影格 ----------
+  // 每個部位、每張影格都有一組固定的相位，第一次用到時算好就存起來，之後完全重現。
+  const FRAMES = 5;
+  const SEQUENCE = [0, 3, 1, 4, 2];
+  const BOIL_MS = 1000 / 6;
+  const RAIN_MS = 1000 / 8;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  const phaseCache = new Map();
+  function ph(part, v) {
+    const key = part + '#' + v;
+    if (!phaseCache.has(key)) {
+      const r = mulberry32(hash(part) + v * 7919);
+      phaseCache.set(key, Array.from({ length: 6 }, () => r() * Math.PI * 2));
+    }
+    return phaseCache.get(key);
+  }
+
+  const TAU = Math.PI * 2;
+  // 開放筆畫的位移：兩端（關節、腳底）為 0，中間最大；'tip' 模式只有根部固定
+  function openNoise(p, t, amp, mode) {
+    const env = mode === 'tip' ? Math.pow(t, 1.1) : Math.pow(Math.sin(Math.PI * t), 0.8);
+    return amp * env * (0.6 * Math.sin(TAU * t + p[0]) + 0.3 * Math.sin(2 * TAU * t + p[1]) + 0.15 * Math.sin(3 * TAU * t + p[2]));
+  }
+  function widthVar(p, t, k) {
+    return 1 + k * (0.7 * Math.sin(TAU * 1.3 * t + p[3]) + 0.3 * Math.sin(TAU * 2.7 * t + p[4]));
+  }
+  // 封閉輪廓的位移：只用 2、3、5 次諧波，所以中心和大小不會跑掉
+  function loopNoise(p, a, amp) {
+    return amp * (0.55 * Math.sin(2 * a + p[0]) + 0.3 * Math.sin(3 * a + p[1]) + 0.15 * Math.sin(5 * a + p[2]));
+  }
+
+  // ---------- 幾何 ----------
+  function catmull(pts, perSeg) {
+    const out = [], n = pts.length;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, n - 1)];
+      for (let s = 0; s < perSeg; s++) {
+        const t = s / perSeg, t2 = t * t, t3 = t2 * t;
+        const f = (k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3);
+        out.push([f(0), f(1)]);
+      }
+    }
+    out.push(pts[n - 1].slice());
+    return out;
+  }
+  function normalAt(pts, i, closed) {
+    const n = pts.length;
+    const a = closed ? pts[(i - 1 + n) % n] : pts[Math.max(i - 1, 0)];
+    const b = closed ? pts[(i + 1) % n] : pts[Math.min(i + 1, n - 1)];
+    const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    return [-ty / l, tx / l];
+  }
+  const fmt = (p) => p[0].toFixed(2) + ' ' + p[1].toFixed(2);
+
+  /** 有粗細的筆畫，畫成實心形狀：中心線、寬度、垂直位移都隨位置 t 變 */
+  function brush(center, widthAt, offsetAt) {
+    const n = center.length;
+    const disp = center.map((c, i) => {
+      const t = i / (n - 1), nm = normalAt(center, i, false), o = offsetAt(t);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const L = [], R = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1), nm = normalAt(disp, i, false), w = widthAt(t) / 2;
+      L.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      R.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    const we = Math.max(widthAt(1) / 2, 0.05), ws = Math.max(widthAt(0) / 2, 0.05);
+    let d = 'M' + fmt(L[0]);
+    for (let i = 1; i < n; i++) d += 'L' + fmt(L[i]);
+    d += `A${we.toFixed(2)} ${we.toFixed(2)} 0 0 0 ${fmt(R[n - 1])}`;
+    for (let i = n - 2; i >= 0; i--) d += 'L' + fmt(R[i]);
+    d += `A${ws.toFixed(2)} ${ws.toFixed(2)} 0 0 0 ${fmt(L[0])}Z`;
+    return d;
+  }
+
+  /** 封閉的輪廓：回傳 [填色用的中心線, 輪廓筆畫（環）] */
+  function ring(loop, widthAt, offsetAt) {
+    const n = loop.length;
+    const disp = loop.map((c, i) => {
+      const a = (i / n) * TAU, nm = normalAt(loop, i, true), o = offsetAt(a);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const outer = [], inner = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU, nm = normalAt(disp, i, true), w = widthAt(a) / 2;
+      outer.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      inner.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    const loopD = (pts) => 'M' + pts.map(fmt).join('L') + 'Z';
+    return { fill: loopD(disp), stroke: loopD(outer) + loopD(inner.slice().reverse()), points: disp };
+  }
+
+  // ---------- 墨丸的造型 ----------
+  const HEAD_C = [60, 47.5];
+  const HEAD_N = 72;
+  function headBase(a) {
+    // 不對稱的手繪頭型：左下略寬，右上（一筆的根部附近）微微鼓起
+    const bump = 1.1 * Math.pow(Math.max(0, Math.cos(a + 1.15)), 4);
+    const rx = 22.5 * (1 + 0.035 * Math.sin(2 * a + 0.5)) + bump;
+    const ry = 20 * (1 + 0.03 * Math.cos(3 * a + 0.2)) + bump;
+    return [HEAD_C[0] + rx * Math.cos(a), HEAD_C[1] + ry * Math.sin(a)];
+  }
+  const HEAD_LOOP = Array.from({ length: HEAD_N }, (_, i) => headBase((i / HEAD_N) * TAU));
+  const ROOT_INDEX = Math.round(((-1.78 + TAU) % TAU) / TAU * HEAD_N); // 一筆的根部，在頭頂偏左
+
+  // 姿勢：每個場景、每個時間點的骨架控制點（主要動作，平滑）
+  function pose(scene, time) {
+    const P = {};
+    if (scene === 'normal') {
+      P.headAngle = 0;
+      P.body = [[60.5, 68.6], [61.4, 78], [59.6, 90], [61, 101]];
+      P.armL = [[60.5, 77], [55.5, 82.5], [52.6, 89], [51.6, 96]];
+      P.armR = [[60.8, 77], [65.8, 80.8], [68.8, 86.2], [67.6, 93]];
+      P.legL = [[61, 101], [59, 109], [57.6, 118], [57, 127], [52.4, 127.6]];
+      P.legR = [[61, 101], [64.8, 108], [66.8, 114], [69.2, 119.6], [70.6, 124.2], [71, 126.6], [75, 125.6]];
+      P.tail = [[54, 70.6], [53.2, 76], [53.4, 81.2], [51.8, 87.2]];
+      P.flick = 'normal'; P.face = 'normal';
+    } else if (scene === 'sunny') {
+      // 慢慢伸懶腰：5.5 秒一個來回
+      const s = (1 - Math.cos(TAU * time / 5500)) / 2;
+      P.headAngle = -4 - 8 * s;
+      P.body = [[60.5, 68.6], [62.6 + 1.2 * s, 78], [61.6 + 0.6 * s, 90], [61, 101]];
+      // 雙手往斜上方打開伸展，手一直在頭的外側
+      P.armL = [[60.5, 77], [53, 72 - 1.5 * s], [44.5 - 1.5 * s, 65 - 3 * s], [36.5 - 2.5 * s, 57 - 5 * s], [31 - 3 * s, 52 - 6 * s]];
+      P.armR = P.armL.map(([x, y], i) => i === 0 ? [60.8, 77] : [121.2 - x, y]);
+      P.legL = [[61, 101], [59, 109], [57.6, 118], [57, 127], [52.4, 127.6]];
+      P.legR = [[61, 101], [64.8, 108], [66.8, 114], [69.2, 119.6], [70.6, 124.2], [71, 126.6], [75, 125.6]];
+      const sway = (30 + 6 * Math.sin(TAU * time / 2600)) * Math.PI / 180;
+      const base = [[54, 70.6], [53.2, 76], [53.4, 81.2], [51.8, 87.2]];
+      P.tail = base.map(([x, y]) => {
+        const dx = x - 54, dy = y - 70.6;
+        return [54 + dx * Math.cos(sway) + dy * Math.sin(sway), 70.6 - dx * Math.sin(sway) + dy * Math.cos(sway)];
+      });
+      P.flick = 'perked'; P.face = 'sunny';
+    } else {
+      P.headAngle = 3;
+      P.umbrellaAngle = -10 + 1.8 * Math.sin(TAU * time / 4200); // 以手為支點輕輕晃
+      P.hand = [82, 78];
+      P.body = [[60.5, 68.6], [59.1, 79], [59.6, 90], [61, 101]];
+      P.armL = [[60.5, 77], [55, 80.2], [53.6, 85.6], [57.6, 87.6]];
+      P.armR = [[60.8, 77], [67, 80.6], [75, 81.4], [80.5, 79]];
+      P.legL = [[61, 101], [59.6, 109], [58.6, 118], [58, 127], [53.5, 127.5]];
+      P.legR = [[61, 101], [63, 109], [63.8, 118], [64.5, 127], [69, 127]];
+      P.tail = [[54, 70.6], [53.4, 76], [53.8, 81.6], [53.6, 88]];
+      P.flick = 'drooped'; P.face = 'rainy';
+    }
+    return P;
+  }
+
+  const FLICK = {
+    normal: [[0, 0], [-0.8, -6.5], [3.5, -12], [11, -14.5]],
+    perked: [[0, 0], [-0.5, -8], [4, -14], [11.5, -16.5]],
+    drooped: [[0, 0], [-2, -4], [-7, -5.5], [-12.5, -3]],
+  };
+
+  // 傘面的中心線（以握傘的手為原點）
+  const CANOPY = (() => {
+    const pts = [];
+    for (let i = 0; i <= 24; i++) {
+      const u = i / 24;
+      pts.push([-34 * Math.cos(Math.PI * u), -64 - 24 * Math.pow(Math.sin(Math.PI * u), 0.85)]);
+    }
+    for (let i = 1; i < 32; i++) {
+      const s = i / 32;
+      pts.push([34 - 68 * s, -64 - 3.2 * Math.sin(Math.PI * ((4 * s) % 1))]);
+    }
+    return pts;
+  })();
+
+  // ---------- 一個墨丸（建一次 DOM，之後只改屬性） ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(parent, tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  }
+
+  const IVORY = '#F7F3EB';
+
+  // ---------- 筆刷：保留中心線與左右邊，讓腳尖能取同一條筆畫的末端 ----------
+  function brushGeom(center, widthAt, offsetAt) {
+    const n = center.length;
+    const disp = center.map((c, i) => {
+      const t = i / (n - 1), nm = normalAt(center, i, false), o = offsetAt(t);
+      return [c[0] + nm[0] * o, c[1] + nm[1] * o];
+    });
+    const L = [], R = [], W = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1), nm = normalAt(disp, i, false), w = widthAt(t) / 2;
+      W.push(w);
+      L.push([disp[i][0] + nm[0] * w, disp[i][1] + nm[1] * w]);
+      R.push([disp[i][0] - nm[0] * w, disp[i][1] - nm[1] * w]);
+    }
+    return { disp, L, R, W, n };
+  }
+  /** 從第 i0 點畫到末端；scale > 1 時以中心線為準往外擴（墨水暈開） */
+  function geomPath(g, i0 = 0, scale = 1) {
+    const P = (arr, i) => scale === 1 ? arr[i] : [g.disp[i][0] + (arr[i][0] - g.disp[i][0]) * scale, g.disp[i][1] + (arr[i][1] - g.disp[i][1]) * scale];
+    const n = g.n, we = Math.max(g.W[n - 1] * scale, 0.05), ws = Math.max(g.W[i0] * scale, 0.05);
+    let d = 'M' + fmt(P(g.L, i0));
+    for (let i = i0 + 1; i < n; i++) d += 'L' + fmt(P(g.L, i));
+    d += `A${we.toFixed(2)} ${we.toFixed(2)} 0 0 0 ${fmt(P(g.R, n - 1))}`;
+    for (let i = n - 2; i >= i0; i--) d += 'L' + fmt(P(g.R, i));
+    d += i0 === 0 ? `A${ws.toFixed(2)} ${ws.toFixed(2)} 0 0 0 ${fmt(P(g.L, 0))}Z` : 'Z';
+    return d;
+  }
+
+  // ---------- 幾何小工具 ----------
+  function resample(poly, N) {
+    const segs = poly.map((p, i) => { const q = poly[(i + 1) % poly.length]; return Math.hypot(q[0] - p[0], q[1] - p[1]); });
+    const total = segs.reduce((a, b) => a + b, 0);
+    const out = [];
+    let si = 0, acc = 0;
+    for (let k = 0; k < N; k++) {
+      const s = (k / N) * total;
+      while (acc + segs[si] < s) { acc += segs[si]; si++; }
+      const p = poly[si], q = poly[(si + 1) % poly.length], u = (s - acc) / segs[si];
+      out.push([p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u]);
+    }
+    return out;
+  }
+  function inside(pt, poly) {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  function area(poly) {
+    let a = 0;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) a += (poly[j][0] + poly[i][0]) * (poly[j][1] - poly[i][1]);
+    return Math.abs(a / 2);
+  }
+  const rotAbout = (p, deg, c) => {
+    const r = deg * Math.PI / 180, dx = p[0] - c[0], dy = p[1] - c[1];
+    return [c[0] + dx * Math.cos(r) - dy * Math.sin(r), c[1] + dx * Math.sin(r) + dy * Math.cos(r)];
+  };
+  const lerp = (a, b, u) => a + (b - a) * u;
+  const ease = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+  const easeOut = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : 1 - Math.pow(1 - u, 3));
+  const HEAD_PIVOT = [60.5, 66];
+
+  // ---------- 紙帽方案（以帽緣中點為原點，往上為 −y） ----------
+  // theta：貼在頭輪廓上的角度；sink：往頭內陷入的量；bendR：帽緣順著頭頂彎曲的半徑
+  const HATS = {
+    A: { name: '斜戴', theta: -0.98, sink: 0.8, bendR: 21,
+      outline: [[-12, 0], [12, 0], [12, -3.6], [10.4, -3.6], [0.6, -17], [-10.4, -3.6], [-12, -3.6]],
+      fold: [[-10.4, -3.6], [10.4, -3.6]], crease: [[0.6, -15.6], [0.9, -9], [0.4, -3.6]] },
+    B: { name: '頂部留出一筆', theta: -Math.PI / 2, sink: 0.8, bendR: 25,
+      outline: [[-16, 0], [16, 0], [16, -3.4], [14, -3.4], [3.5, -12.5], [-5.5, -12.5], [-14, -3.4], [-16, -3.4]],
+      fold: [[-14, -3.4], [14, -3.4]], crease: null },
+    C: { name: '小型裝飾', theta: -0.62, sink: 0.5, bendR: 19,
+      outline: [[-6, 0], [6, 0], [6, -2.2], [5.2, -2.2], [0.3, -9.5], [-5.2, -2.2], [-6, -2.2]],
+      fold: [[-5.2, -2.2], [5.2, -2.2]], crease: null },
+  };
+  const HAT_N = 64;
+  for (const k in HATS) HATS[k].loop = resample(HATS[k].outline, HAT_N);
+  // 紙團：不規則的圓，點數跟紙帽一樣，才能做「打開」的中間格
+  const BALL = Array.from({ length: HAT_N }, (_, i) => {
+    const a = (i / HAT_N) * TAU;
+    const r = 4.6 * (1 + 0.09 * Math.sin(3 * a + 0.7) + 0.06 * Math.sin(5 * a + 2.1) + 0.04 * Math.sin(7 * a));
+    return [r * Math.cos(a), -4.6 + r * Math.sin(a)];
+  });
+
+  const bend = (p, R, k) => [p[0], p[1] + k * (p[0] * p[0]) / (2 * R)];
+  /** 紙帽在頭部座標中的位置：錨點取這張影格的頭輪廓（跟一筆的根部同一規則） */
+  function hatPlace(kind, headPts, extraSink = 0) {
+    const h = HATS[kind];
+    const idx = Math.round(((h.theta + TAU) % TAU) / TAU * HEAD_N) % HEAD_N;
+    const P = headPts[idx], nx = Math.cos(h.theta), ny = Math.sin(h.theta);
+    const s = h.sink + extraSink;
+    return { x: P[0] - nx * s, y: P[1] - ny * s, rot: h.theta + Math.PI / 2 };
+  }
+  function transform(pts, pl) {
+    const c = Math.cos(pl.rot), s = Math.sin(pl.rot);
+    return pts.map(([x, y]) => [pl.x + x * c - y * s, pl.y + x * s + y * c]);
+  }
+  function hatLocal(kind, bendK = 1, shape = 'hat') {
+    const h = HATS[kind];
+    const hat = h.loop.map((p) => bend(p, h.bendR, bendK));
+    if (shape === 'ball') return BALL;
+    if (shape === 'half') return hat.map((p, i) => [lerp(BALL[i][0], p[0], 0.55) + 0.7 * Math.sin((i / HAT_N) * TAU * 3 + 0.4), lerp(BALL[i][1], p[1], 0.55) + 0.6 * Math.cos((i / HAT_N) * TAU * 4)]);
+    return hat;
+  }
+
+  // ---------- 一個墨丸：V3 造型 + 可選的紙帽、紅腳尖 ----------
+  function Mowan(svg, cfg) {
+    const simple = !!cfg.simple;
+    const k = simple ? 1.75 : 1, boilK = simple ? 1.5 : 1;
+    const g = {};
+    g.sun = el(svg, 'circle', { cx: 99, cy: 4, r: 8.5, fill: PINK, opacity: 0.75 });
+    g.sunRing = el(svg, 'circle', { cx: 99, cy: 4, r: 12, fill: 'none', stroke: PINK, 'stroke-width': 1.1 * k });
+    g.rain = el(svg, 'g', { stroke: SAGE, 'stroke-width': 1.5 * k, 'stroke-linecap': 'round' });
+    const DROPS = simple ? [[10, 0], [114, 40], [16, 80]] : [[10, 0], [20, 52], [8, 95], [26, 30], [16, 120], [112, 18], [116, 70], [108, 110], [28, 85]];
+    g.drops = DROPS.map(() => el(g.rain, 'line', {}));
+    g.puddle = el(svg, 'ellipse', { cx: 62, cy: 128.6, rx: 20, ry: 2.6, fill: SAGE, opacity: 0.28 });
+    g.shadow = el(svg, 'ellipse', { cx: 62, cy: 128.6, rx: 16, ry: 2.2, fill: INK, opacity: 0.07 });
+    g.shaftG = el(svg, 'g', {});
+    el(g.shaftG, 'path', { d: 'M0,-64 L0,7 Q0,12 -5,11', fill: 'none', stroke: INK, 'stroke-width': 2.2 * k, 'stroke-linecap': 'round' });
+    for (const p of ['legL', 'legR']) g[p] = el(svg, 'path', { fill: INK });
+    // 紅腳尖（疊在原本的腳上）
+    const gid = 'g' + Math.random().toString(36).slice(2, 8);
+    const defs = el(svg, 'defs', {});
+    g.toeGrad = {};
+    for (const p of ['legL', 'legR']) {
+      const lg = el(defs, 'linearGradient', { id: gid + p, gradientUnits: 'userSpaceOnUse' });
+      el(lg, 'stop', { offset: '0', 'stop-color': TERRA, 'stop-opacity': 0 });
+      el(lg, 'stop', { offset: '0.5', 'stop-color': TERRA, 'stop-opacity': 0.7 });
+      el(lg, 'stop', { offset: '1', 'stop-color': TERRA, 'stop-opacity': 0.95 });
+      g.toeGrad[p] = lg;
+      g[p + 'Toe'] = el(svg, 'path', { fill: TERRA });
+      g[p + 'Fleck'] = el(svg, 'path', { fill: TERRA });
+    }
+    for (const p of ['body', 'armL', 'armR']) g[p] = el(svg, 'path', { fill: INK });
+    for (const p of ['band', 'tail', 'split']) g[p] = el(svg, 'path', { fill: TERRA });
+    g.head = el(svg, 'g', {});
+    g.headFill = el(g.head, 'path', { fill: PAPER });
+    g.headRing = el(g.head, 'path', { fill: INK, 'fill-rule': 'evenodd' });
+    g.hatFill = el(g.head, 'path', { fill: IVORY });
+    g.hatRing = el(g.head, 'path', { fill: INK, 'fill-rule': 'evenodd' });
+    g.hatLines = el(g.head, 'path', { fill: INK });
+    g.flick = el(g.head, 'path', { fill: INK });
+    g.blushL = el(g.head, 'ellipse', { cx: 47, cy: 52.8, rx: 3.2, ry: 1.6, fill: PINK, opacity: 0.85 });
+    g.blushR = el(g.head, 'ellipse', { cx: 72.5, cy: 52.3, rx: 3.2, ry: 1.6, fill: PINK, opacity: 0.85 });
+    g.eyeL = el(g.head, 'circle', { fill: INK });
+    g.eyeR = el(g.head, 'circle', { fill: INK });
+    for (const p of ['lidL', 'lidR', 'mouth', 'browL', 'browR']) g[p] = el(g.head, 'path', { fill: INK });
+    g.canopyG = el(svg, 'g', {});
+    g.canopyFill = el(g.canopyG, 'path', { fill: SAGE });
+    g.canopyRing = el(g.canopyG, 'path', { fill: INK, 'fill-rule': 'evenodd' });
+    g.ribs = el(g.canopyG, 'path', { d: 'M-17,-64 Q-13,-79 0,-88 M17,-64 Q13,-79 0,-88 M0,-88 L0,-92', fill: 'none', stroke: INK, 'stroke-width': 1.5 * k, 'stroke-linecap': 'round' });
+    g.fist = el(svg, 'circle', { r: 3.2 * (simple ? 1.3 : 1), fill: PAPER, stroke: INK, 'stroke-width': 2.2 * k });
+    // 還沒戴上、在空中或手上的紙帽／紙團
+    g.free = el(svg, 'g', {});
+    g.freeFill = el(g.free, 'path', { fill: IVORY });
+    g.freeRing = el(g.free, 'path', { fill: INK, 'fill-rule': 'evenodd' });
+    if (simple) { g.blushL.setAttribute('display', 'none'); g.blushR.setAttribute('display', 'none'); g.ribs.setAttribute('display', 'none'); }
+    const show = (e, on) => e.setAttribute('display', on ? 'inline' : 'none');
+
+    let lastKey = '';
+    this.visible = true;
+    /** o: { scene, v, time, rainStep, hat, toes, override } */
+    this.render = function (o) {
+      const P = pose(o.scene, o.time);
+      const ov = o.override || {};
+      if (ov.headAngle != null) P.headAngle = ov.headAngle;
+      if (ov.armR) P.armR = ov.armR;
+      const key = JSON.stringify([o.scene, o.v, o.scene === 'normal' && !o.override ? 0 : o.time.toFixed(0), o.rainStep, o.hat, o.toes, ov]);
+      if (key === lastKey) return;
+      lastKey = key;
+      const rainy = o.scene === 'rainy';
+
+      show(g.sun, o.scene === 'sunny'); show(g.sunRing, o.scene === 'sunny');
+      show(g.rain, rainy); show(g.puddle, rainy); show(g.shadow, !rainy);
+      if (rainy) {
+        g.drops.forEach((line, i) => {
+          const [x0, y0] = DROPS[i], y = ((y0 + o.rainStep * 7) % 150) - 20;
+          line.setAttribute('x1', x0); line.setAttribute('y1', y); line.setAttribute('x2', x0 - 1.6); line.setAttribute('y2', y + 7);
+        });
+      }
+
+      const v = o.v;
+      const limbGeom = (part, pts, w0, w1, amp) => {
+        const p = ph(part, v);
+        return brushGeom(catmull(pts, 9), (t) => (w0 + (w1 - w0) * t) * k * widthVar(p, t, 0.13), (t) => openNoise(p, t, amp * boilK, 'both'));
+      };
+      const legs = { legL: limbGeom('legL', P.legL, 3.1, 2.3, 0.45), legR: limbGeom('legR', P.legR, 3.0, 2.2, 0.45) };
+      for (const p in legs) g[p].setAttribute('d', geomPath(legs[p]));
+      g.body.setAttribute('d', geomPath(limbGeom('body', P.body, 3.1, 2.8, 0.5)));
+      g.armL.setAttribute('d', geomPath(limbGeom('armL', P.armL, 2.9, 2.1, 0.45)));
+      g.armR.setAttribute('d', geomPath(limbGeom('armR', P.armR, 2.9, 2.1, 0.45)));
+
+      // ---- 紅腳尖 ----
+      for (const p in legs) {
+        const lg = legs[p], toe = g[p + 'Toe'], fleck = g[p + 'Fleck'];
+        const i0 = lg.n - 4;
+        show(toe, o.toes === 'A' || o.toes === 'B'); show(fleck, o.toes === 'C');
+        if (o.toes === 'A') {
+          toe.setAttribute('fill', TERRA);
+          toe.setAttribute('d', geomPath(lg, i0, 1.02));
+        } else if (o.toes === 'B') {
+          const j0 = lg.n - 7, a = lg.disp[j0], b = lg.disp[lg.n - 1];
+          const gr = g.toeGrad[p];
+          gr.setAttribute('x1', a[0].toFixed(2)); gr.setAttribute('y1', a[1].toFixed(2));
+          gr.setAttribute('x2', b[0].toFixed(2)); gr.setAttribute('y2', b[1].toFixed(2));
+          toe.setAttribute('fill', `url(#${gr.id})`);
+          toe.setAttribute('d', geomPath(lg, j0, 1.12));
+        } else if (o.toes === 'C') {
+          fleck.setAttribute('d', flecks(p, lg, v));
+        }
+      }
+
+      // ---- 圍巾 ----
+      const sk = simple ? 1.5 : 1;
+      const pb = ph('band', v), pt = ph('tail', v), ps = ph('split', v);
+      g.band.setAttribute('d', brush(catmull([[51, 68.6], [55.5, 71.3], [64, 71.4], [70, 67.6]], 8),
+        (t) => (4.4 + 0.6 * Math.sin(Math.PI * t)) * sk * widthVar(pb, t, 0.12), (t) => openNoise(pb, t, 0.4 * boilK, 'both')));
+      g.tail.setAttribute('d', brush(catmull(P.tail, 9), (t) => (3.9 - 1.9 * t) * sk * widthVar(pt, t, 0.14), (t) => openNoise(pt, t, 0.7 * boilK, 'tip')));
+      const end = P.tail[P.tail.length - 1], mid = P.tail[2];
+      g.split.setAttribute('d', simple ? '' : brush(catmull([mid, [(mid[0] + end[0]) / 2 + 1.8, (mid[1] + end[1]) / 2 + 0.6], [end[0] + 4, end[1] + 1.2]], 6),
+        (t) => (1.6 - 1.1 * t) * widthVar(ps, t, 0.15), (t) => openNoise(ps, t, 0.35, 'tip')));
+
+      // ---- 頭 ----
+      const phd = ph('head', v), heavy = 2.35 + 0.3 * Math.sin(phd[5]);
+      const head = ring(HEAD_LOOP,
+        (a) => (2.4 * (1 + 0.13 * (0.7 * Math.sin(2 * a + phd[3]) + 0.3 * Math.sin(3 * a + phd[4]))) + 1.1 * Math.pow(Math.max(0, Math.cos(a - heavy)), 3)) * k,
+        (a) => loopNoise(phd, a, 0.75 * boilK));
+      g.headFill.setAttribute('d', head.fill);
+      g.headRing.setAttribute('d', head.stroke);
+      g.head.setAttribute('transform', `rotate(${P.headAngle.toFixed(2)} 60.5 66)`);
+
+      // ---- 紙帽（戴在頭上）：錨點跟著這張影格的頭輪廓 ----
+      const worn = o.hat && !ov.hatOff && !ov.free;
+      show(g.hatFill, worn); show(g.hatRing, worn); show(g.hatLines, worn && !simple);
+      if (worn) {
+        const pl = hatPlace(o.hat, head.points, ov.extraSink || 0);
+        const loop = transform(hatLocal(o.hat, 1), pl);
+        const hr = hatRing(o.hat, loop, v);
+        g.hatFill.setAttribute('d', hr.fill);
+        g.hatRing.setAttribute('d', hr.stroke);
+        if (!simple) g.hatLines.setAttribute('d', hatLines(o.hat, pl, v));
+      }
+
+      // ---- 一筆：永遠畫在紙帽前面 ----
+      const root = head.points[ROOT_INDEX], pf = ph('flick', v);
+      g.flick.setAttribute('d', brush(catmull(FLICK[P.flick].map(([x, y]) => [root[0] + x, root[1] + y + 1.2]), 9),
+        (t) => (0.35 + 3.6 * Math.pow(1 - t, 0.85)) * (simple ? 1.6 : 1) * widthVar(pf, t, 0.18), (t) => openNoise(pf, t, 1.4 * boilK, 'tip')));
+
+      // ---- 臉（同 V3 原型） ----
+      const pe = ph('eyes', v), eyeR = (simple ? 3.3 : 1.95) * (1 + 0.05 * Math.sin(pe[0]));
+      const faceBrush = (part, pts, w) => {
+        const p = ph(part, v);
+        return brush(catmull(pts, 6), (t) => w * k * (0.85 + 0.15 * Math.sin(Math.PI * t)) * widthVar(p, t, 0.08), (t) => openNoise(p, t, 0.12, 'both'));
+      };
+      const eyes = P.face === 'sunny' ? null : (P.face === 'rainy' ? [[52.4, 47], [67.2, 46.6]] : [[52, 46.8], [67, 46.3]]);
+      show(g.eyeL, !!eyes); show(g.eyeR, !!eyes); show(g.lidL, !eyes); show(g.lidR, !eyes);
+      if (eyes) {
+        g.eyeL.setAttribute('cx', (eyes[0][0] + 0.1 * Math.sin(pe[1])).toFixed(2)); g.eyeL.setAttribute('cy', eyes[0][1]); g.eyeL.setAttribute('r', eyeR.toFixed(2));
+        g.eyeR.setAttribute('cx', (eyes[1][0] + 0.1 * Math.sin(pe[2])).toFixed(2)); g.eyeR.setAttribute('cy', eyes[1][1]); g.eyeR.setAttribute('r', eyeR.toFixed(2));
+      } else {
+        g.lidL.setAttribute('d', faceBrush('lidL', [[49.6, 47.1], [52, 48.1], [54.4, 47.1]], simple ? 1.4 : 1.7));
+        g.lidR.setAttribute('d', faceBrush('lidR', [[64.6, 46.6], [67, 47.6], [69.4, 46.6]], simple ? 1.4 : 1.7));
+      }
+      const mouth = P.face === 'rainy' ? [[57.6, 55], [60, 54.2], [62.4, 55]] : (P.face === 'sunny' ? [[57.5, 54.6], [60, 56.6], [62.5, 54.4]] : [[57.4, 54.6], [60, 56.2], [62.6, 54.4]]);
+      show(g.mouth, !simple);
+      if (!simple) g.mouth.setAttribute('d', faceBrush('mouth', mouth, 1.9));
+      const brows = P.face === 'rainy' && !simple;
+      show(g.browL, brows); show(g.browR, brows);
+      if (brows) {
+        g.browL.setAttribute('d', faceBrush('browL', [[49.5, 43.6], [51.8, 42.9], [54, 42.1]], 1.5));
+        g.browR.setAttribute('d', faceBrush('browR', [[69.8, 43.1], [67.6, 42.4], [65.4, 41.6]], 1.5));
+      }
+      const blush = P.face === 'sunny' ? 1 : P.face === 'rainy' ? 0.55 : 0.85;
+      g.blushL.setAttribute('opacity', blush); g.blushR.setAttribute('opacity', blush);
+
+      // ---- 雨傘 ----
+      show(g.shaftG, rainy); show(g.canopyG, rainy); show(g.fist, rainy);
+      if (rainy) {
+        const tr = `translate(${P.hand[0]} ${P.hand[1]}) rotate(${P.umbrellaAngle.toFixed(2)})`;
+        g.shaftG.setAttribute('transform', tr); g.canopyG.setAttribute('transform', tr);
+        const pc = ph('canopy', v);
+        const canopy = ring(CANOPY, (a) => 2.2 * k * (1 + 0.12 * Math.sin(2 * a + pc[3])), (a) => loopNoise(pc, a, 0.45 * boilK));
+        g.canopyFill.setAttribute('d', canopy.fill); g.canopyRing.setAttribute('d', canopy.stroke);
+        g.fist.setAttribute('cx', P.hand[0]); g.fist.setAttribute('cy', P.hand[1]);
+      }
+
+      // ---- 還沒戴上的紙帽／紙團 ----
+      show(g.free, !!ov.free);
+      if (ov.free) {
+        const f = ov.free;
+        const loop = transform(hatLocal(o.hat, f.bendK || 0, f.shape), { x: f.x, y: f.y, rot: f.rot });
+        const hr = hatRing(o.hat, loop, v, f.shape === 'ball' ? 'ball' : 'hat');
+        g.freeFill.setAttribute('d', hr.fill); g.freeRing.setAttribute('d', hr.stroke);
+      }
+    };
+
+    function hatRing(kind, loop, v, part = 'hat') {
+      const p = ph(part + kind, v);
+      return ring(loop, (a) => 1.8 * k * (1 + 0.12 * Math.sin(2 * a + p[3])), (a) => loopNoise(p, a, 0.45 * boilK));
+    }
+    function hatLines(kind, pl, v) {
+      const h = HATS[kind];
+      let d = '';
+      const lines = [h.fold, h.crease].filter(Boolean);
+      lines.forEach((pts, i) => {
+        const p = ph('hatline' + kind + i, v);
+        const world = transform(pts.map((q) => bend(q, h.bendR, 1)), pl);
+        d += brush(catmull(world, 6), (t) => (i === 0 ? 1.1 : 0.8) * (0.8 + 0.2 * Math.sin(Math.PI * t)) * widthVar(p, t, 0.1), (t) => openNoise(p, t, 0.15, 'both'));
+      });
+      return d;
+    }
+    // 方案 C：沾到印刷油墨的小筆觸，相對於腳尖的位置固定，只有筆觸本身會沸騰
+    function flecks(leg, lg, v) {
+      const n = lg.n, tip = lg.disp[n - 1], back = lg.disp[n - 5];
+      const dx = tip[0] - back[0], dy = tip[1] - back[1], l = Math.hypot(dx, dy) || 1;
+      const ux = dx / l, uy = dy / l, nx = -uy, ny = ux;
+      const at = (a, b) => [tip[0] + ux * a + nx * b, tip[1] + uy * a + ny * b];
+      const marks = [
+        [at(-0.9, -0.6), at(0.2, -0.9), 0.85],
+        [at(1.4, 0.4), at(2.2, 0.1), 0.6],
+      ];
+      return marks.map(([a, b, w], i) => {
+        const p = ph(leg + 'fleck' + i, v);
+        return brush(catmull([a, [(a[0] + b[0]) / 2 + 0.15 * Math.sin(p[0]), (a[1] + b[1]) / 2 + 0.15 * Math.cos(p[1])], b], 5),
+          (t) => w * k * (1.1 - 0.6 * t) * widthVar(p, t, 0.15), (t) => openNoise(p, t, 0.15 * boilK, 'both'));
+      }).join('');
+    }
+  }
+
+  // ---------- 全域播放 ----------
+  const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const state = { animated: true, playing: true, reduced: reducedQuery.matches, time: 0 };
+  const STATIC_TIME = { normal: 0, sunny: 2000, rainy: 1050 };
+  const live = () => state.animated && !state.reduced;
+  const instances = [];
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { e.target.__m.visible = e.isIntersecting; }), { rootMargin: '200px' }) : null;
+  function make(svg, cfg) {
+    const m = new Mowan(svg, cfg);
+    m.cfg = cfg; svg.__m = m;
+    if (io) io.observe(svg);
+    if (!cfg.manual) instances.push(m);
+    return m;
+  }
+  function svgEl(parent, w, h, label, vb = '0 -20 120 160') {
+    const s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', vb); s.setAttribute('role', 'img'); s.setAttribute('aria-label', label);
+    if (w) { s.setAttribute('width', w); s.setAttribute('height', h); }
+    parent.appendChild(s);
+    return s;
+  }
+  function fig(parent, caption) {
+    const f = document.createElement('figure');
+    const c = document.createElement('figcaption'); c.textContent = caption;
+    parent.appendChild(f);
+    return { f, done: () => f.appendChild(c) };
+  }
+
+  // ---------- 1. 紙帽方案 ----------
+  const HAT_TEXT = {
+    A: {
+      title: '方案 A　斜戴紙帽，避開頭頂一筆',
+      pros: ['一筆與紙帽完全分開，兩個輪廓都很清楚', '有「小孩自己戴歪」的童趣，跟故事語氣一致', '帽子最像真正的摺紙帽（三角帽身 + 帽緣 + 中線摺痕）'],
+      cons: ['頭的剪影變成不對稱，一筆在左、帽尖在右，上半部比較重', '戴歪的方向固定在右邊，之後的頭頂配件（聖誕帽、財神帽）若也走這條規則，右上會一直很擠', 'Rainy 時帽尖離傘面約 6.7 單位，傘再縮小 5–10% 仍安全，但沒有餘裕再加東西'],
+    },
+    B: {
+      title: '方案 B　紙帽頂部留出一筆的位置',
+      pros: ['帽子正戴，頭部剪影最穩、最「端正」', '一筆從開口穿出，讀起來像「頭髮從帽子裡冒出來」，識別度高', '帽面積佔頭的 19%，不算搶眼'],
+      cons: ['一筆有約 58% 的長度疊在帽面上（沒被遮住，但重疊），96px 以下兩者黏在一起', 'Rainy 時帽頂碰到傘面（重疊約 6%），要嘛傘縮小、要嘛帽子壓低', '平頂開口讓紙帽比較不像一般摺紙帽；Line Boil 時帽緣跟著頭頂輪廓動，位移最大（≤ 1.0）'],
+    },
+    C: {
+      title: '方案 C　小型裝飾紙帽',
+      pros: ['最安靜，不搶頭部與一筆', '跟所有頭頂配件（聖誕帽、財神帽、兔耳）都比較好共存', '帽型仍是摺紙三角帽，近看可以認得'],
+      cons: ['48px 只剩約 2.8px 高，認不出是紙帽', '像髮夾或胸針，故事裡「戴上帽子」的感覺比較弱', '放在側面，160px 看起來像一隻貓耳或一隻角'],
+    },
+  };
+  const hatsEl = document.getElementById('hats');
+  for (const kind of ['A', 'B', 'C']) {
+    const t = HAT_TEXT[kind];
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `<div class="head"><h3>${t.title}</h3><span class="tag p">Proposed・未定案</span></div>`;
+    const poses = document.createElement('div'); poses.className = 'poses';
+    for (const [scene, cap] of [['normal', 'Normal 正面'], ['sunny', '傾斜（Sunny）'], ['rainy', 'Rainy 撐傘']]) {
+      const { f, done } = fig(poses, cap);
+      make(svgEl(f, null, null, `方案 ${kind}，${cap}`), { scene, hat: kind });
+      done();
+    }
+    const sizes = document.createElement('div'); sizes.className = 'sizes';
+    for (const [w, h, cap, simple] of [[120, 160, '160px', false], [72, 96, '96px', false], [36, 48, '48px 簡化', true]]) {
+      const { f, done } = fig(sizes, cap);
+      make(svgEl(f, w, h, `方案 ${kind}，${cap}`), { scene: 'normal', hat: kind, simple });
+      done();
+    }
+    for (const [w, h, cap] of [[72, 96, 'Rainy 96px'], [36, 48, 'Rainy 48px']]) {
+      const { f, done } = fig(sizes, cap);
+      make(svgEl(f, w, h, `方案 ${kind}，${cap}`), { scene: 'rainy', hat: kind, simple: w === 36 });
+      done();
+    }
+    const pc = document.createElement('div'); pc.className = 'pc';
+    pc.innerHTML = `<div><b>優點</b><ul>${t.pros.map((x) => `<li>${x}</li>`).join('')}</ul></div><div><b>缺點</b><ul>${t.cons.map((x) => `<li>${x}</li>`).join('')}</ul></div>`;
+    card.append(poses, sizes, pc);
+    hatsEl.appendChild(card);
+  }
+
+  // ---------- 2. 紅腳尖 ----------
+  const TOE_TEXT = {
+    A: { title: '方案 A　腳尖末端局部染色', body: '只有腳尖最末端約 1.5 單位換成 Terracotta，邊界清楚。最好認，但邊界太整齊，看起來比較像「塗上去的」；面積再大一點就會像鞋尖。' },
+    B: { title: '方案 B　墨水沾染（建議，待確認）', body: '紅色從腳掌中段慢慢變濃，到腳尖最紅，而且稍微暈出線外，像毛筆沾到朱墨。最符合 Organic Poetry 的「墨」與「紙」語彙；但 48px 下顏色太淡，看不出來。', tag: true },
+    C: { title: '方案 C　不規則印刷油墨', body: '兩小筆紅色：一筆在腳尖上、一筆落在腳尖前的紙面上，像踩過紅字沾到的油墨。最有故事感，但 48px 會消失；放大看也容易被讀成腳邊的花瓣或血滴。' },
+  };
+  const toesEl = document.getElementById('toes');
+  for (const kind of ['A', 'B', 'C']) {
+    const t = TOE_TEXT[kind];
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `<div class="head"><h3>${t.title}</h3><span class="tag p">Proposed</span></div>`;
+    const zoom = document.createElement('div'); zoom.className = 'zoom';
+    make(svgEl(zoom, null, null, `紅腳尖方案 ${kind} 放大`, '44 112 40 20'), { scene: 'normal', toes: kind });
+    const sizes = document.createElement('div'); sizes.className = 'sizes';
+    for (const [w, h, cap, simple] of [[120, 160, '160px', false], [72, 96, '96px', false], [36, 48, '48px', true]]) {
+      const { f, done } = fig(sizes, cap);
+      make(svgEl(f, w, h, `紅腳尖方案 ${kind}，${cap}`), { scene: 'normal', toes: kind, simple });
+      done();
+    }
+    const p = document.createElement('p'); p.style.cssText = 'margin:0;font-size:13px;line-height:1.7'; p.textContent = t.body;
+    card.append(zoom, sizes, p);
+    toesEl.appendChild(card);
+  }
+
+  // ---------- 3. 第 11 頁演出 ----------
+  // 故事原文（chapter1.json ch1-11），只切段落標示，不改字
+  const STORY = ['撕下來的那一頁沒有飛走，而是揉成一個圓圓的紙團，滾到它腳邊。', '打開一看，是一頂紙摺的帽子！', '老曆公說：「以後每撕一頁，都會有一個紙團喔。」'];
+  const STEPS = [
+    { name: '紙團滾來', from: 0, to: 1500, story: 0, note: '紙團從右邊滾到腳邊，墨丸低頭看。' },
+    { name: '打開是紙帽', from: 1500, to: 2900, story: 1, note: '紙團到了手上，分三格（每格約 1/6 秒）展開成紙帽，跟 Line Boil 同樣的逐格感。' },
+    { name: '戴上', from: 2900, to: 4500, story: 1, note: '手往上一送，紙帽沿弧線落到頭上，輕輕壓一下。一筆全程在帽子前面。' },
+    { name: '收進收藏', from: 4500, to: 5200, story: 2, note: '第一次取得：發放並自動戴上。' },
+    { name: '換下／戴上', from: 5200, to: 5200, story: 2, note: '用右邊的按鈕自由換下或重新戴上，不影響故事進度。' },
+  ];
+  const END = 5200;
+  const acqSvg = document.getElementById('acq');
+  const acq = make(acqSvg, { manual: true });
+  const icon = document.getElementById('collect-icon');
+  const iconFill = el(icon, 'path', { fill: IVORY });
+  const iconRing = el(icon, 'path', { fill: INK, 'fill-rule': 'evenodd' });
+  const acqState = { hat: 'A', step: -1, t: 0, playing: false, until: 0, owned: false, equipped: false, replay: false, granted: false };
+  const HAND_REST = [67.6, 93];
+  function armTo(hand) {
+    const s = [60.8, 77], mx = (s[0] + hand[0]) / 2, my = (s[1] + hand[1]) / 2;
+    const dx = hand[0] - s[0], dy = hand[1] - s[1], l = Math.hypot(dx, dy) || 1;
+    const bendAmt = Math.max(0, 19 - l) * 0.5 + 1.2;
+    return [s, [mx + (dy / l) * bendAmt, my - (dx / l) * bendAmt], hand];
+  }
+  function hatTarget(kind) {
+    const pl = hatPlace(kind, HEAD_LOOP);
+    return pl;
+  }
+  /** 依時間算出演出的姿勢與紙帽位置（主要動作，連續） */
+  function acqOverride(t, kind) {
+    const ov = {};
+    let hand = HAND_REST, head = 0;
+    if (t < 1500) {
+      const u = easeOut(t / 1500), x = lerp(128, 84, u);
+      ov.free = { shape: 'ball', x, y: 127.4, rot: -(128 - x) / 4.6 };
+      head = 5 * ease((t - 800) / 600);
+    } else if (t < 1600) {
+      ov.free = { shape: 'ball', x: 84, y: 127.4, rot: -44 / 4.6 }; head = 5;
+    } else if (t < 1700) {
+      ov.free = { shape: 'ball', x: 80, y: 106, rot: -10 }; head = 4; hand = [72, 90];
+    } else if (t < 2900) {
+      hand = [75, 86];
+      const shape = t < 2000 ? 'ball' : t < 2200 ? 'half' : 'hat';
+      ov.free = { shape, x: hand[0] + 3, y: hand[1] - 1.5, rot: shape === 'ball' ? -9.6 : -0.12 };
+      head = t < 2400 ? 4 : lerp(4, 2, ease((t - 2400) / 500));
+    } else if (t < 3300) {
+      const u = ease((t - 2900) / 400);
+      hand = [lerp(75, 78, u), lerp(86, 68, u)];
+      ov.free = { shape: 'hat', x: hand[0] + lerp(3, 6, u), y: hand[1] - 1.5, rot: lerp(-0.12, -0.05, u) };
+      head = lerp(2, 0, u);
+    } else if (t < 4100) {
+      const u = easeOut((t - 3300) / 800), tg = hatTarget(kind);
+      const p0 = [84, 66.5], c = [lerp(p0[0], tg.x, 0.5) + 6, Math.min(p0[1], tg.y) - 16];
+      const x = (1 - u) * (1 - u) * p0[0] + 2 * (1 - u) * u * c[0] + u * u * tg.x;
+      const y = (1 - u) * (1 - u) * p0[1] + 2 * (1 - u) * u * c[1] + u * u * tg.y;
+      ov.free = { shape: 'hat', x, y, rot: lerp(-0.05, tg.rot, u), bendK: ease((u - 0.6) / 0.4) };
+      const r = ease((t - 3300) / 600);
+      hand = [lerp(78, HAND_REST[0], r), lerp(68, HAND_REST[1], r)];
+    } else if (t < 4400) {
+      ov.extraSink = 1.0 * Math.sin(Math.PI * (t - 4100) / 300);
+    }
+    if (hand !== HAND_REST) ov.armR = armTo(hand);
+    if (head) ov.headAngle = head;
+    return ov;
+  }
+  const stepsEl = document.getElementById('steps');
+  STEPS.forEach((s, i) => { const li = document.createElement('li'); li.textContent = `${i + 1}. ${s.name}`; stepsEl.appendChild(li); });
+  const storyEl = document.getElementById('story');
+  STORY.forEach((s) => { const sp = document.createElement('span'); sp.textContent = s; storyEl.appendChild(sp); });
+  const logEl = document.getElementById('log');
+  function log(msg) { const li = document.createElement('li'); li.textContent = msg; logEl.prepend(li); }
+
+  /** 建議的發放規則：以配件 id 為準，只發一次；只有第一次會自動戴上 */
+  function grantOnce(id) {
+    if (acqState.owned) { log(`grant(${id})：已擁有，不重複發放；裝備狀態維持「${acqState.equipped ? '戴著' : '未戴'}」`); return false; }
+    acqState.owned = true; acqState.equipped = true;
+    log(`grant(${id})：第一次取得 → 加入收藏，自動戴上`);
+    return true;
+  }
+  function stepAt(t) { let s = 0; STEPS.forEach((st, i) => { if (t >= st.from) s = i; }); return s; }
+  function renderAcq(v, rainStep) {
+    const t = acqState.t;
+    const ov = acqState.step < 0 ? { hatOff: true } : acqOverride(t, acqState.hat);
+    const playingIn = acqState.step >= 0 && t < 4100;
+    // 演出跑完之後，帽子顯示依收藏裡的裝備狀態
+    if (!playingIn && acqState.step >= 0 && t >= 4100) {
+      const replayHolding = acqState.replay && t < END && !acqState.equipped;
+      if (!acqState.equipped && !replayHolding && (acqState.owned || t >= 4500)) ov.hatOff = true;
+    }
+    acq.render({ scene: 'normal', v, time: t, rainStep, hat: acqState.hat, override: ov });
+    const si = acqState.step < 0 ? -1 : stepAt(t);
+    [...stepsEl.children].forEach((li, i) => li.classList.toggle('on', i === si));
+    [...storyEl.children].forEach((sp, i) => sp.classList.toggle('on', si >= 0 && STEPS[si].story === i));
+    document.getElementById('stepnote').textContent = si < 0 ? '第 10 頁結束時的樣子。按「下一步」開始。' : STEPS[si].note;
+  }
+  function updateCollection() {
+    document.getElementById('own').textContent = acqState.owned ? `劇情配件・第 11 頁取得・${acqState.equipped ? '戴著' : '已收起'}` : '尚未取得';
+    const b = document.getElementById('equip');
+    b.disabled = !acqState.owned;
+    b.textContent = acqState.equipped ? '換下' : '戴上';
+    const lp = transform(hatLocal(acqState.hat, 0), { x: 0, y: 2, rot: 0 });
+    const hr = ring(lp, () => 1.8, () => 0);
+    iconFill.setAttribute('d', hr.fill); iconRing.setAttribute('d', hr.stroke);
+  }
+  function maybeGrant(prevT, t) {
+    if (prevT < 4500 && t >= 4500 && !acqState.granted) {
+      acqState.granted = true;
+      const first = grantOnce('paperHat');
+      const toast = document.getElementById('toast');
+      toast.hidden = !first;
+      if (acqState.replay && !acqState.equipped) log('重播結束：紙帽回到收藏（你先前選擇不戴）');
+      updateCollection();
+    }
+  }
+  function goStep(i) {
+    i = Math.max(0, Math.min(STEPS.length - 1, i));
+    const s = STEPS[i];
+    const prevT = acqState.t;
+    acqState.step = i;
+    if (live()) { acqState.t = s.from; acqState.until = s.to; acqState.playing = s.to > s.from; }
+    else { acqState.t = s.to; acqState.playing = false; }
+    if (acqState.t < prevT) acqState.granted = acqState.owned && acqState.t >= 4500 ? acqState.granted : acqState.granted;
+    maybeGrant(prevT, acqState.t);
+    if (!live()) for (let k = 0; k <= i; k++) maybeGrant(STEPS[k].from - 1, STEPS[k].to);
+    kick();
+  }
+  document.getElementById('next').addEventListener('click', () => goStep(acqState.step < 0 ? 0 : stepAt(acqState.t) + 1));
+  document.getElementById('prev').addEventListener('click', () => goStep(acqState.step <= 0 ? 0 : stepAt(acqState.t) - 1));
+  document.getElementById('playall').addEventListener('click', () => {
+    acqState.step = 0; acqState.granted = acqState.owned; acqState.replay = acqState.owned;
+    if (live()) { acqState.t = 0; acqState.until = END; acqState.playing = true; }
+    else { acqState.t = END; maybeGrant(0, END); }
+    kick();
+  });
+  document.getElementById('replay').addEventListener('click', () => {
+    log('重播第 11 頁');
+    acqState.step = 0; acqState.granted = false; acqState.replay = true;
+    if (live()) { acqState.t = 0; acqState.until = END; acqState.playing = true; }
+    else { acqState.t = END; maybeGrant(0, END); }
+    kick();
+  });
+  document.getElementById('resetdemo').addEventListener('click', () => {
+    Object.assign(acqState, { step: -1, t: 0, playing: false, owned: false, equipped: false, replay: false, granted: false });
+    document.getElementById('toast').hidden = true;
+    logEl.innerHTML = ''; log('示範已重設（收藏清空）');
+    updateCollection(); kick();
+  });
+  document.getElementById('equip').addEventListener('click', () => {
+    acqState.equipped = !acqState.equipped;
+    log(acqState.equipped ? 'equip(paperHat)：戴上' : 'unequip(paperHat)：換下，收藏與故事進度不變');
+    if (acqState.step < 0 || acqState.t < 4500) { acqState.step = STEPS.length - 1; acqState.t = END; }
+    updateCollection(); kick();
+  });
+  document.querySelectorAll('[data-acqhat]').forEach((b) => b.addEventListener('click', () => {
+    acqState.hat = b.dataset.acqhat;
+    document.querySelectorAll('[data-acqhat]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    updateCollection(); kick();
+  }));
+
+  // ---------- 主迴圈 ----------
+  const statusEl = document.getElementById('status');
+  const animBtn = document.getElementById('animated'), playBtn = document.getElementById('play');
+  let lastDraw = 0;
+  function draw(force) {
+    const l = live();
+    const step = l ? Math.floor(state.time / BOIL_MS) : 0;
+    const v = SEQUENCE[step % SEQUENCE.length];
+    const rainStep = l ? Math.floor(state.time / (1000 / 8)) : 3;
+    for (const m of instances) {
+      if (!m.visible && !force) continue;
+      const c = m.cfg;
+      m.render({ scene: c.scene, v, time: l ? state.time : STATIC_TIME[c.scene], rainStep, hat: c.hat, toes: c.toes });
+    }
+    renderAcq(v, rainStep);
+    statusEl.textContent = l ? `筆觸影格 ${v + 1} / ${FRAMES}・6 FPS${state.playing ? '' : '・已暫停'}` : '靜態（影格 1）';
+  }
+  let raf = 0, last = 0;
+  function running() { return ((live() && state.playing) || acqState.playing) && !document.hidden; }
+  function frame(now) {
+    raf = 0;
+    if (!running()) return;
+    const dt = last ? Math.min(now - last, 250) : 0;
+    last = now;
+    if (live() && state.playing) state.time += dt;
+    if (acqState.playing) {
+      const prevT = acqState.t;
+      acqState.t = Math.min(acqState.t + dt, acqState.until);
+      maybeGrant(prevT, acqState.t);
+      if (acqState.t >= acqState.until) acqState.playing = false;
+    }
+    if (now - lastDraw > 30) { lastDraw = now; draw(); }
+    raf = requestAnimationFrame(frame);
+  }
+  function kick() { draw(true); if (running() && !raf) { last = 0; raf = requestAnimationFrame(frame); } }
+  function sync() {
+    animBtn.setAttribute('aria-pressed', String(live()));
+    animBtn.textContent = live() ? '6 FPS Line Boil：開' : '靜態';
+    animBtn.disabled = state.reduced;
+    playBtn.textContent = state.playing ? '暫停' : '播放';
+    playBtn.disabled = !live();
+    document.getElementById('rm-note').hidden = !state.reduced;
+    kick();
+  }
+  animBtn.addEventListener('click', () => { state.animated = !state.animated; sync(); });
+  playBtn.addEventListener('click', () => { state.playing = !state.playing; sync(); });
+  document.addEventListener('visibilitychange', sync);
+  reducedQuery.addEventListener?.('change', (e) => { state.reduced = e.matches; sync(); });
+
+  // ---------- 4. 相容性檢查（用同一套幾何計算） ----------
+  function headPointsAt(v, simple) {
+    const phd = ph('head', v);
+    return ring(HEAD_LOOP, () => 1, (a) => loopNoise(phd, a, 0.75 * (simple ? 1.5 : 1))).points;
+  }
+  function flickPts(headPts, shape, v) {
+    const root = headPts[ROOT_INDEX], pf = ph('flick', v);
+    const c = catmull(FLICK[shape].map(([x, y]) => [root[0] + x, root[1] + y + 1.2]), 9);
+    return brushGeom(c, () => 1, (t) => openNoise(pf, t, 1.4, 'tip')).disp;
+  }
+  function canopyPoly(P, v) {
+    const pc = ph('canopy', v);
+    const pts = ring(CANOPY, () => 1, (a) => loopNoise(pc, a, 0.45)).points;
+    const r = P.umbrellaAngle * Math.PI / 180;
+    return pts.map(([x, y]) => [P.hand[0] + x * Math.cos(r) - y * Math.sin(r), P.hand[1] + x * Math.sin(r) + y * Math.cos(r)]);
+  }
+  function minDist(a, b) {
+    let m = Infinity;
+    for (const p of a) for (const q of b) m = Math.min(m, Math.hypot(p[0] - q[0], p[1] - q[1]));
+    return m;
+  }
+  function check() {
+    const headArea = area(HEAD_LOOP);
+    const rows = [];
+    for (const kind of ['A', 'B', 'C']) {
+      let overlap = 0, total = 0, jitter = 0, canopyIn = 0, canopyMin = Infinity, rotMax = 0;
+      const samples = [['normal', [0]], ['sunny', [0, 1000, 2000, 2750, 3500, 4500]], ['rainy', [0, 700, 1400, 2100, 2800, 3500]]];
+      for (const [scene, times] of samples) for (const time of times) {
+        const P = pose(scene, time);
+        let prev = null;
+        for (const v of SEQUENCE) {
+          const hp = headPointsAt(v, false);
+          const pl = hatPlace(kind, hp);
+          const hat = transform(hatLocal(kind, 1), pl);
+          const fl = flickPts(hp, P.flick, v);
+          for (const p of fl) { total++; if (inside(p, hat)) overlap++; }
+          if (prev) jitter = Math.max(jitter, Math.hypot(pl.x - prev.x, pl.y - prev.y));
+          prev = pl;
+          if (scene === 'rainy') {
+            const world = hat.map((p) => rotAbout(p, P.headAngle, HEAD_PIVOT));
+            const can = canopyPoly(P, v);
+            canopyIn = Math.max(canopyIn, world.filter((p) => inside(p, can)).length / world.length);
+            canopyMin = Math.min(canopyMin, minDist(world, can));
+          }
+          if (scene === 'sunny') rotMax = Math.max(rotMax, Math.abs(P.headAngle));
+        }
+      }
+      const hatArea = area(transform(hatLocal(kind, 1), hatPlace(kind, HEAD_LOOP)));
+      const ys = HATS[kind].loop.map((p) => p[1]);
+      const hpx = (Math.max(...ys) - Math.min(...ys)) * 48 / 160;
+      rows.push({ kind, overlap: overlap / total, jitter, canopyIn, canopyMin, ratio: hatArea / headArea, hpx });
+    }
+    const cls = (ok, warn) => (ok ? 'ok' : warn ? 'warn' : 'bad');
+    document.getElementById('check').innerHTML =
+      `<thead><tr><th>紙帽方案</th><th>一筆被遮住</th><th>一筆與帽重疊</th><th>帽錨點每格位移</th><th>Rainy：帽與傘面</th><th>帽面積 ÷ 頭面積</th><th>48px 帽高</th></tr></thead><tbody>` +
+      rows.map((r) => `<tr><td>方案 ${r.kind}</td>
+        <td class="num ok">0%（一筆畫在帽前）</td>
+        <td class="num ${cls(r.overlap < 0.02, r.overlap < 0.35)}">${(r.overlap * 100).toFixed(0)}%</td>
+        <td class="num ${cls(r.jitter <= 0.8, r.jitter <= 1.2)}">≤ ${r.jitter.toFixed(2)}（頭輪廓 boil 0.75）</td>
+        <td class="num ${cls(r.canopyIn === 0 && r.canopyMin > 2, r.canopyIn === 0)}">${r.canopyIn > 0 ? `重疊 ${(r.canopyIn * 100).toFixed(0)}%` : `最近 ${r.canopyMin.toFixed(1)}`}</td>
+        <td class="num ${cls(r.ratio < 0.3, r.ratio < 0.5)}">${(r.ratio * 100).toFixed(0)}%</td>
+        <td class="num ${cls(r.hpx >= 4, r.hpx >= 3)}">${r.hpx.toFixed(1)} px</td></tr>`).join('') + '</tbody>';
+    // 紅腳尖：用畫面上的幾何算紅色面積
+    const toeRows = ['A', 'B', 'C'].map((kind) => {
+      const res = {};
+      for (const [simple, scale] of [[false, 1], [true, 48 / 160]]) {
+        const k = simple ? 1.75 : 1, boilK = simple ? 1.5 : 1, P = pose('normal', 0);
+        let red = 0, drift = 0;
+        for (const v of SEQUENCE) {
+          for (const leg of ['legL', 'legR']) {
+            const p = ph(leg, v);
+            const [w0, w1] = leg === 'legL' ? [3.1, 2.3] : [3.0, 2.2];
+            const lg = brushGeom(catmull(P[leg], 9), (t) => (w0 + (w1 - w0) * t) * k * widthVar(p, t, 0.13), (t) => openNoise(p, t, 0.45 * boilK, 'both'));
+            const end = lg.disp[lg.n - 1], base = P[leg][P[leg].length - 1];
+            drift = Math.max(drift, Math.hypot(end[0] - base[0], end[1] - base[1]));
+            const poly = (i0, s) => { const L = [], R = []; for (let i = i0; i < lg.n; i++) { L.push([lg.disp[i][0] + (lg.L[i][0] - lg.disp[i][0]) * s, lg.disp[i][1] + (lg.L[i][1] - lg.disp[i][1]) * s]); R.push([lg.disp[i][0] + (lg.R[i][0] - lg.disp[i][0]) * s, lg.disp[i][1] + (lg.R[i][1] - lg.disp[i][1]) * s]); } return L.concat(R.reverse()); };
+            if (kind === 'A') red += area(poly(lg.n - 4, 1.02));
+            if (kind === 'B') red += area(poly(lg.n - 7, 1.12)) * 0.5;
+            if (kind === 'C') red += [0.85, 0.6].reduce((a, w, i) => a + w * k * 0.85 * [1.15, 0.85][i], 0);
+          }
+        }
+        res[simple ? 's' : 'b'] = { red: red / SEQUENCE.length / 2 * scale * scale, drift };
+      }
+      return { kind, ...res };
+    });
+    const toeName = { A: '局部染色', B: '墨水沾染', C: '印刷油墨' };
+    document.getElementById('check-toes').innerHTML =
+      `<thead><tr><th>紅腳尖方案</th><th>腳尖端點位移</th><th>紅色面積／每隻腳（160px）</th><th>紅色面積／每隻腳（48px）</th><th>48px 可辨識</th></tr></thead><tbody>` +
+      toeRows.map((r) => `<tr><td>方案 ${r.kind}　${toeName[r.kind]}</td>
+        <td class="num ok">${r.b.drift.toFixed(2)}（與原本腳尖相同，紅色跟著同一條筆畫）</td>
+        <td class="num">${r.b.red.toFixed(1)} px²</td>
+        <td class="num ${cls(r.s.red >= 2, r.s.red >= 1)}">${r.s.red.toFixed(1)} px²</td>
+        <td class="${cls(r.s.red >= 2, r.s.red >= 1)}">${r.s.red >= 2 ? '勉強可見' : r.s.red >= 1 ? '很難辨識' : '看不出來'}</td></tr>`).join('') + '</tbody>';
+    window.__check = { hats: rows, toes: toeRows };
+  }
+
+  updateCollection();
+  log('示範開始：尚未取得紙帽');
+  sync();
+  check();
+  window.__mowan = { setTime(ms) { state.time = ms; draw(true); }, state, acqState, acqSet(t) { acqState.step = 0; acqState.t = t; draw(true); } };
+})();
+</script>

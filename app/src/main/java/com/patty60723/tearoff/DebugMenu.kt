@@ -5,8 +5,14 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.text.InputType
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
+import com.patty60723.tearoff.mowan.Mowan
+import com.patty60723.tearoff.mowan.MowanView
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.story.StoryBook
+import com.patty60723.tearoff.story.StoryEngine
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
 import java.time.LocalDate
@@ -32,6 +38,7 @@ class DebugMenu(
             "看火柴人的動作…",
             "假裝天氣是…（現在：${WeatherService.fakeMood(activity)?.keyword ?: "真的天氣"}）",
             "測試閃退紀錄（App 會閃退一次）",
+            "看墨丸 V3（靜態預覽）…",
         )
         AlertDialog.Builder(activity)
             .setTitle("除錯")
@@ -45,6 +52,7 @@ class DebugMenu(
                     5 -> pickAction()
                     6 -> pickWeather()
                     7 -> throw RuntimeException("除錯選單：測試閃退紀錄")
+                    8 -> showMowan()
                 }
             }
             .show()
@@ -100,6 +108,48 @@ class DebugMenu(
                 refresh()
             }
             .show()
+    }
+
+    /** 墨丸 V3 還沒接到故事卡上，先在這裡看靜態的樣子：可以切頁數、筆觸影格、紙帽。 */
+    private fun showMowan() {
+        val density = activity.resources.displayMetrics.density
+        val view = MowanView(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (320 * density).toInt())
+        }
+        val label = TextView(activity)
+        var page = book.page.coerceIn(1, 14)
+        fun update() {
+            view.parts = Mowan.partsOf(StoryEngine.unlocked(book.beats, page))
+            label.text = "第 $page 頁・筆觸影格 ${view.variant + 1}/${Mowan.FRAMES}・紙帽${if (view.hatOn) "戴著" else "脫下"}"
+        }
+        val pages = SeekBar(activity).apply {
+            max = 13
+            progress = page - 1
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(bar: SeekBar, value: Int, fromUser: Boolean) { page = value + 1; update() }
+                override fun onStartTrackingTouch(bar: SeekBar) = Unit
+                override fun onStopTrackingTouch(bar: SeekBar) = Unit
+            })
+        }
+        val layout = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (16 * density).toInt()
+            setPadding(pad, pad, pad, 0)
+            addView(view)
+            addView(label)
+            addView(pages)
+        }
+        update()
+        val dialog = AlertDialog.Builder(activity)
+            .setTitle("墨丸 V3（靜態預覽）")
+            .setView(layout)
+            .setPositiveButton("關閉", null)
+            .setNeutralButton("下一張影格", null)
+            .setNegativeButton("紙帽", null)
+            .show()
+        // 這兩個按鈕按了不要關掉對話框
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { view.variant += 1; update() }
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { view.hatOn = !view.hatOn; update() }
     }
 
     private fun confirm(message: String, then: () -> Unit) {
