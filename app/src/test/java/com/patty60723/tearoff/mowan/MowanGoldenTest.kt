@@ -4,6 +4,7 @@ import com.patty60723.tearoff.story.StoryEngine
 import com.patty60723.tearoff.story.StoryParser
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -14,7 +15,7 @@ import java.io.File
  */
 class MowanGoldenTest {
     // 單元測試的工作目錄是 app/
-    private val golden = JSONObject(File("src/test/resources/mowan/golden-static.json").readText())
+    private val golden = JSONObject(File("src/test/resources/mowan/golden.json").readText())
     private val beats = File("src/main/assets/story").listFiles { f -> f.name.endsWith(".json") }!!
         .sorted().flatMap { StoryParser.parse(it.readText()) }
 
@@ -75,12 +76,30 @@ class MowanGoldenTest {
             val page = g.getInt("page")
             val variant = g.getInt("variant")
             val hatOn = g.getBoolean("hatOn")
-            val label = "第 $page 頁、影格 $variant、紙帽${if (hatOn) "戴著" else "脫下"}"
-            val frame = Mowan.frame(Mowan.partsOf(StoryEngine.unlocked(beats, page)), variant, hatOn)
+            val weather = Mowan.Weather.valueOf(g.getString("weather").uppercase())
+            val clock = g.getDouble("clock")
+            val label = "第 $page 頁、$weather ${clock.toInt()}ms、影格 $variant、紙帽${if (hatOn) "戴著" else "脫下"}"
+            val frame = Mowan.frame(
+                Mowan.partsOf(StoryEngine.unlocked(beats, page)), variant, hatOn, weather, clock, g.getInt("rainStep"),
+            )
 
-            val transform = Regex("""translate\(0 (\S+)\) rotate\((\S+) 60\.5 66\)""").find(g.getString("headTransform"))!!
-            assertEquals("$label 頭的位移", transform.groupValues[1].toDouble(), frame.headDy, tol)
-            assertEquals("$label 頭的角度", transform.groupValues[2].toDouble(), frame.headAngle, tol)
+            val head = Regex("""translate\(0 (\S+)\) rotate\((\S+) 60\.5 66\)""").find(g.getString("headTransform"))!!
+            assertEquals("$label 頭的位移", head.groupValues[1].toDouble(), frame.head.dy, tol)
+            assertEquals("$label 頭的角度", head.groupValues[2].toDouble(), frame.head.rotDeg, tol)
+            assertEquals(60.5, frame.head.pivotX, 0.0)
+            assertEquals(66.0, frame.head.pivotY, 0.0)
+
+            val canopy = g.getString("canopyTransform")
+            if (canopy.isEmpty()) {
+                assertNull("$label 不該有傘", frame.canopy)
+            } else {
+                val m = Regex("""translate\((\S+) (\S+)\) rotate\((\S+)\) scale\((\S+)\)""").find(canopy)!!
+                val t = frame.canopy!!
+                assertEquals("$label 傘的位置", m.groupValues[1].toDouble(), t.dx, tol)
+                assertEquals("$label 傘的位置", m.groupValues[2].toDouble(), t.dy, tol)
+                assertEquals("$label 傘的角度", m.groupValues[3].toDouble(), t.rotDeg, tol)
+                assertEquals("$label 傘的大小", m.groupValues[4].toDouble(), t.scale, tol)
+            }
 
             val ops = g.getJSONArray("ops")
             assertEquals("$label 的筆畫數", ops.length(), frame.ops.size)
@@ -99,7 +118,14 @@ class MowanGoldenTest {
                     assertEquals(at, gr.getDouble("x2"), my.x2, tol)
                     assertEquals(at, gr.getDouble("y2"), my.y2, tol)
                 } else {
-                    assertEquals(at, o.getString("fill").uppercase(), "#%06X".format(op.color and 0xFFFFFF))
+                    assertEquals(at, o.getString("fill").uppercase(), op.fill?.let { "#%06X".format(it and 0xFFFFFF) } ?: "NONE")
+                }
+                if (o.has("stroke")) {
+                    assertEquals(at, o.getString("stroke").uppercase(), op.stroke?.let { "#%06X".format(it and 0xFFFFFF) })
+                    assertEquals(at, o.getDouble("stroke-width"), op.strokeWidth, 1e-9)
+                    assertEquals(at, o.optString("stroke-linecap") == "round", op.roundCap)
+                } else {
+                    assertNull(at, op.stroke)
                 }
                 assertPathEquals(at, parseSvg(o.getString("d")), op.path.commands)
             }
@@ -133,6 +159,10 @@ class MowanGoldenTest {
                     assertEquals(where, e.sweep, a.sweep)
                     near(where, e.x, a.x); near(where, e.y, a.y)
                 }
+                is PathData.Cmd.QuadTo -> {
+                    a as PathData.Cmd.QuadTo
+                    near(where, e.x1, a.x1); near(where, e.y1, a.y1); near(where, e.x, a.x); near(where, e.y, a.y)
+                }
                 PathData.Cmd.Close -> Unit
             }
         }
@@ -140,9 +170,9 @@ class MowanGoldenTest {
 
     private fun near(where: String, e: Double, a: Double) = assertTrue("$where：$e ≠ $a", Math.abs(e - a) <= tol)
 
-    /** 原型的 path 只用到 M、L、A、a、Z；全部轉成絕對座標 */
+    /** 原型的 path 只用到 M、L、Q、A、a、Z；全部轉成絕對座標 */
     private fun parseSvg(d: String): List<PathData.Cmd> {
-        val tokens = Regex("""[MLAaZ]|-?\d*\.?\d+(?:e-?\d+)?""").findAll(d).map { it.value }.toList()
+        val tokens = Regex("""[MLQAaZ]|-?\d*\.?\d+(?:e-?\d+)?""").findAll(d).map { it.value }.toList()
         val out = ArrayList<PathData.Cmd>()
         var i = 0
         var x = 0.0
@@ -154,6 +184,7 @@ class MowanGoldenTest {
             when (val c = tokens[i++]) {
                 "M" -> { x = num(); y = num(); sx = x; sy = y; out += PathData.Cmd.MoveTo(x, y) }
                 "L" -> { x = num(); y = num(); out += PathData.Cmd.LineTo(x, y) }
+                "Q" -> { val x1 = num(); val y1 = num(); x = num(); y = num(); out += PathData.Cmd.QuadTo(x1, y1, x, y) }
                 "A", "a" -> {
                     val rx = num(); val ry = num(); num()
                     val large = num() != 0.0; val sweep = num() != 0.0

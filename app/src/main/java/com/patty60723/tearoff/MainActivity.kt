@@ -14,6 +14,9 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.patty60723.tearoff.mowan.Mowan
+import com.patty60723.tearoff.mowan.MowanSettings
+import com.patty60723.tearoff.mowan.MowanView
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.stickman.Parts
 import com.patty60723.tearoff.stickman.StickmanView
@@ -65,7 +68,9 @@ class MainActivity : Activity() {
                 },
                 preview = { id ->
                     // 在 Button.apply 裡，要明確用 Activity 的 findViewById
+                    this@MainActivity.findViewById<MowanView>(R.id.story_mowan).visibility = View.GONE
                     this@MainActivity.findViewById<StickmanView>(R.id.story_stickman).apply {
+                        visibility = View.VISIBLE
                         parts = Parts.everything
                         action = Actions.get(id)
                         props = emptySet()
@@ -143,6 +148,17 @@ class MainActivity : Activity() {
 
     private val backToStory = Runnable { showStory() }
 
+    /** 除錯選單打開「故事卡用墨丸 V3」時，用 V3 取代火柴人 */
+    private fun showMowan(weather: Mowan.Weather) {
+        val v3 = MowanSettings.storyCard(this)
+        findViewById<StickmanView>(R.id.story_stickman).visibility = if (v3) View.GONE else View.VISIBLE
+        findViewById<MowanView>(R.id.story_mowan).apply {
+            visibility = if (v3) View.VISIBLE else View.GONE
+            parts = Mowan.partsOf(book.parts)
+            this.weather = weather
+        }
+    }
+
     /** 點天氣：故事卡上的火柴人演一段，幾秒後回到故事。 */
     private fun playWeather() {
         val weather = WeatherService.current(this) ?: return refreshWeather()
@@ -152,6 +168,7 @@ class MainActivity : Activity() {
             action = Actions.get(mood.action)
             props = mood.props
         }
+        showMowan(MowanSettings.weatherOf(mood))
         findViewById<TextView>(R.id.story_title).text = weather.long
         findViewById<TextView>(R.id.story_text).text = "${book.name}：${mood.line}"
         pad.removeCallbacks(backToStory)
@@ -333,6 +350,8 @@ class MainActivity : Activity() {
             action = Actions.get(if (book.page == 0) null else book.lastAction)
             props = book.lastProps
         }
+        // V3 還沒有故事動作（跳、揮手…）的設計，先用一般站姿＋line boil
+        showMowan(Mowan.Weather.NONE)
         val started = book.page > 0
         findViewById<TextView>(R.id.story_title).text =
             if (started) getString(R.string.story_page, book.page) else getString(R.string.story_not_started)

@@ -1,12 +1,13 @@
 package com.patty60723.tearoff.mowan
 
-/** 不依賴 Android 的路徑：只有原型用到的四種指令，座標都是絕對座標。 */
+/** 不依賴 Android 的路徑：只有原型用到的指令，座標都是絕對座標。 */
 class PathData(val commands: List<Cmd>) {
     sealed interface Cmd {
         data class MoveTo(val x: Double, val y: Double) : Cmd
         data class LineTo(val x: Double, val y: Double) : Cmd
         /** SVG 的橢圓弧（不旋轉），終點 (x, y) */
         data class ArcTo(val rx: Double, val ry: Double, val largeArc: Boolean, val sweep: Boolean, val x: Double, val y: Double) : Cmd
+        data class QuadTo(val x1: Double, val y1: Double, val x: Double, val y: Double) : Cmd
         data object Close : Cmd
     }
 
@@ -15,6 +16,7 @@ class PathData(val commands: List<Cmd>) {
         fun move(p: Pt) = apply { cmds += Cmd.MoveTo(p.x, p.y) }
         fun line(p: Pt) = apply { cmds += Cmd.LineTo(p.x, p.y) }
         fun arc(rx: Double, ry: Double, largeArc: Boolean, sweep: Boolean, p: Pt) = apply { cmds += Cmd.ArcTo(rx, ry, largeArc, sweep, p.x, p.y) }
+        fun quad(c: Pt, p: Pt) = apply { cmds += Cmd.QuadTo(c.x, c.y, p.x, p.y) }
         fun close() = apply { cmds += Cmd.Close }
         fun add(other: PathData) = apply { cmds += other.commands }
         fun build() = PathData(cmds)

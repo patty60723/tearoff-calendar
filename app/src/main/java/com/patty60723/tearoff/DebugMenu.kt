@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import com.patty60723.tearoff.mowan.Mowan
+import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.story.StoryBook
@@ -38,7 +39,8 @@ class DebugMenu(
             "看火柴人的動作…",
             "假裝天氣是…（現在：${WeatherService.fakeMood(activity)?.keyword ?: "真的天氣"}）",
             "測試閃退紀錄（App 會閃退一次）",
-            "看墨丸 V3（靜態預覽）…",
+            "看墨丸 V3…",
+            "故事卡用墨丸 V3（現在：${if (MowanSettings.storyCard(activity)) "開" else "關"}）",
         )
         AlertDialog.Builder(activity)
             .setTitle("除錯")
@@ -53,6 +55,10 @@ class DebugMenu(
                     6 -> pickWeather()
                     7 -> throw RuntimeException("除錯選單：測試閃退紀錄")
                     8 -> showMowan()
+                    9 -> {
+                        MowanSettings.setStoryCard(activity, !MowanSettings.storyCard(activity))
+                        refresh()
+                    }
                 }
             }
             .show()
@@ -110,7 +116,7 @@ class DebugMenu(
             .show()
     }
 
-    /** 墨丸 V3 還沒接到故事卡上，先在這裡看靜態的樣子：可以切頁數、筆觸影格、紙帽。 */
+    /** 墨丸 V3 的預覽：可以切頁數、天氣、紙帽，line boil 會自己動。 */
     private fun showMowan() {
         val density = activity.resources.displayMetrics.density
         val view = MowanView(activity).apply {
@@ -118,9 +124,10 @@ class DebugMenu(
         }
         val label = TextView(activity)
         var page = book.page.coerceIn(1, 14)
+        val weatherName = mapOf(Mowan.Weather.NONE to "一般", Mowan.Weather.SUNNY to "晴天", Mowan.Weather.RAINY to "雨天")
         fun update() {
             view.parts = Mowan.partsOf(StoryEngine.unlocked(book.beats, page))
-            label.text = "第 $page 頁・筆觸影格 ${view.variant + 1}/${Mowan.FRAMES}・紙帽${if (view.hatOn) "戴著" else "脫下"}"
+            label.text = "第 $page 頁・${weatherName[view.weather]}・紙帽${if (view.hatOn) "戴著" else "脫下"}"
         }
         val pages = SeekBar(activity).apply {
             max = 13
@@ -141,14 +148,18 @@ class DebugMenu(
         }
         update()
         val dialog = AlertDialog.Builder(activity)
-            .setTitle("墨丸 V3（靜態預覽）")
+            .setTitle("墨丸 V3")
             .setView(layout)
             .setPositiveButton("關閉", null)
-            .setNeutralButton("下一張影格", null)
+            .setNeutralButton("換天氣", null)
             .setNegativeButton("紙帽", null)
             .show()
         // 這兩個按鈕按了不要關掉對話框
-        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { view.variant += 1; update() }
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+            val all = Mowan.Weather.entries
+            view.weather = all[(view.weather.ordinal + 1) % all.size]
+            update()
+        }
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { view.hatOn = !view.hatOn; update() }
     }
 

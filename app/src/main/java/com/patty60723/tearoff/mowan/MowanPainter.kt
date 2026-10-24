@@ -8,20 +8,21 @@ import android.graphics.RectF
 import android.graphics.Shader
 
 /**
- * 把 [Mowan.Frame] 畫到 Canvas。Path 在建構時就轉好，onDraw 不再配置物件。
+ * 把 [Mowan.Frame] 畫到 Canvas。Path 和 Paint 在建構時就準備好，draw 不再配置物件。
  * 座標系是原型的 viewBox 0 −20 120 160，畫的時候等比例縮放、置中。
  */
 class MowanPainter(frame: Mowan.Frame) {
-    private class Item(val layer: Mowan.Layer, val path: Path, val paint: Paint)
+    private class Item(val layer: Mowan.Layer, val path: Path, val fill: Paint?, val stroke: Paint?)
 
-    private val headDy = frame.headDy.toFloat()
-    private val headAngle = frame.headAngle.toFloat()
+    private val head = frame.head
+    private val canopy = frame.canopy
     private val items = frame.ops.map { op ->
         val path = toPath(op.path).apply { fillType = if (op.evenOdd) Path.FillType.EVEN_ODD else Path.FillType.WINDING }
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val alpha = (op.alpha * 255).toInt().coerceIn(0, 255)
+        val fill = if (op.fill == null && op.gradient == null) null else Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL
-            color = op.color
-            alpha = (op.alpha * 255).toInt().coerceIn(0, 255)
+            op.fill?.let { color = it }
+            this.alpha = alpha
             op.gradient?.let { g ->
                 shader = LinearGradient(
                     g.x1.toFloat(), g.y1.toFloat(), g.x2.toFloat(), g.y2.toFloat(),
@@ -31,7 +32,16 @@ class MowanPainter(frame: Mowan.Frame) {
                 )
             }
         }
-        Item(op.layer, path, paint)
+        val stroke = op.stroke?.let { c ->
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                color = c
+                this.alpha = alpha
+                strokeWidth = op.strokeWidth.toFloat()
+                strokeCap = if (op.roundCap) Paint.Cap.ROUND else Paint.Cap.BUTT
+            }
+        }
+        Item(op.layer, path, fill, stroke)
     }
 
     /** 畫在 (left, top, width, height) 這一格裡 */
@@ -41,21 +51,29 @@ class MowanPainter(frame: Mowan.Frame) {
         canvas.translate(left + (width - VIEW_W * s) / 2, top + (height - VIEW_H * s) / 2)
         canvas.scale(s, s)
         canvas.translate(0f, -VIEW_TOP)
-        var inHead = false
+        var current: Mowan.Layer? = null
         for (item in items) {
-            val head = item.layer == Mowan.Layer.HEAD
-            if (head && !inHead) {
-                canvas.save()
-                canvas.translate(0f, headDy)
-                canvas.rotate(headAngle, Mowan.HEAD_PIVOT.x.toFloat(), Mowan.HEAD_PIVOT.y.toFloat())
-            } else if (!head && inHead) {
-                canvas.restore()
+            if (item.layer != current) {
+                if (transformOf(current) != null) canvas.restore()
+                transformOf(item.layer)?.let { t ->
+                    canvas.save()
+                    canvas.translate(t.dx.toFloat(), t.dy.toFloat())
+                    canvas.rotate(t.rotDeg.toFloat(), t.pivotX.toFloat(), t.pivotY.toFloat())
+                    canvas.scale(t.scale.toFloat(), t.scale.toFloat())
+                }
+                current = item.layer
             }
-            inHead = head
-            canvas.drawPath(item.path, item.paint)
+            item.fill?.let { canvas.drawPath(item.path, it) }
+            item.stroke?.let { canvas.drawPath(item.path, it) }
         }
-        if (inHead) canvas.restore()
+        if (transformOf(current) != null) canvas.restore()
         canvas.restore()
+    }
+
+    private fun transformOf(layer: Mowan.Layer?) = when (layer) {
+        Mowan.Layer.HEAD -> head
+        Mowan.Layer.CANOPY -> canopy
+        else -> null
     }
 
     companion object {
@@ -67,10 +85,13 @@ class MowanPainter(frame: Mowan.Frame) {
             val path = Path()
             var x = 0.0
             var y = 0.0
+            var startX = 0.0
+            var startY = 0.0
             val oval = RectF()
             for (c in data.commands) when (c) {
-                is PathData.Cmd.MoveTo -> { path.moveTo(c.x.toFloat(), c.y.toFloat()); x = c.x; y = c.y }
+                is PathData.Cmd.MoveTo -> { path.moveTo(c.x.toFloat(), c.y.toFloat()); x = c.x; y = c.y; startX = x; startY = y }
                 is PathData.Cmd.LineTo -> { path.lineTo(c.x.toFloat(), c.y.toFloat()); x = c.x; y = c.y }
+                is PathData.Cmd.QuadTo -> { path.quadTo(c.x1.toFloat(), c.y1.toFloat(), c.x.toFloat(), c.y.toFloat()); x = c.x; y = c.y }
                 is PathData.Cmd.ArcTo -> {
                     val a = ArcCenter.of(x, y, c)
                     if (a == null) {
@@ -81,7 +102,7 @@ class MowanPainter(frame: Mowan.Frame) {
                     }
                     x = c.x; y = c.y
                 }
-                PathData.Cmd.Close -> path.close()
+                PathData.Cmd.Close -> { path.close(); x = startX; y = startY }
             }
             return path
         }

@@ -115,13 +115,13 @@ class ScreenshotTest {
         save("app-peel", root, root.width, root.height, background = false)
     }
 
-    /** 墨丸 V3（靜態）：第 1–14 頁一排排，最後一排是第 14 頁的 5 張筆觸影格和脫下紙帽 */
+    /** 墨丸 V3：第 1–14 頁、第 14 頁的 5 張筆觸影格和脫下紙帽，最後一排是晴天、雨天 */
     @Test
     fun mowanPages() {
         val book = StoryBook(context)
         val cell = 240
         val cols = 7
-        val rows = 3
+        val rows = 4
         val h = cell * 4 / 3
         val bitmap = Bitmap.createBitmap(cell * cols, h * rows, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -130,9 +130,12 @@ class ScreenshotTest {
             color = com.patty60723.tearoff.mowan.Mowan.INK
             textSize = 22f
         }
-        fun drawCell(index: Int, page: Int, variant: Int, hatOn: Boolean, text: String) {
+        fun drawCell(
+            index: Int, page: Int, variant: Int, hatOn: Boolean, text: String,
+            weather: com.patty60723.tearoff.mowan.Mowan.Weather = com.patty60723.tearoff.mowan.Mowan.Weather.NONE, clock: Double = 0.0,
+        ) {
             val parts = com.patty60723.tearoff.mowan.Mowan.partsOf(com.patty60723.tearoff.story.StoryEngine.unlocked(book.beats, page))
-            val frame = com.patty60723.tearoff.mowan.Mowan.frame(parts, variant, hatOn)
+            val frame = com.patty60723.tearoff.mowan.Mowan.frame(parts, variant, hatOn, weather, clock, com.patty60723.tearoff.mowan.Mowan.rainStepAt(clock.toLong()))
             val x = (index % cols) * cell.toFloat()
             val y = (index / cols) * h.toFloat()
             com.patty60723.tearoff.mowan.MowanPainter(frame).draw(canvas, x, y, cell.toFloat(), h.toFloat())
@@ -141,6 +144,26 @@ class ScreenshotTest {
         for (page in 1..14) drawCell(page - 1, page, 0, true, "第 $page 頁")
         for (v in 0 until 5) drawCell(14 + v, 14, v, true, "影格 ${v + 1}")
         drawCell(19, 14, 0, false, "脫下紙帽")
+        val sunny = com.patty60723.tearoff.mowan.Mowan.Weather.SUNNY
+        val rainy = com.patty60723.tearoff.mowan.Mowan.Weather.RAINY
+        drawCell(21, 14, 0, true, "晴 0 秒", sunny, 0.0)
+        drawCell(22, 14, 3, true, "晴 1.4 秒", sunny, 1375.0)
+        drawCell(23, 14, 1, true, "晴 2.75 秒", sunny, 2750.0)
+        drawCell(24, 3, 4, true, "第 3 頁晴", sunny, 2000.0)
+        drawCell(25, 14, 2, true, "雨 1 秒", rainy, 1050.0)
+        drawCell(26, 14, 0, true, "雨 3.2 秒", rainy, 3150.0)
+        drawCell(27, 3, 3, true, "第 3 頁雨（沒有手）", rainy, 1050.0)
         File(out, "mowan-pages.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    /** 除錯選單打開「故事卡用墨丸 V3」的樣子 */
+    @Test
+    fun appWithMowan() {
+        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, true)
+        StoryBook(context).jumpTo(14, AppClock.today(context))
+        val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        val root = activity.window.decorView
+        save("app-mowan", root, root.width, root.height, background = false)
+        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
     }
 }

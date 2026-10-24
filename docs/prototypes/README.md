@@ -16,7 +16,7 @@
 ## 重新產生黃金數值
 
 ```sh
-node docs/prototypes/tools/export-golden.js > app/src/test/resources/mowan/golden-static.json
+node docs/prototypes/tools/export-golden.js > app/src/test/resources/mowan/golden.json
 ```
 
 `MowanGoldenTest` 會拿 Kotlin 算出來的每一條筆畫跟這份檔案比對（誤差 0.011 以內）。

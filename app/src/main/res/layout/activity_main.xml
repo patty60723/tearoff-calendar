@@ -112,6 +112,13 @@
                 android:layout_width="96dp"
                 android:layout_height="128dp" />
 
+            <!-- 墨丸 V3：除錯選單打開才顯示，整合完成前故事卡還是舊火柴人 -->
+            <com.patty60723.tearoff.mowan.MowanView
+                android:id="@+id/story_mowan"
+                android:layout_width="96dp"
+                android:layout_height="128dp"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
