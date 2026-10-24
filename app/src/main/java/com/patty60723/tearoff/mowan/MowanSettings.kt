@@ -44,10 +44,15 @@ object MowanSettings {
         prefs(context).edit().remove(KEY_HAT_ON).remove(KEY_BUNDLE_ON).apply()
     }
 
-    /** 天氣 → V3 場景。只有晴、雨有定案的設計；熱、陰、霧、冷、雪先用一般站姿（D-10）。 */
+    /** 天氣 → V3 場景（8 種都有定稿，W6） */
     fun weatherOf(mood: Mood): Mowan.Weather = when (mood) {
         Mood.SUNNY -> Mowan.Weather.SUNNY
-        Mood.RAIN, Mood.THUNDER -> Mowan.Weather.RAINY
-        else -> Mowan.Weather.NONE
+        Mood.HOT -> Mowan.Weather.HOT
+        Mood.CLOUDY -> Mowan.Weather.CLOUDY
+        Mood.FOG -> Mowan.Weather.FOG
+        Mood.RAIN -> Mowan.Weather.RAINY
+        Mood.THUNDER -> Mowan.Weather.THUNDER
+        Mood.COLD -> Mowan.Weather.COLD
+        Mood.SNOW -> Mowan.Weather.SNOW
     }
 }

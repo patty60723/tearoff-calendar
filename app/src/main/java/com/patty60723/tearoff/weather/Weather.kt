@@ -42,7 +42,8 @@ enum class Mood(
     /** 點天氣時故事卡上的那句話 */
     val line: String,
 ) {
-    SUNNY("晴", "wave", setOf(Props.SUN, Props.STRAW_HAT), "大晴天，戴上草帽出門！"),
+    // D-17：V3 晴天是伸懶腰、沒有草帽，文案改成配合伸懶腰（舊火柴人的草帽道具不動）
+    SUNNY("晴", "wave", setOf(Props.SUN, Props.STRAW_HAT), "太陽暖暖的，伸伸懶腰再出門。"),
     HOT("熱", "wipe", setOf(Props.SUN, Props.STRAW_HAT, Props.SWEAT), "好熱……一直擦汗。"),
     CLOUDY("陰", "gaze", setOf(Props.CLOUD), "抬頭看看，雲飄過去了。"),
     FOG("霧", "gaze", setOf(Props.MIST), "起霧了，前面看不太清楚。"),

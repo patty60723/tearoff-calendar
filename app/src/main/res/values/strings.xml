@@ -33,6 +33,8 @@
     <string name="city_row">天氣和日出日落依%1$s　換城市 ›</string>
     <string name="city_title">日出日落用哪個城市</string>
     <string name="weather_row">%1$s　點我看看 ›</string>
+    <string name="bundle_take_off">卸下包袱 ›</string>
+    <string name="bundle_put_on">背上包袱 ›</string>
     <string name="weather_none">天氣讀取中…（需要網路）</string>
     <string name="weather_credit">天氣資料：Open-Meteo.com</string>
 </resources>

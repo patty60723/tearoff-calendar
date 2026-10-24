@@ -44,8 +44,12 @@ class MowanView @JvmOverloads constructor(
     var fixedVariant: Int? = null
         set(value) { field = value; invalidate() }
 
-    /** 時間軸（測試用可以讀） */
-    internal val timeline = MowanTimeline().also { it.setWeather(Mowan.Weather.NONE, SystemClock.uptimeMillis()) }
+    /** 現在在演什麼；成長故事、節日演出（P6）會從這裡告訴墨丸 */
+    val director = MowanDirector()
+
+    /** 時間軸（測試用可以讀）。有更高優先的演出時，雷雨的驚嚇跳過 */
+    internal val timeline = MowanTimeline(higherPriorityPlaying = { director.aboveWeather() })
+        .also { it.setWeather(Mowan.Weather.NONE, SystemClock.uptimeMillis()) }
 
     /** 系統的「移除動畫」設定（測試可以換掉） */
     internal var reducedMotion: () -> Boolean = { !ValueAnimator.areAnimatorsEnabled() }

@@ -112,7 +112,7 @@
                 android:layout_width="96dp"
                 android:layout_height="128dp" />
 
-            <!-- 墨丸 V3：除錯選單打開才顯示，整合完成前故事卡還是舊火柴人 -->
+            <!-- 墨丸 V3：「故事卡用墨丸 V3」打開才顯示（P7 改成預設），否則是舊火柴人 -->
             <com.patty60723.tearoff.mowan.MowanView
                 android:id="@+id/story_mowan"
                 android:layout_width="96dp"
@@ -144,6 +144,21 @@
                     android:lineSpacingExtra="5dp"
                     android:textColor="@color/ink"
                     android:textSize="15sp" />
+
+                <!-- 包袱（第 14 頁取得後）：背上／卸下，跟「換城市 ›」同一種小連結 -->
+                <TextView
+                    android:id="@+id/story_bundle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:fontFamily="serif"
+                    android:gravity="center_vertical"
+                    android:letterSpacing="0.1"
+                    android:minHeight="48dp"
+                    android:textColor="@color/ink_soft"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
 

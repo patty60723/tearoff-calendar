@@ -144,7 +144,13 @@ class MainActivity : Activity() {
         val weather = WeatherService.current(this)
         findViewById<TextView>(R.id.weather).text =
             if (weather == null) getString(R.string.weather_none) else getString(R.string.weather_row, weather.long)
+        // 天氣資料更新：墨丸換成新的天氣；還是同一種天氣就不重來
+        if (MowanSettings.storyCard(this)) findViewById<MowanView>(R.id.story_mowan).weather = currentMowanWeather()
     }
+
+    /** 故事卡上墨丸的天氣日常：今天的天氣，沒有資料時是一般站姿 */
+    private fun currentMowanWeather(): Mowan.Weather =
+        WeatherService.current(this)?.let { MowanSettings.weatherOf(it.mood) } ?: Mowan.Weather.NONE
 
     private val backToStory = Runnable { showStory() }
 
@@ -158,6 +164,23 @@ class MainActivity : Activity() {
             hatOn = MowanSettings.hatOn(this@MainActivity)
             bundleOn = MowanSettings.bundleOn(this@MainActivity)
             this.weather = weather
+        }
+        showBundleToggle(v3)
+    }
+
+    /** 包袱的背上／卸下：用 V3 故事卡、而且第 14 頁拿到包袱以後才出現 */
+    private fun showBundleToggle(v3: Boolean) {
+        val unlocked = "bundle" in Mowan.partsOf(book.parts)
+        findViewById<TextView>(R.id.story_bundle).apply {
+            visibility = if (v3 && unlocked) View.VISIBLE else View.GONE
+            text = getString(if (MowanSettings.bundleOn(this@MainActivity)) R.string.bundle_take_off else R.string.bundle_put_on)
+            setOnClickListener {
+                if ("bundle" !in Mowan.partsOf(book.parts)) return@setOnClickListener
+                MowanSettings.setBundleOn(this@MainActivity, !MowanSettings.bundleOn(this@MainActivity))
+                // 只換外觀，墨丸的動作不重來
+                findViewById<MowanView>(R.id.story_mowan).bundleOn = MowanSettings.bundleOn(this@MainActivity)
+                showBundleToggle(MowanSettings.storyCard(this@MainActivity))
+            }
         }
     }
 
@@ -352,8 +375,8 @@ class MainActivity : Activity() {
             action = Actions.get(if (book.page == 0) null else book.lastAction)
             props = book.lastProps
         }
-        // V3 還沒有故事動作（跳、揮手…）的設計，先用一般站姿＋line boil
-        showMowan(Mowan.Weather.NONE)
+        // V3 還沒有故事動作（跳、揮手…）的設計；故事卡平常演今天的天氣（天氣日常），沒有天氣資料時是一般站姿
+        showMowan(currentMowanWeather())
         val started = book.page > 0
         findViewById<TextView>(R.id.story_title).text =
             if (started) getString(R.string.story_page, book.page) else getString(R.string.story_not_started)

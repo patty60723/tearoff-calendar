@@ -286,4 +286,42 @@ class ScreenshotTest {
         }
         File(out, "mowan-bundle.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
+
+    /**
+     * W6：故事卡用 V3 時的 8 種天氣（第 14 頁），加上第 13 頁、第 14 頁卸下包袱。
+     * 故事卡下方的「卸下包袱 ›／背上包袱 ›」就是包袱的切換入口（第 14 頁才出現）。
+     */
+    @Test
+    fun storyCardWeathers() {
+        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, true)
+        val moods = com.patty60723.tearoff.weather.Mood.entries
+        fun card(page: Int, mood: com.patty60723.tearoff.weather.Mood, bundleOn: Boolean = true): Bitmap {
+            com.patty60723.tearoff.mowan.MowanSettings.setBundleOn(context, bundleOn)
+            com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, mood)
+            StoryBook(context).jumpTo(page, AppClock.today(context))
+            val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+            val view = activity.findViewById<View>(R.id.story_mowan).parent as View
+            return Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888).also { view.draw(Canvas(it)) }
+        }
+        val cards = moods.map { card(14, it) } +
+            card(13, com.patty60723.tearoff.weather.Mood.SUNNY) +
+            card(14, com.patty60723.tearoff.weather.Mood.SUNNY, bundleOn = false)
+        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
+        com.patty60723.tearoff.mowan.MowanSettings.setBundleOn(context, true)
+        com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, null)
+        val scale = 0.5f
+        val w = (cards.maxOf { it.width } * scale).toInt()
+        val h = (cards.maxOf { it.height } * scale).toInt()
+        val sheet = Bitmap.createBitmap(w * 2, h * ((cards.size + 1) / 2), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(sheet)
+        canvas.drawColor(0xFFEFEAE1.toInt())
+        cards.forEachIndexed { i, c ->
+            canvas.save()
+            canvas.translate((i % 2) * w.toFloat(), (i / 2) * h.toFloat())
+            canvas.scale(scale, scale)
+            canvas.drawBitmap(c, 0f, 0f, null)
+            canvas.restore()
+        }
+        File(out, "story-card-weathers.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
 }

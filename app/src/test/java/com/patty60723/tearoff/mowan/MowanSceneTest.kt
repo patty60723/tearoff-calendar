@@ -72,13 +72,15 @@ class MowanSceneTest {
     }
 
     @Test
-    fun onlySunAndRainHaveV3Scenes() {
-        assertEquals(Mowan.Weather.SUNNY, MowanSettings.weatherOf(Mood.SUNNY))
-        assertEquals(Mowan.Weather.RAINY, MowanSettings.weatherOf(Mood.RAIN))
-        assertEquals(Mowan.Weather.RAINY, MowanSettings.weatherOf(Mood.THUNDER))
-        for (m in listOf(Mood.HOT, Mood.CLOUDY, Mood.FOG, Mood.COLD, Mood.SNOW)) {
-            assertEquals("$m 還沒有 V3 設計（D-10）", Mowan.Weather.NONE, MowanSettings.weatherOf(m))
-        }
+    fun everyMoodHasItsOwnV3Scene() {
+        // W6：8 種天氣都接上定稿的 V3 場景，彼此不重複
+        val expected = mapOf(
+            Mood.SUNNY to Mowan.Weather.SUNNY, Mood.HOT to Mowan.Weather.HOT, Mood.CLOUDY to Mowan.Weather.CLOUDY,
+            Mood.FOG to Mowan.Weather.FOG, Mood.RAIN to Mowan.Weather.RAINY, Mood.THUNDER to Mowan.Weather.THUNDER,
+            Mood.COLD to Mowan.Weather.COLD, Mood.SNOW to Mowan.Weather.SNOW,
+        )
+        assertEquals(Mood.entries.toSet(), expected.keys)
+        for ((mood, weather) in expected) assertEquals("$mood", weather, MowanSettings.weatherOf(mood))
     }
 
     @Test
