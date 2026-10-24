@@ -46,6 +46,20 @@
     R_TUCK: [[60.8, 77], [63, 81], [64, 85.8], [64.2, 90.8], [64.4, 95.4]],
   };
 
+  /**
+   * D-22：一段連續動作經過好幾個中間姿勢時，整段只做一次 ease in/out，
+   * 中間姿勢在時間上依「手尖移動距離」分配位置，所以手經過中間姿勢時不會停下來。
+   */
+  function pathTrack(t, t0, t1, keys) {
+    const tip = (k) => k[k.length - 1];
+    const d = [0];
+    for (let i = 1; i < keys.length; i++) d.push(d[i - 1] + Math.hypot(tip(keys[i])[0] - tip(keys[i - 1])[0], tip(keys[i])[1] - tip(keys[i - 1])[1]));
+    const s = ease((t - t0) / (t1 - t0)) * d[d.length - 1];
+    let i = 0;
+    while (i < keys.length - 2 && s > d[i + 1]) i++;
+    return mixPts(keys[i], keys[i + 1], (s - d[i]) / (d[i + 1] - d[i]));
+  }
+
   /** 讓身體上半部抖一下（腳不動） */
   function jitter(P, dx) {
     if (!dx) return;
@@ -62,7 +76,7 @@
   // ---------- 各天氣的姿勢（t：毫秒） ----------
   const SCENES = {
     hot: {
-      name: '熱', mood: 'HOT', line: '好熱……一直擦汗。', period: 3200, keys: [0, 900, 2000], still: 500, oldStill: 900,
+      name: '熱', mood: 'HOT', line: '好熱……一直擦汗。', period: 3200, keys: [0, 1050, 2200], still: 650, oldStill: 900,
       env: ['bigSun', 'heat'],
       pose(t, caps, opt) {
         const P = basePose();
@@ -79,9 +93,13 @@
           return P;
         }
         if (caps.holdR) {
-          const lo = ARM5.R_WIPE_LO, hi = ARM5.R_WIPE_HI;
-          P.armR = track(t % 3200, [[0, ARM5.R_DEF], [140, ARM5.R_WIPE_SIDE], [280, ARM5.R_WIPE_MID], [500, lo], [900, hi], [1300, lo], [1700, hi], [1920, ARM5.R_WIPE_MID], [2060, ARM5.R_WIPE_SIDE], [2200, ARM5.R_DEF]]);
-          P.headAngle = track(t % 3200, [[0, 0], [500, 4], [1700, 4], [2200, 0]]);
+          // D-22：抬手 0–650 ms、擦三下 650–1850 ms（每下 400 ms，跟原本一樣）、放手 1850–2500 ms、休息 700 ms
+          const lo = ARM5.R_WIPE_LO, hi = ARM5.R_WIPE_HI, u = t % 3200;
+          if (u <= 650) P.armR = pathTrack(u, 0, 650, [ARM5.R_DEF, ARM5.R_WIPE_SIDE, ARM5.R_WIPE_MID, lo]);
+          else if (u <= 1850) P.armR = track(u, [[650, lo], [1050, hi], [1450, lo], [1850, hi]]);
+          else if (u <= 2500) P.armR = pathTrack(u, 1850, 2500, [hi, ARM5.R_WIPE_MID, ARM5.R_WIPE_SIDE, ARM5.R_DEF]);
+          else P.armR = ARM5.R_DEF;
+          P.headAngle = track(u, [[0, 0], [650, 4], [1850, 4], [2500, 0]]);
         }
         return P;
       },

@@ -8,7 +8,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.math.abs
@@ -45,7 +44,7 @@ class WeatherPosesTest {
     @Test
     fun weatherPosesMatchReference() {
         val cases = golden.getJSONArray("weather")
-        assertEquals(432, cases.length())
+        assertEquals(459, cases.length())
         for (i in 0 until cases.length()) {
             val g = cases.getJSONObject(i)
             val w = g.getString("weather")
@@ -294,25 +293,26 @@ class WeatherPosesTest {
 
     @Test
     fun hotWipeIsContinuous() {
-        // 擦汗的那一段（手在臉頰上下擦）
-        assertSmooth("熱：擦汗", steps(500.0, 1700.0) { Poses.hot(it, full) })
+        // 擦汗的那一段（手在臉頰上下擦，每下 400 ms）
+        assertSmooth("熱：擦汗", steps(650.0, 1850.0) { Poses.hot(it, full) })
     }
 
     /**
-     * 熱天抬手、放手（0–500 ms、1700–2200 ms）目前不通過：
-     * 手尖一格最多跳 6.35（其他動作最多 0.41），而且在中間姿勢 R_WIPE_SIDE、R_WIPE_MID 幾乎停住
-     * （速度從 200 掉到 15、6 單位／秒），看起來像分三段頓一下。
-     * 這是改善「手臂縮短」時加入中間姿勢的副作用；要改時間或內插方式屬於美術決定，等確認後再改數值並打開這個測試。
+     * 熱天抬手（0–650 ms）、放手（1850–2500 ms），D-22 修正後：
+     * - 抬手、放手是大動作，手尖一格最多 3.0、3.64（修正前 6.35），上限設 4.0；
+     * - 經過中間姿勢 R_WIPE_SIDE、R_WIPE_MID 時不能停：中段 60% 的時間裡，最慢的一格至少是最快一格的 40%
+     *   （修正前速度從 200 掉到 15、6 單位／秒，只剩 3–7%）。
      */
-    @Ignore("熱天抬手、放手的速度與停頓待美術決定，見上方說明")
     @Test
     fun hotRaiseAndLowerAreContinuous() {
-        assertSmooth("熱：抬手", steps(0.0, 500.0) { Poses.hot(it, full) })
-        assertSmooth("熱：放手", steps(1700.0, 2200.0) { Poses.hot(it, full) })
-        // 動作中途不能停下來：最慢的一格至少要有最快的一格的 20%
-        for ((name, from, to) in listOf(Triple("抬手", 0.0, 500.0), Triple("放手", 1700.0, 2200.0))) {
-            val moving = steps(from, to) { Poses.hot(it, full) }.map { it.hand }.dropLast(1).drop(1)
-            assertTrue("熱：$name 中途停頓", moving.min() >= 0.2 * moving.max())
+        assertSmooth("熱：抬手", steps(0.0, 650.0) { Poses.hot(it, full) }, maxHand = 4.0, maxAngle = 1.0)
+        assertSmooth("熱：放手", steps(1850.0, 2500.0) { Poses.hot(it, full) }, maxHand = 4.0, maxAngle = 1.0)
+        for ((name, from, to) in listOf(Triple("抬手", 0.0, 650.0), Triple("放手", 1850.0, 2500.0))) {
+            val all = steps(from, to) { Poses.hot(it, full) }.map { it.hand }
+            val middle = all.subList((all.size * 0.2).toInt(), (all.size * 0.8).toInt())
+            assertTrue("熱：$name 中途停頓（${"%.2f".format(middle.min())} / ${"%.2f".format(all.max())}）", middle.min() >= 0.4 * all.max())
         }
+        // 抬手、擦汗、放手、休息接起來，整個週期（含接回開頭）都不會跳
+        assertSmooth("熱：整個週期", steps(0.0, 2 * Poses.HOT_MS) { Poses.hot(it, full) }, maxHand = 4.0)
     }
 }

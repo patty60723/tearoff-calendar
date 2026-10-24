@@ -48,4 +48,21 @@ internal object Keyframes {
         }
         return keys.last().second
     }
+
+    /**
+     * 一段連續動作經過好幾個中間姿勢（D-22）：整段只做一次 ease in/out，
+     * 中間姿勢依「手尖移動距離」分配時間，所以手經過中間姿勢時速度連續、不會停下來。
+     */
+    fun path(t: Double, t0: Double, t1: Double, keys: List<List<Pt>>): List<Pt> {
+        val d = DoubleArray(keys.size)
+        for (i in 1 until keys.size) {
+            val a = keys[i - 1].last()
+            val b = keys[i].last()
+            d[i] = d[i - 1] + kotlin.math.hypot(b.x - a.x, b.y - a.y)
+        }
+        val s = ease((t - t0) / (t1 - t0)) * d.last()
+        var i = 0
+        while (i < keys.size - 2 && s > d[i + 1]) i++
+        return mix(keys[i], keys[i + 1], (s - d[i]) / (d[i + 1] - d[i]))
+    }
 }

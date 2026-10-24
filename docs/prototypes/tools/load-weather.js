@@ -18,7 +18,7 @@ module.exports = function load() {
   const document = { createElementNS: (_ns, tag) => fakeElement(tag) };
   const src = ['engine.js', 'core.js', 'weather.js'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'src', f), 'utf8')).join('\n');
   const api = new Function('document', src + `
-return { SCENES, PLAIN, drawFrame, basePose, ARM5, STRIKES, THUNDER_LOOP, env, pose, place, partsAt, getCapabilities,
+return { SCENES, PLAIN, drawFrame, basePose, ARM5, STRIKES, THUNDER_LOOP, env, pose, place, partsAt, getCapabilities, pathTrack,
   resolve, buildFrame, Renderer, HEAD_LOOP, TAU };`)(document);
   api.fakeElement = fakeElement;
   return api;

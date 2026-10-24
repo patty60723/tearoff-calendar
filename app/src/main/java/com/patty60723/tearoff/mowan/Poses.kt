@@ -169,14 +169,14 @@ internal object Poses {
         val u = time % HOT_MS
         var p = base().copy(face = Face.HOT, flick = Flick.DROOPED, effects = Effects(sweat = u / HOT_MS))
         if (caps.holdR) {
-            p = p.copy(
-                armR = Keyframes.trackPts(u, listOf(
-                    0.0 to Arm.R_DEF, 140.0 to Arm.R_WIPE_SIDE, 280.0 to Arm.R_WIPE_MID, 500.0 to Arm.R_WIPE_LO,
-                    900.0 to Arm.R_WIPE_HI, 1300.0 to Arm.R_WIPE_LO, 1700.0 to Arm.R_WIPE_HI,
-                    1920.0 to Arm.R_WIPE_MID, 2060.0 to Arm.R_WIPE_SIDE, 2200.0 to Arm.R_DEF,
-                )),
-                headAngle = Keyframes.track(u, listOf(0.0 to 0.0, 500.0 to 4.0, 1700.0 to 4.0, 2200.0 to 0.0)),
-            )
+            // D-22：抬手 0–650 ms、擦三下 650–1850 ms（每下 400 ms）、放手 1850–2500 ms、休息到 3200 ms
+            val arm = when {
+                u <= 650 -> Keyframes.path(u, 0.0, 650.0, listOf(Arm.R_DEF, Arm.R_WIPE_SIDE, Arm.R_WIPE_MID, Arm.R_WIPE_LO))
+                u <= 1850 -> Keyframes.trackPts(u, listOf(650.0 to Arm.R_WIPE_LO, 1050.0 to Arm.R_WIPE_HI, 1450.0 to Arm.R_WIPE_LO, 1850.0 to Arm.R_WIPE_HI))
+                u <= 2500 -> Keyframes.path(u, 1850.0, 2500.0, listOf(Arm.R_WIPE_HI, Arm.R_WIPE_MID, Arm.R_WIPE_SIDE, Arm.R_DEF))
+                else -> Arm.R_DEF
+            }
+            p = p.copy(armR = arm, headAngle = Keyframes.track(u, listOf(0.0 to 0.0, 650.0 to 4.0, 1850.0 to 4.0, 2500.0 to 0.0)))
         }
         return p
     }
