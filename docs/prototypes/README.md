@@ -13,6 +13,8 @@
 | `mowan-weather-draft.html` | 給設計師的草案：熱、陰、霧、雷雨、冷、雪與第 14 頁包袱（全部未批准） |
 | `mowan-weather-revision.html` | 草案的小幅美術修正：雷雨偶發驚嚇、包袱 B1 重畫、關閉動畫時的代表姿勢（全部未批准） |
 | `src/engine.js`、`src/core.js` | 從 `mowan-hat-umbrella.html` 拆出來的原型程式，給匯出工具用 |
+| `src/weather.js` | 天氣與包袱的定稿參考程式（第二輪審核版，加上動作一致性審核的兩個修正） |
+| `audit/` | Phase 2B 動作一致性審核的渲染截圖 |
 | `tools/export-golden.js` | 匯出黃金數值，給 Android 的 JVM 測試比對 |
 
 ## 重新產生黃金數值

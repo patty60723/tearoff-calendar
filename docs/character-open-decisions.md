@@ -3,6 +3,7 @@
 > 這裡列的都**還沒有定案**。實作時一律做成可設定（`ArtConfig` 或 debug 選項），不能寫死。
 > 本文件不會把任何 Proposed / TBD 升級成 Confirmed；要升級需要使用者明確確認。
 > 2026-10-24 使用者確認：階段順序、D-08、D-14。
+> Phase 2B 設計收斂確認：天氣（D-10）、雪 B、包袱 B1（D-18）。
 > 「Q 編號」對應角色聖經的問題清單；「D 編號」是本文件新增的整合問題。
 
 | # | 問題 | 選項 | 目前傾向 | 狀態 | 影響階段 |
@@ -16,14 +17,17 @@
 | D-07 | 48px 規則（聖經 Q14） | 完整角色 / 單一元素 | 單一元素（原型建議，未批准） | **TBD** | P5 |
 | D-08 | 程式碼預設名字 `DEFAULT_NAME = "一筆"` | 改成「墨丸」/ 維持 | 改成「墨丸」（符合 Q6） | **Confirmed**（2026-10-24），已改 | P1 |
 | D-09 | 第 12、13 頁 | 外觀不變 | 不變 | Confirmed 外觀不變；是否加任何小演出 **TBD** | P3 |
-| D-10 | HOT、CLOUDY、FOG、THUNDER、COLD、SNOW 的 V3 樣子 | 待設計 | 草案見 `docs/prototypes/mowan-weather-draft.html`（交給設計師）；定案前 App 先用一般站姿 | **TBD**（只有晴、雨是 Confirmed） | P4 |
+| D-10 | HOT、CLOUDY、FOG、THUNDER、COLD、SNOW 的 V3 樣子 | 熱 A、陰、霧、雷雨（偶發）、冷、雪 B | 規格見整合規格 §5，參考程式 `docs/prototypes/src/weather.js` | **Confirmed**（Phase 2B 設計收斂；雪 A 只當歷史參考） | P4 |
 | D-11 | 節日故事 beat | `daily.json` 目前 0 個節日 beat | 本計畫不新增故事文字 | **Out of scope**（故事內容不改） | P6 |
 | D-12 | 左右命名 | 程式碼用「螢幕左右」/ 角色自己的左右 | 沿用程式碼現有慣例，文件註明 | **Proposed** | P1 |
 | D-13 | 是否遷移到 Jetpack Compose | 遷移 / 不遷移 | **不遷移**：現有 App 全是 View + Canvas，角色只需要 Canvas | **Proposed** | — |
 | D-14 | 原型 HTML 放進 repo | `docs/prototypes/` / 不放 | 放（P0 需要用來匯出黃金數值） | **Confirmed**（2026-10-24），已放 | P0 |
 | D-15 | 舊 stickman 程式碼 | V3 上線後刪除 / 保留當 fallback | 先保留到 P7 再決定 | **Proposed** | P7 |
 | D-17 | 晴天文案「戴上草帽出門！」跟 V3 晴天（伸懶腰、沒有草帽）對不上 | 加草帽 / 改文案 | 無 | **TBD** | P4 |
-| D-18 | 第 14 頁包袱（Q21）的位置 | B1 背在背後 / B2 斜背腰側 | B1（草案） | **TBD**，草案見 `mowan-weather-draft.html` | P3 |
+| D-18 | 第 14 頁包袱（Q21）的位置 | B1 背在背後 / B2 斜背腰側 | B1 | **Confirmed**：B1。能不能卸下見 D-05，布色見 D-20 | P4 |
+| D-19 | 雷雨驚嚇的間隔 | 隨機 15–40 秒 / 更少 | 隨機 15–40 秒 | **Proposed**（偶發的方向已確認，間隔數字未定） | P4 |
+| D-20 | 包袱最終布色 | Sage / 其他 | Sage（撐傘時跟傘同色） | **TBD** | P4 |
+| D-21 | 色票外的天氣顏色：陰天雲 #EAE5DC、雷雨雲 #CFC7BC、雪 #FFFFFF | 保留 / 收回色票 | 保留 | **TBD** | P4 |
 | D-16 | Widget 是否顯示節日主演出 | 只顯示服裝道具 / 也演出 | 只顯示服裝道具（bitmap 大小限制） | **Proposed** | P5、P6 |
 
 ## 已確認、實作時不得變更（摘錄）
