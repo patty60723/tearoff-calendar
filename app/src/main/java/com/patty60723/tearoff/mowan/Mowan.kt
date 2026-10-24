@@ -294,7 +294,8 @@ object Mowan {
                 ), INK)
             }
             if ("blush" in parts) {
-                val op = when (p.face) { Face.SUNNY -> 1f; Face.RAINY -> 0.55f; Face.NORMAL -> 0.85f }
+                // 新天氣的表情要到 W3 才畫；在那之前 frame() 只會收到一般、晴、雨
+                val op = when (p.face) { Face.SUNNY -> 1f; Face.RAINY -> 0.55f; else -> 0.85f }
                 add(Layer.HEAD, PathData.ellipse(47.0, 52.8, 3.2, 1.6), PINK, op)
                 add(Layer.HEAD, PathData.ellipse(72.5, 52.3, 3.2, 1.6), PINK, op)
             }
@@ -318,7 +319,7 @@ object Mowan {
                 val mouth = when (p.face) {
                     Face.RAINY -> pts(57.6, 55.0, 60.0, 54.2, 62.4, 55.0)
                     Face.SUNNY -> pts(57.5, 54.6, 60.0, 56.6, 62.5, 54.4)
-                    Face.NORMAL -> pts(57.4, 54.6, 60.0, 56.2, 62.6, 54.4)
+                    else -> pts(57.4, 54.6, 60.0, 56.2, 62.6, 54.4)
                 }
                 faceBrush("mouth", mouth, 1.9)
             }

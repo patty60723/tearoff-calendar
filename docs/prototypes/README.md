@@ -15,7 +15,37 @@
 | `src/engine.js`、`src/core.js` | 從 `mowan-hat-umbrella.html` 拆出來的原型程式，給匯出工具用 |
 | `src/weather.js` | 天氣與包袱的定稿參考程式（第二輪審核版，加上動作一致性審核的兩個修正） |
 | `audit/` | Phase 2B 動作一致性審核的渲染截圖 |
+| `tools/load-weather.js` | 匯出、檢查工具共用：載入 engine.js + core.js + weather.js |
 | `tools/export-golden.js` | 匯出黃金數值，給 Android 的 JVM 測試比對 |
+
+## 黃金數值
+
+| 檔案 | 產生方式 | 內容 | 容差 |
+|---|---|---|---|
+| `app/src/test/resources/mowan/golden.json` | `node docs/prototypes/tools/export-golden.js` | 一般、晴、雨在第 1–14 頁的整張畫面（每一條筆畫），來源 `core.js` 的 `Renderer` | 0.011（原型輸出小數兩位） |
+| `app/src/test/resources/mowan/golden-weather.json` | `node docs/prototypes/tools/export-golden-weather.js` | 熱、陰、霧、雷雨、冷、雪 B 的姿勢參數，來源 `weather.js` | 1e-6 |
+
+`golden-weather.json` 的內容：
+
+- 場景與成長頁：6 種天氣 × 第 1、2、3、4、5、6、8、10、14 頁。
+- 時間點：
+  - 熱：0–3700 ms 共 13 個，含抬手、放手的中間格。
+  - 陰：0–7000 ms 共 5 個。
+  - 霧：0–5600 ms 共 5 個。
+  - 雷雨：0、2100、15000 ms，以及打雷後 0–800 ms。
+  - 冷：0–3100 ms 共 9 個。
+  - 雪：0–4500 ms 共 6 個。
+- 每一組的姿勢參數：
+  - 骨架控制點：身體、雙手、雙腳、圍巾尾巴。
+  - 頭：角度、位移（headDx、headDy）、視線。
+  - 表情、一筆的形狀。
+  - 雨傘：握點與角度。
+  - 動作量：汗滴、圍巾拉高、左手握傘柄、白氣、閃電。
+- 已上線的晴、雨各 7 個時間點，來源 `engine.js` 的 `pose()`。
+- 座標：viewBox `0 −20 120 160`，y 朝下。頭先以 (60.5, 66) 為中心轉 headAngle 度，再位移 (headDx, headDy)。姿勢還沒套用「沒有腳時落到地面」。
+- 雷雨的 `sinceStrike` 是打雷後經過的毫秒數。原型的雷打在 9000 ms（90 的倍數），所以原型的抖動相位跟「打雷後的時間」完全相同。
+
+`check-weather-consistency.js`：確認 `weather.js` 跟已上線的晴、雨畫出一樣的角色（結果見整合規格 §5.7）。
 
 ## 重新產生黃金數值
 
