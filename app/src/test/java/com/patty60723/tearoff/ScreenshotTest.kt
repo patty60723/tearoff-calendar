@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
 import android.widget.FrameLayout
+import com.patty60723.tearoff.mowan.Mowan.Weather
 import com.patty60723.tearoff.story.StoryBook
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -192,5 +193,45 @@ class ScreenshotTest {
             canvas.restore()
         }
         File(out, "story-card-pages.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    /**
+     * 墨丸 V3 的新天氣（W3，還沒接到故事卡）：每一列一種天氣，每一欄一個成長頁（第 1、3、4、5、8、14 頁）。
+     * 最後一列是第 14 頁、關閉動畫時的代表姿勢。
+     */
+    @Test
+    fun mowanWeather() {
+        val book = StoryBook(context)
+        val rows = listOf(
+            Triple("熱", Weather.HOT, 1050.0), Triple("陰", Weather.CLOUDY, 1500.0), Triple("霧", Weather.FOG, 2500.0),
+            Triple("雷雨", Weather.THUNDER, 2100.0), Triple("雷雨・嚇一跳", Weather.THUNDER, 5150.0),
+            Triple("冷", Weather.COLD, 1150.0), Triple("雪", Weather.SNOW, 2000.0),
+        )
+        val pages = listOf(1, 3, 4, 5, 8, 14)
+        val cell = 200
+        val h = cell * 4 / 3
+        val bitmap = Bitmap.createBitmap(cell * pages.size, h * (rows.size + 1), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(com.patty60723.tearoff.mowan.Mowan.IVORY)
+        val label = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = com.patty60723.tearoff.mowan.Mowan.INK
+            textSize = 20f
+        }
+        fun draw(col: Int, row: Int, page: Int, weather: Weather, t: Double, still: Boolean, text: String) {
+            val parts = com.patty60723.tearoff.mowan.Mowan.partsOf(com.patty60723.tearoff.story.StoryEngine.unlocked(book.beats, page))
+            val since = if (weather == Weather.THUNDER && t >= 5000.0) t - 5000.0 else null
+            val frame = com.patty60723.tearoff.mowan.Mowan.frame(
+                parts, 0, true, weather, t, com.patty60723.tearoff.mowan.Mowan.rainStepAt(t.toLong()), sinceStrikeMs = since, still = still,
+            )
+            val x = col * cell.toFloat()
+            val y = row * h.toFloat()
+            com.patty60723.tearoff.mowan.MowanPainter(frame).draw(canvas, x, y, cell.toFloat(), h.toFloat())
+            canvas.drawText(text, x + 8, y + 24, label)
+        }
+        rows.forEachIndexed { r, (name, weather, t) -> pages.forEachIndexed { c, page -> draw(c, r, page, weather, t, false, "$name 第 $page 頁") } }
+        listOf("熱" to Weather.HOT, "陰" to Weather.CLOUDY, "霧" to Weather.FOG, "雷雨" to Weather.THUNDER, "冷" to Weather.COLD, "雪" to Weather.SNOW).forEachIndexed { c, (name, weather) ->
+            draw(c, rows.size, 14, weather, com.patty60723.tearoff.mowan.MowanView.stillClock(weather), true, "$name（靜止）")
+        }
+        File(out, "mowan-weather.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 }

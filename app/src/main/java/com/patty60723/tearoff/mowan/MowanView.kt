@@ -63,7 +63,8 @@ class MowanView @JvmOverloads constructor(
         } else {
             val clock = if (still) stillClock(weather) else elapsed.toDouble()
             val rain = if (still) 0 else Mowan.rainStepAt(elapsed)
-            MowanPainter(Mowan.frame(parts, variant, hatOn, weather, clock, rain))
+            // 打雷的時間點由排程決定（W5），在那之前雷雨不會嚇一跳
+            MowanPainter(Mowan.frame(parts, variant, hatOn, weather, clock, rain, still = still))
         }
         painter.draw(
             canvas, paddingLeft.toFloat(), paddingTop.toFloat(),
@@ -93,10 +94,22 @@ class MowanView @JvmOverloads constructor(
         /** 姿勢動畫的重畫間隔，跟原型一樣約 30 FPS */
         const val POSE_FRAME_MS = 33L
 
-        /** 不能動的時候，用哪一個時間點當代表姿勢（跟原型的靜態模式一樣） */
+        /** 不能動的時候，用哪一個時間點當代表姿勢（整合規格 §5.4：都選穩定、自然的一格，不停在動作最大的瞬間） */
         fun stillClock(weather: Mowan.Weather) = when (weather) {
             Mowan.Weather.SUNNY -> 2000.0
             Mowan.Weather.RAINY -> 1050.0
+            /** 手剛碰到臉頰 */
+            Mowan.Weather.HOT -> 650.0
+            /** 視線追著雲往右上看 */
+            Mowan.Weather.CLOUDY -> 1500.0
+            /** 手伸到一半 */
+            Mowan.Weather.FOG -> 1250.0
+            /** 平常抱著傘；不傳打雷時間，所以沒有閃電、不驚嚇 */
+            Mowan.Weather.THUNDER -> 0.0
+            /** 兩陣發抖之間，沒有白氣 */
+            Mowan.Weather.COLD -> 2300.0
+            /** 正抬頭看雪 */
+            Mowan.Weather.SNOW -> 2000.0
             Mowan.Weather.NONE -> 0.0
         }
     }

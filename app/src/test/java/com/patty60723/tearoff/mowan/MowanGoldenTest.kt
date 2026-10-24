@@ -127,7 +127,7 @@ class MowanGoldenTest {
                 } else {
                     assertNull(at, op.stroke)
                 }
-                assertPathEquals(at, parseSvg(o.getString("d")), op.path.commands)
+                SvgGolden.assertPathEquals(at, SvgGolden.parse(o.getString("d")), op.path.commands, tol)
             }
         }
     }
@@ -142,61 +142,4 @@ class MowanGoldenTest {
         assertEquals(-180.0, a.sweepDeg, 1e-9)
     }
 
-    private fun assertPathEquals(at: String, expected: List<PathData.Cmd>, actual: List<PathData.Cmd>) {
-        assertEquals("$at 的指令數", expected.size, actual.size)
-        for (i in expected.indices) {
-            val e = expected[i]
-            val a = actual[i]
-            val where = "$at 指令 $i（$e vs $a）"
-            assertEquals(where, e::class, a::class)
-            when (e) {
-                is PathData.Cmd.MoveTo -> { a as PathData.Cmd.MoveTo; near(where, e.x, a.x); near(where, e.y, a.y) }
-                is PathData.Cmd.LineTo -> { a as PathData.Cmd.LineTo; near(where, e.x, a.x); near(where, e.y, a.y) }
-                is PathData.Cmd.ArcTo -> {
-                    a as PathData.Cmd.ArcTo
-                    near(where, e.rx, a.rx); near(where, e.ry, a.ry)
-                    assertEquals(where, e.largeArc, a.largeArc)
-                    assertEquals(where, e.sweep, a.sweep)
-                    near(where, e.x, a.x); near(where, e.y, a.y)
-                }
-                is PathData.Cmd.QuadTo -> {
-                    a as PathData.Cmd.QuadTo
-                    near(where, e.x1, a.x1); near(where, e.y1, a.y1); near(where, e.x, a.x); near(where, e.y, a.y)
-                }
-                PathData.Cmd.Close -> Unit
-            }
-        }
-    }
-
-    private fun near(where: String, e: Double, a: Double) = assertTrue("$where：$e ≠ $a", Math.abs(e - a) <= tol)
-
-    /** 原型的 path 只用到 M、L、Q、A、a、Z；全部轉成絕對座標 */
-    private fun parseSvg(d: String): List<PathData.Cmd> {
-        val tokens = Regex("""[MLQAaZ]|-?\d*\.?\d+(?:e-?\d+)?""").findAll(d).map { it.value }.toList()
-        val out = ArrayList<PathData.Cmd>()
-        var i = 0
-        var x = 0.0
-        var y = 0.0
-        var sx = 0.0
-        var sy = 0.0
-        fun num() = tokens[i++].toDouble()
-        while (i < tokens.size) {
-            when (val c = tokens[i++]) {
-                "M" -> { x = num(); y = num(); sx = x; sy = y; out += PathData.Cmd.MoveTo(x, y) }
-                "L" -> { x = num(); y = num(); out += PathData.Cmd.LineTo(x, y) }
-                "Q" -> { val x1 = num(); val y1 = num(); x = num(); y = num(); out += PathData.Cmd.QuadTo(x1, y1, x, y) }
-                "A", "a" -> {
-                    val rx = num(); val ry = num(); num()
-                    val large = num() != 0.0; val sweep = num() != 0.0
-                    var ex = num(); var ey = num()
-                    if (c == "a") { ex += x; ey += y }
-                    x = ex; y = ey
-                    out += PathData.Cmd.ArcTo(rx, ry, large, sweep, ex, ey)
-                }
-                "Z" -> { x = sx; y = sy; out += PathData.Cmd.Close }
-                else -> error("看不懂的指令 $c")
-            }
-        }
-        return out
-    }
 }

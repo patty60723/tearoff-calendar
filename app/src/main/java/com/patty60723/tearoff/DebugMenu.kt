@@ -141,7 +141,11 @@ class DebugMenu(
         }
         val label = TextView(activity)
         var page = book.page.coerceIn(1, 14)
-        val weatherName = mapOf(Mowan.Weather.NONE to "一般", Mowan.Weather.SUNNY to "晴天", Mowan.Weather.RAINY to "雨天")
+        val weatherName = mapOf(
+            Mowan.Weather.NONE to "一般", Mowan.Weather.SUNNY to "晴天", Mowan.Weather.RAINY to "雨天",
+            Mowan.Weather.HOT to "熱", Mowan.Weather.CLOUDY to "陰", Mowan.Weather.FOG to "霧",
+            Mowan.Weather.THUNDER to "雷雨", Mowan.Weather.COLD to "冷", Mowan.Weather.SNOW to "雪",
+        )
         fun update() {
             view.parts = Mowan.partsOf(StoryEngine.unlocked(book.beats, page))
             label.text = "第 $page 頁・${weatherName[view.weather]}・紙帽${if (view.hatOn) "戴著" else "脫下"}"
