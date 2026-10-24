@@ -76,6 +76,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
 .tl b { position: absolute; top: 0; width: 2px; height: 18px; background: var(--fg); }
 .count { font-size: 12px; color: #6A6058; text-align: center; font-variant-numeric: tabular-nums; }
 .row6 { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 720px; }
 .row5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 .stills { display: grid; grid-template-columns: 6em repeat(2, minmax(0, 150px)) minmax(0, 1fr); gap: 10px 14px; align-items: center; }
 .stills .h { font-size: 12px; color: var(--muted); }
@@ -107,6 +108,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
   <header>
     <h1>墨丸天氣與包袱修正</h1>
     <p class="lede">《墨丸天氣與包袱草案》的小幅美術修正，只看三件事：雷雨的驚嚇頻率、背在背後的包袱、關閉動畫時停的代表姿勢。其他天氣只收斂表情與動作幅度。角色仍是第 14 頁的完整墨丸，用正式的 V3 筆觸畫。</p>
+    <p class="lede"><span class="tag p">第二輪</span>陰天代表姿勢還原、雪天加 B 方案、包袱跟著肩膀動、雷雨與節日主動畫的觸發規則、靜態雪花不擋臉。其他維持第一輪。</p>
     <p class="lede"><span class="tag c">不變</span>V3 本體、14 頁成長順序、天氣文案、晴天與雨天　<span class="tag n">草案</span>這頁的動作、表情與包袱，仍然沒有批准</p>
   </header>
 
@@ -137,6 +139,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
       <dt>頻率</dt><dd>這頁用固定的 9 秒、23.5 秒示範。App 裡改成每次隨機間隔 15–40 秒，所以不會有固定節奏。</dd>
       <dt>反應</dt><dd>閃電出現約 0.3 秒；嚇一跳的表情只停約 0.4 秒，身體只抖一下、幅度是原版的一半，頭只偏一點。</dd>
       <dt>雙手</dt><dd>右手撐傘，左手有空才一起抓住傘柄。左手拿著節日道具時改回單手撐傘、道具照拿，所以春雨的「雨傘＋紅包」不受影響。</dd>
+      <dt>跟節日主動畫<span class="tag p">第二輪</span></dt><dd>正式 App 的規則：打雷驚嚇屬於「天氣日常」這一層，只在沒有更高優先的演出時才觸發。成長故事、節日主要演出、節日待機在播放時，輪到的那次打雷整個跳過（閃電也不出現），不排隊補播，也不打斷正在播的演出。雨和雷雨雲照常顯示。這頁只示範固定時間點，沒有做排程。</dd>
     </dl>
   </section>
 
@@ -145,6 +148,12 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     <div class="pair">
       <div class="card zoom"><svg data-plain="normal" data-bundle="B1old" data-view="34 62 30 30" role="img" aria-label="修正前的包袱放大"></svg><p class="cap">修正前：布結和布包分開，背帶斜穿過胸口</p></div>
       <div class="card zoom"><svg data-plain="normal" data-bundle="B1" data-view="34 62 30 30" role="img" aria-label="修正後的包袱放大"></svg><p class="cap"><span class="tag p">修正後</span>四角收到上面打結，背帶藏進圍巾</p></div>
+    </div>
+    <p class="label"><span class="tag p">第二輪</span>大動作檢查：伸懶腰最高點</p>
+    <div class="row3">
+      <div class="card zoom"><svg data-plain="normal" data-bundle="B1" data-view="28 54 42 42" role="img" aria-label="一般站姿的包袱放大"></svg><p class="cap">一般（不變）</p></div>
+      <div class="card zoom"><svg data-plain="sunny" data-t="2750" data-bundle="B1r1" data-view="28 54 42 42" role="img" aria-label="第一輪：伸懶腰最高點的包袱"></svg><p class="cap">伸懶腰最高・第一輪：跟一般站姿完全一樣，像貼上去的</p></div>
+      <div class="card zoom"><svg data-plain="sunny" data-t="2750" data-bundle="B1" data-view="28 54 42 42" role="img" aria-label="第二輪：伸懶腰最高點的包袱"></svg><p class="cap">伸懶腰最高・第二輪：肩膀抬起，包袱被提起、往身體擺</p></div>
     </div>
     <p class="label">修正後放在各種姿勢裡</p>
     <div class="row5">
@@ -159,15 +168,16 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
       <dt>布結</dt><dd>兩個布角從結冒出來，結壓在布包的收口上，看得出是同一塊布綁起來的。</dd>
       <dt>背帶</dt><dd>不再斜穿過胸口。改成從結往脖子後面繞，末端藏在圍巾下面，不會碰到身體那條線。</dd>
       <dt>跟著身體</dt><dd>包袱跟著上半身移動，伸懶腰、撐傘、抱身、發抖時都留在左肩後面，手臂畫在包袱前面。</dd>
+      <dt>跟著肩膀<span class="tag p">第二輪</span></dt><dd>包袱改成掛在布結上：左手舉得越高，包袱被提起越多（最多 1.6）、下緣往身體擺越多（最多 6°）。一般站姿不受影響，伸懶腰時會跟著抬起、放下。</dd>
       <dt>花紋</dt><dd>碎花點從四顆減成三顆，比較小、半透明，只是讓布有一點質感。</dd>
     </dl>
   </section>
 
   <section aria-labelledby="h-still">
     <h2 id="h-still">3. 關閉動畫時的代表姿勢</h2>
-    <p class="lede">系統關閉動畫時，每種天氣只畫這一張。原本停的時間點有幾個剛好是動作最大的瞬間；調整後都選穩定、自然的一格。晴天、雨天已定案，維持原本的代表姿勢。</p>
+    <p class="lede">系統關閉動畫時，每種天氣只畫這一張。左邊是原始草案停的那一格，右邊是目前的。晴天、雨天已定案，維持原本的代表姿勢。<span class="tag p">第二輪</span>陰天還原成原始草案的那一格；雪的靜態畫面不在臉上放雪花。</p>
     <div class="stills" id="stills">
-      <span class="h"></span><span class="h">原本會停在</span><span class="h">調整後</span><span class="h w">為什麼</span>
+      <span class="h"></span><span class="h">原始草案</span><span class="h">目前</span><span class="h w">說明</span>
     </div>
   </section>
 
@@ -182,44 +192,51 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     </div>
   </section>
 
+  <section aria-labelledby="h-snow">
+    <h2 id="h-snow">雪：A／B 比較<span class="tag p">第二輪</span></h2>
+    <p class="lede">A 跟冷天同一套動作，所以雪天和冷天看起來幾乎一樣。B 是另一個簡單的候選，只用來比較，沒有定案。兩案都沿用同樣的飄雪和積雪，文案不變。</p>
+    <div class="pair">
+      <div class="card"><svg data-scene="snow" data-opt="A" data-live role="img" aria-label="雪 A：抱住自己、輕輕發抖"></svg><p class="cap">A：抱住自己、輕輕發抖</p></div>
+      <div class="card"><svg data-scene="snow" data-opt="B" data-live role="img" aria-label="雪 B：抬頭看雪、身體微縮"></svg><p class="cap">B：抬頭看雪、身體微縮</p></div>
+    </div>
+    <dl>
+      <dt>B 的動作</dt><dd>頭往後仰一點、眼睛往上看飄下來的雪，視線慢慢左右移；雙手收在身體兩側、脖子微縮、圍巾拉高一點。每 4 秒輕輕縮一下，幅度比 A 更小。不接雪、沒有道具。</dd>
+      <dt>跟冷天的差別</dt><dd>冷天是低頭閉眼抱住自己；B 是睜眼抬頭看雪，冷只放在身體上。</dd>
+      <dt>代表姿勢</dt><dd>B 停在正抬頭往上看、沒有在縮的那一格，雪花不放在臉上。</dd>
+    </dl>
+  </section>
+
   <section aria-labelledby="h-lists">
-    <h2 id="h-lists">這一輪的修改</h2>
+    <h2 id="h-lists">第二輪的修改</h2>
     <div class="lists">
       <div>
-        <h3>實際修改</h3>
+        <h3>本輪修改（前 → 後）</h3>
         <ul>
-          <li><b>雷雨</b>：改成偶發（示範 30 秒 2 次，App 用隨機 15–40 秒）；嚇一跳變短、抖動減半；其他時間只抱著傘。</li>
-          <li><b>包袱 B1</b>：重畫成收口的布袋；布角與結連在布包上；背帶繞到脖子後面藏進圍巾；位置跟著上半身；碎花變小變淡。</li>
-          <li><b>代表姿勢</b>：熱改停在手剛碰到臉頰；陰改停在正抬頭往上看；冷、雪改停在兩陣發抖之間；雷雨改停在沒有閃電、沒有驚嚇的時候。</li>
-          <li><b>熱</b>：拿掉張嘴喘氣，嘴巴改成平的一條線；腮紅稍微淡一點。</li>
-          <li><b>霧</b>：左手改成低低地往前伸、慢慢伸出收回，不再上下擺。</li>
-          <li><b>冷</b>：發抖幅度從 0.75 降到 0.45；縮脖子與拉高圍巾都變小；眼睛改成輕輕閉上；眉毛變細；打顫的嘴波浪變小。</li>
-          <li><b>雪</b>：發抖幅度再降到 0.2、不呼白氣；雪花從 10 片增加到 16 片、稍微大一點、落得比較慢。</li>
+          <li><b>陰・代表姿勢</b>：0 ms（正抬頭）→ 1500 ms（視線追著雲往右上看），還原成原始草案。陰天的動畫、表情、雲都沒有改過，跟原始草案一致。</li>
+          <li><b>雪・B 方案</b>：伸手接雪花 → 抬頭看雪、手收在身體兩側、身體微縮。A 不變。</li>
+          <li><b>包袱・大動作</b>：位置固定不動 → 掛在布結上，左手舉高時被提起並往身體擺。一般站姿看起來不變。</li>
+          <li><b>雷雨・觸發規則</b>：補上跟成長故事、節日演出的規則（只記錄，沒有做排程）。</li>
+          <li><b>靜態畫面的雪花</b>：可能停在臉上 → 頭和臉的範圍裡不放雪花。</li>
         </ul>
       </div>
       <div>
-        <h3>保留不變</h3>
+        <h3>這一輪沒有動</h3>
         <ul>
-          <li>V3 本體：頭身比例、頭型、五官位置、一筆、筆觸強度。</li>
-          <li>14 頁成長順序與每頁的降級規則。</li>
-          <li>所有天氣文案。</li>
-          <li>晴天伸懶腰、雨天撐傘，以及它們的代表姿勢。</li>
-          <li>陰天抬頭看雲（只改代表姿勢）。</li>
-          <li>熱天的擦汗動作、汗滴、垂下的一筆、大太陽與熱氣。</li>
-          <li>雨傘與節日道具的手部規則：雨傘在右手、同一隻手不拿兩樣、左手有道具時改單手撐傘。</li>
-          <li>一筆只用現有三種形狀；沒有新增帽子或裝備。</li>
+          <li>熱、霧、冷的第一輪修改（照你的確認保留）。</li>
+          <li>雷雨的偶發驚嚇動畫本身。</li>
+          <li>陰天的 6 秒動畫、表情與雲。</li>
+          <li>雪 A、包袱 B1 的造型。</li>
+          <li>V3 本體、14 頁成長順序、晴天與雨天、天氣文案；沒有新增配件。</li>
         </ul>
       </div>
       <div>
-        <h3>尚待決策</h3>
+        <h3>仍待決策</h3>
         <ul>
-          <li><b>晴天文案與草帽</b>：文案「大晴天，戴上草帽出門！」，但 V3 晴天沒有草帽。要加草帽還是改文案（D-17）。這一輪沒有加草帽。</li>
-          <li><b>雪的最終方案</b>：暫採 A；B（接雪花）要改文案才能用。</li>
-          <li><b>包袱能不能拿下來</b>：跟紙帽一起決定（D-05）。</li>
-          <li><b>包袱布色</b>：仍是 Sage，撐傘時會跟傘同色。</li>
-          <li><b>色票外的顏色</b>：陰天雲 #EAE5DC、雷雨雲 #CFC7BC、雪 #FFFFFF。</li>
-          <li><b>雷雨間隔</b>：App 用隨機 15–40 秒是建議值，要不要更少。</li>
-          <li><b>冷天與紅包</b>：拿著紅包時只用一隻手抱，規則已定，還沒畫成圖。</li>
+          <li>雪採 A 還是 B。</li>
+          <li>晴天文案「戴上草帽出門！」與 V3 晴天沒有草帽（D-17）。</li>
+          <li>包袱能不能拿下來（D-05）、布色是否維持 Sage。</li>
+          <li>色票外的顏色：陰天雲 #EAE5DC、雷雨雲 #CFC7BC、雪 #FFFFFF。</li>
+          <li>雷雨間隔（建議隨機 15–40 秒）。</li>
         </ul>
       </div>
     </div>
@@ -1421,8 +1438,9 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     // 好冷：雙手交叉抱住自己
     L_HUG: [[60.5, 77], [54.6, 80.2], [53.8, 85.2], [58.4, 88.4], [65.6, 87.4]],
     R_HUG: [[60.8, 77], [66.6, 80.2], [67.4, 85.2], [62.8, 88.6], [55.6, 87.6]],
-    // 接雪花：右手往外伸、手心朝上
-    R_CATCH: [[60.8, 77], [66.5, 80], [72, 82], [78, 82.3], [82.5, 80.6]],
+    // 雪 B：手臂收在身體兩側，微微夾緊
+    L_TUCK: [[60.5, 77], [58.4, 81.2], [57.4, 86], [57.2, 91], [57, 95.6]],
+    R_TUCK: [[60.8, 77], [63, 81], [64, 85.8], [64.2, 90.8], [64.4, 95.4]],
   };
 
   /** 讓身體上半部抖一下（腳不動） */
@@ -1466,7 +1484,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
       },
     },
     cloudy: {
-      name: '陰', mood: 'CLOUDY', line: '抬頭看看，雲飄過去了。', period: 6000, keys: [0, 1500, 4500], still: 0, oldStill: 1500,
+      name: '陰', mood: 'CLOUDY', line: '抬頭看看，雲飄過去了。', period: 6000, keys: [0, 1500, 4500], still: 1500, oldStill: 1500, r1Still: 0,
       env: ['clouds'],
       pose(t, caps) {
         const P = basePose();
@@ -1552,17 +1570,22 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
       },
     },
     snow: {
-      name: '雪', mood: 'SNOW', line: '下雪了！冷得一直發抖。', period: 2800, keys: [0, 300, 1300], still: 2300, oldStill: 300,
+      name: '雪', mood: 'SNOW', line: '下雪了！冷得一直發抖。', period: 2800, keys: [0, 300, 1300], still: 2300, oldStill: 300, stillB: 2000,
       env: ['snow'],
       pose(t, caps, opt) {
         const P = basePose();
         if (opt === 'B') {
-          // B：伸手接雪花（文案要改，見頁面說明）
-          if (caps.holdR) P.armR = ARM5.R_CATCH;
-          P.gaze = caps.gaze ? [1.6, 1.4] : [0, 0];
-          P.headAngle = 5;
-          P.face = 'normal';
-          P.fx.flakeOnHand = caps.holdR;
+          // B：抬頭看飄下來的雪，身體微微縮起來；不接雪、沒有道具
+          const w = Math.sin(TAU * t / 4000);
+          P.headAngle = -4 + 1.5 * w;
+          P.headDy = 0.5;
+          P.gaze = caps.gaze ? [0.9 * w, -1.8] : [0, 0];
+          if (caps.holdL) P.armL = ARM5.L_TUCK;
+          if (caps.holdR) P.armR = ARM5.R_TUCK;
+          P.fx.scarfUp = 1;
+          // 每 4 秒輕輕縮一下
+          const u = t % 4000;
+          jitter(P, 0.15 * env(u, 3000, 3060, 3500, 3600) * Math.sin(TAU * u / 85));
           return P;
         }
         // 雪：抖得更輕、不呼白氣，讓飄雪當主角
@@ -1658,6 +1681,8 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     if (env_.has('snow')) {
       flakes.forEach(([x0, y0, r], i) => {
         const y = ((y0 + clock / 1000 * 7) % 150) - 20, x = x0 + 2.6 * Math.sin(clock / 1100 + i);
+        // 停住的畫面：雪花會一直停在那裡，所以不放在頭和臉的範圍裡
+        if (o.still && x > 32 && x < 90 && y > 18 + dy && y < 72 + dy) return;
         path(circleD(x, y, r), ` fill="${SNOW_FILL}" stroke="${INK}" stroke-width="0.6"`);
       });
     }
@@ -1692,7 +1717,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     }
 
     // ---- 包袱（B1 背在背後：在身體前面畫之前） ----
-    if ((o.bundle === 'B1' || o.bundle === 'B1old') && parts.has('bundle')) drawBundle(o.bundle, 'back');
+    if ((o.bundle === 'B1' || o.bundle === 'B1r1' || o.bundle === 'B1old') && parts.has('bundle')) drawBundle(o.bundle, 'back');
 
     // ---- 傘柄 ----
     const umbrella = P.hand && parts.has('armR');
@@ -1863,12 +1888,17 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     }
 
     // ---------- 包袱 ----------
-    function drawBundle(kind, layer) {
+    function drawBundle(kind2, layer) {
+      const kind = kind2 === 'B1r1' ? 'B1' : kind2;
       const jx = P.headDx || 0;
       if (kind === 'B1') {
         // 修正版：布包掛在左肩後面，四角收到上面打一個結；背帶從結繞到脖子後面、藏在圍巾下（不穿過身體）
         if (layer !== 'back') return;
-        const bx = (P.body[1][0] - 61.4) * 0.8 + jx * 0.6, at = (pts) => place(pts, { x: bx, y: dy });
+        const bx = (P.body[1][0] - 61.4) * 0.8 + jx * 0.6;
+        // 左手舉得越高，肩膀越往上：包袱被背帶提起一點，下緣往身體擺過來（第一輪 B1r1 是固定不動）
+        const raise = kind2 === 'B1r1' || !parts.has('armL') ? 0 : clamp01((96 - P.armL[P.armL.length - 1][1]) / 50);
+        const lift = -1.6 * raise, tilt = -6 * raise, pivot = [48, 73.6];
+        const at = (pts) => pts.map((p) => { const q = rotAbout(p, tilt, pivot); return [q[0] + bx, q[1] + dy + lift]; });
         strokeP(at([[49.6, 72.6], [52.6, 71.2], [55.6, 70.6], [58.2, 70.8]]), 1.3, 1.1, 'strap', 0.06, INK);
         const sack = resample([[38.6, 82.6], [38.4, 78.4], [40.6, 75.2], [44.4, 73.8], [47.8, 74.6], [51.4, 73.8], [54.2, 75.8], [55.2, 79.8], [54.2, 84.4], [50.8, 87.6], [45.4, 88.4], [40.8, 86.8]], 64);
         ringP(at(sack), SAGE, 'bundle', 1.3, 0.3);
@@ -1880,7 +1910,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
         ringP(resample(at([[49.2, 72.4], [52, 68.6], [53.4, 69.6], [50.4, 73.6]]), 32), SAGE, 'earR', 1.0, 0.12);
         ringP(at(ellipse(48, 73.6, 2.3, 1.7)), SAGE, 'knot', 1.1, 0.1);
         // 碎花：小、淡
-        [[42.4, 81.4], [48.6, 84.4], [51.4, 79.4]].forEach(([x, y]) => path(circleD(x + bx, y + dy, 0.55), fill(IVORY, 0.55)));
+        at([[42.4, 81.4], [48.6, 84.4], [51.4, 79.4]]).forEach(([x, y]) => path(circleD(x, y, 0.55), fill(IVORY, 0.55)));
         return;
       }
       if (kind === 'B1old') {
@@ -1920,23 +1950,23 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
   const LOOP = THUNDER_LOOP;
   const OLD_STRIKES = Array.from({ length: 7 }, (_, k) => 1380 + k * 4200);
   const sceneOf = (el) => (el.dataset.scene ? SCENES[el.dataset.scene] : PLAIN[el.dataset.plain]);
-  function render(svg, { scene, t, v, bundle, view }) {
+  function render(svg, { scene, t, v, bundle, view, opt, still }) {
     const parts = partsAt(14), caps = getCapabilities(parts);
-    const P = scene.pose(t, caps, 'A');
+    const P = scene.pose(t, caps, opt || 'A');
     svg.setAttribute('viewBox', view || '0 -20 120 160');
-    svg.innerHTML = drawFrame({ P, parts, v, clock: t, envList: scene.env, bundle, uid: 'g' + (uid++) });
+    svg.innerHTML = drawFrame({ P, parts, v, clock: t, envList: scene.env, bundle, still, uid: 'g' + (uid++) });
   }
   // 靜態：放大的包袱
-  document.querySelectorAll('svg[data-view]').forEach((svg) => render(svg, { scene: sceneOf(svg), t: 0, v: 0, bundle: svg.dataset.bundle, view: svg.dataset.view }));
+  document.querySelectorAll('svg[data-view]').forEach((svg) => render(svg, { scene: sceneOf(svg), t: Number(svg.dataset.t || 0), v: 0, bundle: svg.dataset.bundle, view: svg.dataset.view }));
 
   // 靜態：代表姿勢前後對照
   const STILLS = [
     ['hot', 'hot', '原本停在手擦到最高、整隻手貼在頭邊；改停在手剛碰到臉頰。'],
-    ['cloudy', 'cloudy', '原本停在往右看到最遠；改停在正抬頭往上看。'],
+    ['cloudy', 'cloudy', '兩邊一樣：視線追著雲往右上看。第一輪曾改成正抬頭（0 ms），這一輪還原。'],
     ['fog', 'fog', '時間點不變，停在手伸到一半；手勢已改成往前試探。'],
     ['thunderOld', 'thunder', '原本停在閃電加嚇一跳，閃電會一直留在畫面上；改停在平常抱著傘，沒有閃電。'],
     ['cold', 'cold', '原本停在發抖的中間；改停在兩陣發抖之間，也沒有白氣。'],
-    ['snow', 'snow', '跟冷天一樣停在兩陣發抖之間，雪花停在半空。'],
+    ['snow', 'snow', '跟冷天一樣停在兩陣發抖之間；雪花停在半空，但不放在頭和臉上。'],
   ];
   const grid = document.getElementById('stills');
   const cardFor = (scene, t, label) => {
@@ -1946,7 +1976,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label', label);
     card.append(svg);
-    render(svg, { scene, t, v: 0 });
+    render(svg, { scene, t, v: 0, still: true });
     return card;
   };
   for (const [oldId, newId, why] of STILLS) {
@@ -1973,7 +2003,7 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
 
   // 會動的
   const live = [...document.querySelectorAll('svg[data-live]')].map((svg) => ({
-    svg, scene: sceneOf(svg), bundle: svg.dataset.bundle || null, key: '', visible: true,
+    svg, scene: sceneOf(svg), bundle: svg.dataset.bundle || null, opt: svg.dataset.opt || 'A', key: '', visible: true,
     loop: svg.dataset.scene === 'thunder' || svg.dataset.scene === 'thunderOld',
   }));
   if ('IntersectionObserver' in window) {
@@ -2003,12 +2033,14 @@ section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 6
     for (const p of live) {
       if (!p.visible) continue;
       // 還沒播放（例如系統關閉動畫）時，用代表姿勢
-      const still = p.scene.still != null ? p.scene.still : (p.scene.keys[p.scene.keys.length > 1 ? 1 : 0]);
-      const t = clock === 0 && !playing ? still : (p.loop ? u : clock);
+      const stillT = p.opt === 'B' && p.scene.stillB != null ? p.scene.stillB
+        : p.scene.still != null ? p.scene.still : p.scene.keys[p.scene.keys.length > 1 ? 1 : 0];
+      const still = clock === 0 && !playing;
+      const t = still ? stillT : (p.loop ? u : clock);
       const key = v + ':' + Math.round(t / 33);
       if (key === p.key) continue;
       p.key = key;
-      render(p.svg, { scene: p.scene, t, v, bundle: p.bundle });
+      render(p.svg, { scene: p.scene, t, v, bundle: p.bundle, opt: p.opt, still });
     }
     requestAnimationFrame(frame);
   }

@@ -233,6 +233,7 @@ fun capabilitiesFor(page: Int): Capabilities
 ```
 
 - 天氣**環境**（雨、晴天光線）一直存在，不被節日覆蓋（Confirmed）。
+- 雷雨的打雷驚嚇（Proposed，方向已接受）：屬於「天氣日常」層，間隔隨機（建議 15–40 秒）。成長故事、節日主演出、節日 idle 播放時，輪到的那次打雷整個跳過（閃電也不出現），不排隊補播，也不打斷正在播的演出；雨與雷雨雲照常顯示。
 - 純函式：`resolveScene(caps, festivalTheme?, weatherMood?, session) → Scene`（姿勢、各手道具、服裝、環境層）。
 - 節日主題判斷（Proposed）：獨立的 `FestivalTheme.of(date)`，用農曆 / 國曆判斷 SPRING / XMAS / MOON，不依賴 `DayPage.label`。
 - 手部規則（Confirmed）：
