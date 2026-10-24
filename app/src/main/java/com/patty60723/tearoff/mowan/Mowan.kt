@@ -135,7 +135,11 @@ object Mowan {
         val stroke: Int? = null,
         val strokeWidth: Double = 0.0,
         val roundCap: Boolean = false,
+        /** 這一筆屬於哪個部位或道具（例如 "armR"、"eyes"、"umbrella"、"ground"），測試用來檢查成長階段 */
+        val part: String = "",
     )
+
+    private data class Limb(val name: String, val pts: List<Pt>, val w0: Double, val w1: Double)
 
     /** 圖層的變換：先位移，再以 (pivotX, pivotY) 為中心旋轉（度），再縮放 */
     data class Transform(
@@ -165,8 +169,6 @@ object Mowan {
         rainStep: Int = 0,
         umbrellaScale: Double = 1.0,
     ): Frame {
-        val ops = ArrayList<Op>()
-        val v = variant
         val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
         // 雨傘是功能道具，要有右手才拿得了（Confirmed）
@@ -177,14 +179,38 @@ object Mowan {
             else -> Poses.NORMAL
         }
         if (rainy && !umbrella) p = p.copy(face = Face.RAINY, flick = Flick.DROOPED)
+        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale)
+    }
+
+    /**
+     * 把一個姿勢畫成一張影格。姿勢裡有、但還沒解鎖的部位一律不畫；雨傘要姿勢有握點而且有右手才畫。
+     * 天氣只決定環境（太陽、雨、地面）。
+     */
+    internal fun render(
+        parts: Set<String>,
+        variant: Int,
+        hatOn: Boolean,
+        pose: Pose,
+        weather: Weather = Weather.NONE,
+        rainStep: Int = 0,
+        umbrellaScale: Double = 1.0,
+    ): Frame {
+        val ops = ArrayList<Op>()
+        val v = variant
+        val caps = Capabilities.of(parts)
+        val rainy = weather == Weather.RAINY
+        val umbrella = pose.hand != null && caps.holdR
+        var p = pose
         // 閉眼笑要有眼睛
         if (p.face == Face.SUNNY && !caps.expression) p = p.copy(face = Face.NORMAL)
         if (!caps.stand) p = p.shifted(GROUND_DY)
         // 成長焦點期（還沒有手）：天空降到 55%
         val skyOp = if (caps.growthFocus) 0.55f else 1f
 
+        // 接下來畫的筆畫屬於哪個部位
+        var owner = ""
         fun add(layer: Layer, path: PathData, fill: Int?, alpha: Float = 1f, evenOdd: Boolean = false, gradient: Gradient? = null) {
-            ops += Op(layer, path, fill, alpha, evenOdd, gradient)
+            ops += Op(layer, path, fill, alpha, evenOdd, gradient, part = owner)
         }
         fun ringPath(layer: Layer, pts: List<Pt>, fill: Int, part: String, w: Double, amp: Double): Geometry.Ring {
             val ph = Rng.phases(part, v)
@@ -204,17 +230,19 @@ object Mowan {
 
         // ---- 天空（晴天的太陽） ----
         if (weather == Weather.SUNNY) {
+            owner = "sun"
             add(Layer.SKY, PathData.ellipse(99.0, 4.0, 8.5, 8.5), PINK, 0.75f * skyOp)
-            ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 12.0, 12.0), null, skyOp, stroke = PINK, strokeWidth = 1.1)
+            ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 12.0, 12.0), null, skyOp, stroke = PINK, strokeWidth = 1.1, part = owner)
         }
         // ---- 雨（8 FPS） ----
         if (rainy) for (d in DROPS) {
             val y = ((d.y + rainStep * 7) % 150) - 20
             val path = PathData.Builder().move(Pt(d.x, y)).line(Pt(d.x - 1.6, y + 7)).build()
-            ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = 1.5, roundCap = true)
+            ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = 1.5, roundCap = true, part = "rain")
         }
 
         // ---- 地面的影子（雨天是一灘水） ----
+        owner = "ground"
         if (rainy) add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 20.0, 2.6), SAGE, 0.28f)
         else add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 16.0, 2.2), INK, 0.07f)
 
@@ -228,6 +256,7 @@ object Mowan {
                 .add(Geometry.brush(Geometry.catmull(shaft, 6), { 2.2 }, { 0.0 }))
                 .add(Geometry.brush(Geometry.catmull(crook, 6), { 2.2 }, { 0.0 }))
                 .build()
+            owner = "umbrella"
             add(Layer.SHAFT, path, INK)
         }
 
@@ -235,6 +264,7 @@ object Mowan {
         for ((name, w0, w1) in listOf(Triple("legL", 3.1, 2.3), Triple("legR", 3.0, 2.2))) {
             if (name !in parts) continue
             val lg = limb(name, if (name == "legL") p.legL else p.legR, w0, w1, 0.45)
+            owner = name
             add(Layer.BODY, Geometry.outline(lg), INK)
             if ("redToes" in parts) {
                 // 腳尖沾到紅墨：最後 7 個點，寬度放大一點，越往腳尖越濃
@@ -242,15 +272,19 @@ object Mowan {
                 val a = lg.disp[j0]
                 val b = lg.disp[lg.n - 1]
                 val stops = listOf(Triple(0f, TERRA, 0f), Triple(0.5f, TERRA, 0.7f), Triple(1f, TERRA, 0.95f))
+                owner = "redToes"
                 add(Layer.BODY, Geometry.outline(lg, j0, 1.12), null, gradient = Gradient(a.x, a.y, b.x, b.y, stops))
             }
         }
-        if ("body" in parts) add(Layer.BODY, Geometry.outline(limb("body", p.body, 3.1, 2.8, 0.5)), INK)
-        if ("armL" in parts) add(Layer.BODY, Geometry.outline(limb("armL", p.armL, 2.9, 2.1, 0.45)), INK)
-        if ("armR" in parts) add(Layer.BODY, Geometry.outline(limb("armR", p.armR, 2.9, 2.1, 0.45)), INK)
+        for ((name, pts, w0, w1) in listOf(Limb("body", p.body, 3.1, 2.8), Limb("armL", p.armL, 2.9, 2.1), Limb("armR", p.armR, 2.9, 2.1))) {
+            if (name !in parts) continue
+            owner = name
+            add(Layer.BODY, Geometry.outline(limb(name, pts, w0, w1, if (name == "body") 0.5 else 0.45)), INK)
+        }
 
         // ---- 圍巾 ----
         if ("scarf" in parts) {
+            owner = "scarf"
             val pb = Rng.phases("band", v)
             val pt = Rng.phases("tail", v)
             val ps = Rng.phases("split", v)
@@ -282,6 +316,7 @@ object Mowan {
                 { a -> 2.4 * (1 + 0.13 * (0.7 * sin(2 * a + phd[3]) + 0.3 * sin(3 * a + phd[4]))) + 1.1 * max(0.0, cos(a - heavy)).pow(3) },
                 { a -> Geometry.loopNoise(phd, a, 0.75) },
             )
+            owner = "head"
             add(Layer.HEAD, head.fill, PAPER)
             add(Layer.HEAD, head.stroke, INK, evenOdd = true)
 
@@ -296,10 +331,12 @@ object Mowan {
             if ("blush" in parts) {
                 // 新天氣的表情要到 W3 才畫；在那之前 frame() 只會收到一般、晴、雨
                 val op = when (p.face) { Face.SUNNY -> 1f; Face.RAINY -> 0.55f; else -> 0.85f }
+                owner = "blush"
                 add(Layer.HEAD, PathData.ellipse(47.0, 52.8, 3.2, 1.6), PINK, op)
                 add(Layer.HEAD, PathData.ellipse(72.5, 52.3, 3.2, 1.6), PINK, op)
             }
             if ("eyes" in parts) {
+                owner = "eyes"
                 if (p.face == Face.SUNNY) {
                     faceBrush("lidL", pts(49.6, 47.1, 52.0, 48.1, 54.4, 47.1), 1.7)
                     faceBrush("lidR", pts(64.6, 46.6, 67.0, 47.6, 69.4, 46.6), 1.7)
@@ -321,11 +358,13 @@ object Mowan {
                     Face.SUNNY -> pts(57.5, 54.6, 60.0, 56.6, 62.5, 54.4)
                     else -> pts(57.4, 54.6, 60.0, 56.2, 62.6, 54.4)
                 }
+                owner = "mouth"
                 faceBrush("mouth", mouth, 1.9)
             }
 
             // 紙帽：拿到（第 11 頁）而且戴著才畫
             if (caps.paperHat && hatOn) {
+                owner = "paperHat"
                 val fit = { pts: List<Pt> -> Geometry.conform(pts, PaperHat.THETA, PaperHat.SINK, head.points, 0.0, PaperHat.BEND_R) }
                 ringPath(Layer.HEAD, fit(PaperHat.shape), IVORY, "paperHat0", 1.35, 0.4)
                 PaperHat.lines.forEachIndexed { i, line -> strokePath(Layer.HEAD, fit(line), 1.0, 0.8, "paperHatl${i + 1}", 0.12) }
@@ -333,6 +372,7 @@ object Mowan {
 
             // 一筆：永遠在最前面
             if ("flick" in parts) {
+                owner = "flick"
                 val root = head.points[ROOT_INDEX]
                 val pf = Rng.phases("flick", v)
                 add(Layer.HEAD, Geometry.brush(
@@ -347,12 +387,13 @@ object Mowan {
         var canopy: Transform? = null
         if (umbrella && hand != null) {
             canopy = Transform(hand.x, hand.y, p.umbrellaAngle, scale = umbrellaScale)
+            owner = "umbrella"
             val pc = Rng.phases("canopy", v)
             val c = Geometry.ring(CANOPY, { a -> (2.2 / umbrellaScale) * (1 + 0.12 * sin(2 * a + pc[3])) }, { a -> Geometry.loopNoise(pc, a, 0.45) })
             add(Layer.CANOPY, c.fill, SAGE)
             add(Layer.CANOPY, c.stroke, INK, evenOdd = true)
-            ops += Op(Layer.CANOPY, RIBS, null, stroke = INK, strokeWidth = 1.5 / umbrellaScale, roundCap = true)
-            ops += Op(Layer.FRONT, PathData.ellipse(hand.x, hand.y, 3.2, 3.2), PAPER, stroke = INK, strokeWidth = 2.2)
+            ops += Op(Layer.CANOPY, RIBS, null, stroke = INK, strokeWidth = 1.5 / umbrellaScale, roundCap = true, part = owner)
+            ops += Op(Layer.FRONT, PathData.ellipse(hand.x, hand.y, 3.2, 3.2), PAPER, stroke = INK, strokeWidth = 2.2, part = owner)
         }
         return Frame(
             ops.sortedBy { it.layer.ordinal },

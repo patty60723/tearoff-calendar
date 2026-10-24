@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.math.abs
@@ -233,5 +234,85 @@ class WeatherPosesTest {
         // 0.8 秒後完全回到撐傘
         assertEquals(Face.RAINY, Poses.thunder(5000.0, full, 800.0).face)
         assertEquals(0.0, Poses.thunder(5000.0, full, 800.0).headDx, 0.0)
+    }
+
+    // ---------- 動作連續性：相鄰兩格（App 每 33 毫秒重算一次姿勢）不能突然跳 ----------
+
+    private val frameMs = 1000.0 / 30
+
+    private data class Step(val t: Double, val hand: Double, val headAngle: Double, val headDx: Double)
+
+    /** 從 [from] 到 [to]，每一格跟前一格的差 */
+    private fun steps(from: Double, to: Double, at: (Double) -> Pose): List<Step> {
+        val out = ArrayList<Step>()
+        var prev = at(from)
+        var t = from + frameMs
+        while (t <= to) {
+            val p = at(t)
+            val hand = maxOf(
+                hypot(p.armL.last().x - prev.armL.last().x, p.armL.last().y - prev.armL.last().y),
+                hypot(p.armR.last().x - prev.armR.last().x, p.armR.last().y - prev.armR.last().y),
+            )
+            out += Step(t, hand, abs(p.headAngle - prev.headAngle), abs(p.headDx - prev.headDx))
+            prev = p
+            t += frameMs
+        }
+        return out
+    }
+
+    /** 一格最多：手尖 1.5、頭轉 1°。現有動作裡最快的是雷雨驚嚇的 0.41、0.54°（晴天伸懶腰 0.13） */
+    private fun assertSmooth(name: String, steps: List<Step>, maxHand: Double = 1.5, maxAngle: Double = 1.0, maxDx: Double = 1.0) {
+        val worst = steps.maxBy { it.hand }
+        assertTrue("$name：手尖一格跳了 ${"%.2f".format(worst.hand)}（${worst.t.toInt()} ms）", worst.hand <= maxHand)
+        val turn = steps.maxBy { it.headAngle }
+        assertTrue("$name：頭一格轉了 ${"%.2f".format(turn.headAngle)}°（${turn.t.toInt()} ms）", turn.headAngle <= maxAngle)
+        val shake = steps.maxBy { it.headDx }
+        assertTrue("$name：頭一格晃了 ${"%.2f".format(shake.headDx)}（${shake.t.toInt()} ms）", shake.headDx <= maxDx)
+    }
+
+    @Test
+    fun weatherMotionIsContinuous() {
+        // 跑兩個週期，循環接回開頭的那一格也算進去
+        assertSmooth("陰", steps(0.0, 2 * Poses.CLOUDY_MS) { Poses.cloudy(it, full) })
+        assertSmooth("霧", steps(0.0, 2 * Poses.FOG_MS) { Poses.fog(it, full) })
+        assertSmooth("冷", steps(0.0, 2 * Poses.COLD_MS) { Poses.cold(it, full) })
+        assertSmooth("雪", steps(0.0, 2 * Poses.SNOW_MS) { Poses.snow(it, full) })
+        assertSmooth("雷雨", steps(0.0, 2 * Poses.RAINY_MS) { Poses.thunder(it, full) })
+        assertSmooth("晴（已上線）", steps(0.0, 2 * Poses.SUNNY_MS) { Poses.sunny(it) })
+        assertSmooth("雨（已上線）", steps(0.0, 2 * Poses.RAINY_MS) { Poses.rainy(it) })
+    }
+
+    @Test
+    fun thunderStartleIsContinuous() {
+        // 打雷前 100 ms 到打雷後 1 秒
+        assertSmooth("雷雨驚嚇", steps(4900.0, 6000.0) { t -> Poses.thunder(t, full, if (t >= 5000.0) t - 5000.0 else null) })
+        // 驚嚇表情只出現一段，不會閃來閃去
+        val faces = (0 until 33).map { Poses.thunder(5000.0, full, it * frameMs).face }
+        val runs = faces.zipWithNext().count { (a, b) -> a != b }
+        assertEquals("表情只切換兩次（進入、離開驚嚇）", 2, runs)
+    }
+
+    @Test
+    fun hotWipeIsContinuous() {
+        // 擦汗的那一段（手在臉頰上下擦）
+        assertSmooth("熱：擦汗", steps(500.0, 1700.0) { Poses.hot(it, full) })
+    }
+
+    /**
+     * 熱天抬手、放手（0–500 ms、1700–2200 ms）目前不通過：
+     * 手尖一格最多跳 6.35（其他動作最多 0.41），而且在中間姿勢 R_WIPE_SIDE、R_WIPE_MID 幾乎停住
+     * （速度從 200 掉到 15、6 單位／秒），看起來像分三段頓一下。
+     * 這是改善「手臂縮短」時加入中間姿勢的副作用；要改時間或內插方式屬於美術決定，等確認後再改數值並打開這個測試。
+     */
+    @Ignore("熱天抬手、放手的速度與停頓待美術決定，見上方說明")
+    @Test
+    fun hotRaiseAndLowerAreContinuous() {
+        assertSmooth("熱：抬手", steps(0.0, 500.0) { Poses.hot(it, full) })
+        assertSmooth("熱：放手", steps(1700.0, 2200.0) { Poses.hot(it, full) })
+        // 動作中途不能停下來：最慢的一格至少要有最快的一格的 20%
+        for ((name, from, to) in listOf(Triple("抬手", 0.0, 500.0), Triple("放手", 1700.0, 2200.0))) {
+            val moving = steps(from, to) { Poses.hot(it, full) }.map { it.hand }.dropLast(1).drop(1)
+            assertTrue("熱：$name 中途停頓", moving.min() >= 0.2 * moving.max())
+        }
     }
 }
