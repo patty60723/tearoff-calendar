@@ -75,9 +75,14 @@ class StoryCardTest {
         assertEquals(before, a.mowan.timeline.sample(later, false).clockMs, 0.0)
         // 換成雪：從頭開始
         WeatherService.setFakeMood(context, Mood.SNOW)
+        val clickedFrom = android.os.SystemClock.uptimeMillis()
         a.findViewById<TextView>(R.id.weather).performClick()
+        val clickedTo = android.os.SystemClock.uptimeMillis()
         assertEquals(Mowan.Weather.SNOW, a.mowan.weather)
-        assertEquals(before - 700, a.mowan.timeline.sample(later, false).clockMs, 0.0)
+        // 雪的時鐘從點下去的那一刻開始算（點擊時 Robolectric 的時鐘可能會走幾毫秒）
+        val snow = a.mowan.timeline.sample(later, false).clockMs
+        assertTrue("雪的時鐘 $snow 應該從換天氣時重新開始", snow in (later - clickedTo).toDouble()..(later - clickedFrom).toDouble())
+        assertTrue(snow < before)
     }
 
     @Test

@@ -178,7 +178,7 @@ class MainActivity : Activity() {
                 if ("bundle" !in Mowan.partsOf(book.parts)) return@setOnClickListener
                 MowanSettings.setBundleOn(this@MainActivity, !MowanSettings.bundleOn(this@MainActivity))
                 // 只換外觀，墨丸的動作不重來
-                findViewById<MowanView>(R.id.story_mowan).bundleOn = MowanSettings.bundleOn(this@MainActivity)
+                this@MainActivity.findViewById<MowanView>(R.id.story_mowan).bundleOn = MowanSettings.bundleOn(this@MainActivity)
                 showBundleToggle(MowanSettings.storyCard(this@MainActivity))
             }
         }
