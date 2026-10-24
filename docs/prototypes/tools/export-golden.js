@@ -18,7 +18,7 @@ function fakeElement(tag) {
 const document = { createElementNS: (_ns, tag) => fakeElement(tag) };
 
 const src = ['engine.js', 'core.js'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'src', f), 'utf8')).join('\n');
-const api = new Function('document', src + '\nreturn { resolve, buildFrame, Renderer, partsAt, HEAD_LOOP, ROOT_INDEX, mulberry32, hash, ph };')(document);
+const api = new Function('document', src + '\nreturn { resolve, buildFrame, Renderer, partsAt, getCapabilities, HEAD_LOOP, ROOT_INDEX, mulberry32, hash, ph };')(document);
 
 const LAYERS = ['sky', 'clouds', 'rain', 'backdrop', 'ground', 'shaft', 'body', 'scarf', 'head', 'hand', 'canopy', 'front'];
 
@@ -53,6 +53,8 @@ const out = {
   rng: { hashMowan: api.hash('mowan'), mulberry: (() => { const r = api.mulberry32(api.hash('head') + 3 * 7919); return Array.from({ length: 6 }, r); })() },
   headLoop: api.HEAD_LOOP,
   rootIndex: api.ROOT_INDEX,
+  // 每一頁的能力（第 1–14 頁）
+  capabilities: Array.from({ length: 14 }, (_, i) => api.getCapabilities(api.partsAt(i + 1))),
   frames: [],
 };
 // 一般站姿：第 1–14 頁各一張（筆觸影格 0）、第 14 頁的另外 4 張筆觸影格、第 14 頁脫下紙帽

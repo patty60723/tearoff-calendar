@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import com.patty60723.tearoff.mowan.Capabilities
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
@@ -41,6 +42,7 @@ class DebugMenu(
             "測試閃退紀錄（App 會閃退一次）",
             "看墨丸 V3…",
             "故事卡用墨丸 V3（現在：${if (MowanSettings.storyCard(activity)) "開" else "關"}）",
+            "墨丸的紙帽（現在：${hatState()}）",
         )
         AlertDialog.Builder(activity)
             .setTitle("除錯")
@@ -50,13 +52,21 @@ class DebugMenu(
                     1 -> setToday(today.plusDays(1))
                     2 -> setToday(null)
                     3 -> askPage()
-                    4 -> confirm("確定要從頭開始？名字也會清掉。") { book.reset(); refresh() }
+                    4 -> confirm("確定要從頭開始？名字和紙帽也會回到預設。") {
+                        book.reset()
+                        MowanSettings.resetEquipment(activity)
+                        refresh()
+                    }
                     5 -> pickAction()
                     6 -> pickWeather()
                     7 -> throw RuntimeException("除錯選單：測試閃退紀錄")
                     8 -> showMowan()
                     9 -> {
                         MowanSettings.setStoryCard(activity, !MowanSettings.storyCard(activity))
+                        refresh()
+                    }
+                    10 -> {
+                        MowanSettings.setHatOn(activity, !MowanSettings.hatOn(activity))
                         refresh()
                     }
                 }
@@ -116,10 +126,17 @@ class DebugMenu(
             .show()
     }
 
+    /** 紙帽要第 11 頁才拿到；拿到之前切換也會記住，拿到時就照這個狀態 */
+    private fun hatState(): String {
+        val on = if (MowanSettings.hatOn(activity)) "戴著" else "脫下"
+        return if (Capabilities.of(Mowan.partsOf(book.parts)).paperHat) on else "還沒拿到，拿到後$on"
+    }
+
     /** 墨丸 V3 的預覽：可以切頁數、天氣、紙帽，line boil 會自己動。 */
     private fun showMowan() {
         val density = activity.resources.displayMetrics.density
         val view = MowanView(activity).apply {
+            hatOn = MowanSettings.hatOn(activity)
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (320 * density).toInt())
         }
         val label = TextView(activity)

@@ -155,6 +155,7 @@ class MainActivity : Activity() {
         findViewById<MowanView>(R.id.story_mowan).apply {
             visibility = if (v3) View.VISIBLE else View.GONE
             parts = Mowan.partsOf(book.parts)
+            hatOn = MowanSettings.hatOn(this@MainActivity)
             this.weather = weather
         }
     }

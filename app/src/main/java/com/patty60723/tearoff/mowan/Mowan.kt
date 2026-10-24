@@ -150,7 +150,7 @@ object Mowan {
      * 一張影格。
      * @param parts 已解鎖的部位，見 [partsOf]
      * @param variant 筆觸影格 0 到 [FRAMES]−1，見 [variantAt]
-     * @param hatOn 紙帽是否戴著（取得後的裝備狀態，細節 TBD）
+     * @param hatOn 紙帽是否戴著（裝備狀態，見 [MowanSettings.hatOn]；還沒拿到時不管這個值都不畫）
      * @param weather 天氣場景
      * @param clockMs 姿勢的時間（伸懶腰、傘的擺動）
      * @param rainStep 雨絲的位置，見 [rainStepAt]
@@ -167,9 +167,10 @@ object Mowan {
     ): Frame {
         val ops = ArrayList<Op>()
         val v = variant
+        val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
         // 雨傘是功能道具，要有右手才拿得了（Confirmed）
-        val umbrella = rainy && "armR" in parts
+        val umbrella = rainy && caps.holdR
         var p = when {
             weather == Weather.SUNNY -> Poses.sunny(clockMs)
             umbrella -> Poses.rainy(clockMs)
@@ -177,10 +178,10 @@ object Mowan {
         }
         if (rainy && !umbrella) p = p.copy(face = Face.RAINY, flick = Flick.DROOPED)
         // 閉眼笑要有眼睛
-        if (p.face == Face.SUNNY && "eyes" !in parts) p = p.copy(face = Face.NORMAL)
-        if ("legL" !in parts && "legR" !in parts) p = p.shifted(GROUND_DY)
+        if (p.face == Face.SUNNY && !caps.expression) p = p.copy(face = Face.NORMAL)
+        if (!caps.stand) p = p.shifted(GROUND_DY)
         // 成長焦點期（還沒有手）：天空降到 55%
-        val skyOp = if ("armR" !in parts && "armL" !in parts) 0.55f else 1f
+        val skyOp = if (caps.growthFocus) 0.55f else 1f
 
         fun add(layer: Layer, path: PathData, fill: Int?, alpha: Float = 1f, evenOdd: Boolean = false, gradient: Gradient? = null) {
             ops += Op(layer, path, fill, alpha, evenOdd, gradient)
@@ -322,7 +323,8 @@ object Mowan {
                 faceBrush("mouth", mouth, 1.9)
             }
 
-            if ("paperHat" in parts && hatOn) {
+            // 紙帽：拿到（第 11 頁）而且戴著才畫
+            if (caps.paperHat && hatOn) {
                 val fit = { pts: List<Pt> -> Geometry.conform(pts, PaperHat.THETA, PaperHat.SINK, head.points, 0.0, PaperHat.BEND_R) }
                 ringPath(Layer.HEAD, fit(PaperHat.shape), IVORY, "paperHat0", 1.35, 0.4)
                 PaperHat.lines.forEachIndexed { i, line -> strokePath(Layer.HEAD, fit(line), 1.0, 0.8, "paperHatl${i + 1}", 0.12) }

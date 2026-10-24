@@ -166,4 +166,31 @@ class ScreenshotTest {
         save("app-mowan", root, root.width, root.height, background = false)
         com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
     }
+
+    /** 故事卡用 V3 時，第 1–14 頁各一張（看故事文字和墨丸長到哪裡對不對得上） */
+    @Test
+    fun storyCardPages() {
+        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, true)
+        val cards = (1..14).map { page ->
+            StoryBook(context).jumpTo(page, AppClock.today(context))
+            val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+            val card = activity.findViewById<View>(R.id.story_mowan).parent as View
+            Bitmap.createBitmap(card.width, card.height, Bitmap.Config.ARGB_8888).also { card.draw(Canvas(it)) }
+        }
+        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
+        val scale = 0.5f
+        val w = (cards.maxOf { it.width } * scale).toInt()
+        val h = (cards.maxOf { it.height } * scale).toInt()
+        val sheet = Bitmap.createBitmap(w * 2, h * 7, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(sheet)
+        canvas.drawColor(0xFFEFEAE1.toInt())
+        cards.forEachIndexed { i, card ->
+            canvas.save()
+            canvas.translate((i % 2) * w.toFloat(), (i / 2) * h.toFloat())
+            canvas.scale(scale, scale)
+            canvas.drawBitmap(card, 0f, 0f, null)
+            canvas.restore()
+        }
+        File(out, "story-card-pages.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
 }
