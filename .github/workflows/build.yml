@@ -24,6 +24,19 @@ jobs:
       - name: Test and build
         run: ./gradlew testDebugUnitTest assembleDebug
 
+      # W7 驗收：墨丸的動畫影格轉成 GIF（影格本身不上傳）
+      - name: Animation frames to GIF
+        if: always()
+        run: |
+          d=app/build/screenshots/w7/frames
+          [ -d "$d" ] || exit 0
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null)
+          for f in "$d"/*/; do
+            n=$(basename "$f")
+            ffmpeg -loglevel error -y -framerate 15 -i "$f%04d.png" -vf "split[a][b];[a]palettegen=max_colors=64[p];[b][p]paletteuse=dither=none" -loop 0 "app/build/screenshots/w7/$n.gif"
+          done
+          rm -rf "$d"
+
       # 測試畫出來的小工具與 App 畫面，失敗時也上傳，方便看哪裡壞了
       - uses: actions/upload-artifact@v4
         if: always()

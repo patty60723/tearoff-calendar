@@ -80,7 +80,7 @@ class MowanTimeline(
 
     companion object {
         /**
-         * 打雷間隔：隨機 15–40 秒（D-19 **Proposed**，數字還沒批准；偶發的方向已確認）。
+         * 打雷間隔：隨機 15–40 秒（D-19，已確認）。
          * 改這兩個數字就好，排程邏輯不用動。
          */
         const val THUNDER_MIN_MS = 15_000L

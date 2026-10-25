@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.TextView
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
+import com.patty60723.tearoff.mowan.MowanTimeline
 import com.patty60723.tearoff.mowan.MowanView
 import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
@@ -119,4 +120,59 @@ class StoryCardTest {
         MowanSettings.setStoryCard(context, false)
         assertEquals(View.GONE, open(14).bundleRow.visibility)
     }
+
+    /** W7：App 到背景時錯過的打雷，回到前景不補播；時鐘也不重來 */
+    @Test
+    fun backgroundDoesNotReplayMissedThunder() {
+        WeatherService.setFakeMood(context, Mood.THUNDER)
+        StoryBook(context).jumpTo(14, AppClock.today(context))
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        val view = controller.get().mowan
+        // 打雷間隔固定 20 秒，結果才確定（App 裡是隨機 15–40 秒）；換掉亂數後重新進入雷雨，排程才會用新的間隔
+        MowanTimeline::class.java.getDeclaredField("random").apply { isAccessible = true }.set(view.timeline, object : kotlin.random.Random() {
+            override fun nextBits(bitCount: Int) = 0
+            override fun nextLong(from: Long, until: Long) = 20_000L
+        })
+        view.weather = Mowan.Weather.NONE
+        view.weather = Mowan.Weather.THUNDER
+        val start = android.os.SystemClock.uptimeMillis()
+
+        controller.pause().stop()
+        advance(30_000) // 第 20 秒的雷在背景時錯過了
+        controller.restart().start().resume()
+        val back = view.timeline.sample(android.os.SystemClock.uptimeMillis(), false)
+        assertEquals("回到前景不補播錯過的雷", null, back.sinceStrikeMs)
+        assertEquals("時鐘沒有重來", (android.os.SystemClock.uptimeMillis() - start).toDouble(), back.clockMs, 0.0)
+
+        // 下一次（第 40 秒）照常打
+        advance(40_100 - (android.os.SystemClock.uptimeMillis() - start))
+        assertEquals(100.0, view.timeline.sample(android.os.SystemClock.uptimeMillis(), false).sinceStrikeMs!!, 0.0)
+    }
+
+    /** W7：關閉動畫時故事卡上的墨丸停在代表姿勢，不排重畫；打開後繼續動 */
+    @Test
+    fun reducedMotionOnTheStoryCard() {
+        WeatherService.setFakeMood(context, Mood.SUNNY)
+        val a = open(14)
+        val canvas = android.graphics.Canvas(android.graphics.Bitmap.createBitmap(300, 400, android.graphics.Bitmap.Config.ARGB_8888))
+        val scale = android.animation.ValueAnimator::class.java.getMethod("setDurationScale", Float::class.javaPrimitiveType)
+        try {
+            scale.invoke(null, 0f)
+            a.mowan.draw(canvas)
+            assertFalse("關閉動畫時不排重畫", a.mowan.isTicking)
+            val still = a.mowan.timeline.sample(android.os.SystemClock.uptimeMillis(), true)
+            assertTrue(still.still)
+            assertEquals(MowanTimeline.stillClock(Mowan.Weather.SUNNY), still.clockMs, 0.0)
+            // 包袱切換時也一樣不動
+            a.bundleRow.performClick()
+            a.mowan.draw(canvas)
+            assertFalse(a.mowan.isTicking)
+        } finally {
+            scale.invoke(null, 1f)
+        }
+        a.mowan.draw(canvas)
+        assertTrue("打開動畫後繼續動", a.mowan.isTicking)
+    }
+
+    private fun advance(ms: Long) = org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(ms))
 }
