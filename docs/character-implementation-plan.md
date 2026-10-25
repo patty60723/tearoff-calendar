@@ -1,6 +1,6 @@
 # 墨丸 V3 — 實作計畫（Phase 2B）
 
-> 狀態：階段順序已確認（2026-10-24）。P0–P3 已完成。P4：W1–W6 與 D-22 已完成（故事卡用 V3 時，8 種天氣與包袱都已接上；V3 改成預設在 P7）；W7 還沒開始。
+> 狀態：階段順序已確認（2026-10-24）。P0–P3 已完成。P4：W1–W7 與 D-22 已完成（故事卡用 V3 時，8 種天氣與包袱都已接上；V3 改成預設在 P7）。W7 驗收見 [W7 驗收報告](character-w7-acceptance.md)。
 > 相關文件：[整合規格](character-integration-spec.md)・[未定案事項](character-open-decisions.md)
 
 ## 排序原則
@@ -154,7 +154,7 @@
 | **W4 包袱 B1** ✅ | `BUNDLE` 圖層、跟隨規則（§5.5）；第 14 頁才畫 | W1 | 黃金數值比對通過；更新 `CapabilitiesTest`；CI 截圖：一般、伸懶腰、撐傘、冷 |
 | **W5 時間與事件** ✅ | `MowanView`：各天氣的代表格、打雷事件（隨機間隔、跳過不補播）、靜止畫面雪花不擋臉 | W2、W3 | JVM 測試：給定時間 → 代表格；打雷遇到更高優先時不觸發也不補；Reduced Motion 時沒有閃電、不排重畫 |
 | **W6 接上故事卡** ✅ | `weatherOf` 對應 8 種 Mood；故事卡平常就顯示當天的天氣環境；天氣更新不重啟同一種天氣的姿勢 | W3、W5 | Robolectric：天氣更新時姿勢時鐘不重來；CI 截圖：8 種天氣 × 第 1、4、5、14 頁 |
-| **W7 視覺驗收** | 在 CI 截圖和實機上，依整合規格 §5.1 的 Pending 項目逐一看過 | W6 | 每項標成 Visually Verified，或列出新的問題 |
+| **W7 視覺驗收** ✅ | 在 CI 截圖、Android Emulator 和實機上，依整合規格 §5.1 的 Pending 項目逐一看過 | W6 | 每項標成 Pass／Minor／Blocker／Not tested（實機沒有測，見報告） |
 
 W1、W2 的實際結果：
 
@@ -226,6 +226,14 @@ W6 的實際結果：
   - `MowanDirectorTest` 3 個。
   - `MowanSceneTest` 的天氣對應改成 8 種。
 - CI 截圖 `story-card-weathers.png`。
+
+W7 的實際結果（[驗收報告](character-w7-acceptance.md)）：
+
+- 沒有 Blocker。修正 1 個功能問題：App 停在前景時重新打開系統動畫，墨丸會停住（Android 13 以上改成收到設定通知就重畫）。
+- 新增 Android Emulator 驗收（`.github/workflows/emulator.yml`、`tools/emulator/w7-acceptance.sh`）：8 種天氣、錄影、成長頁數、包袱入口點擊與保存、Reduced Motion、背景／前景、密度與字體大小、重畫次數。
+- 新增回歸測試：背景時錯過的雷不補播、故事卡上的 Reduced Motion、前景重新打開動畫、7 種密度與字體組合下包袱入口不截斷。
+- 驗收素材在 `acceptance/mowan-w7` 分支。實體手機沒有測（Not tested）。
+- 留給 P5：48px 簡化版（表情在 48px 看不出來）。留給 P7：實機動態與效能、Reduced Motion 時 App 其他部分的少量重畫。
 
 不在 P4 做：
 

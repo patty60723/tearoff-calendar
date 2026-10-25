@@ -1,10 +1,11 @@
 name: Emulator acceptance
 
 # W7：在 Android Emulator 上實際打開 App 驗收墨丸 V3（截圖、錄影、重畫次數）。
-# 比較久（約 20 分鐘），只在墨丸的功能分支和手動觸發時跑。
+# 比較久（約 17 分鐘），只在墨丸的功能分支（不含只改文件的 push）和手動觸發時跑。
 on:
   push:
     branches: [feature/mowan-weather-poses]
+    paths-ignore: ['docs/**']
   workflow_dispatch:
 
 permissions:
@@ -50,6 +51,10 @@ jobs:
       - name: Show report
         if: always()
         run: cat emulator-out/report.txt || true
+
+      # 報告裡有 FAIL 就讓這次執行失敗（結果還是會上傳、推到分支）
+      - name: Check report
+        run: "! grep -q '^FAIL' emulator-out/report.txt"
 
       - uses: actions/upload-artifact@v4
         if: always()
