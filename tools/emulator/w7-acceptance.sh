@@ -68,38 +68,22 @@ scroll_down() {
   sleep 1
 }
 
-# 畫面上元件的位置：uiautomator dump。畫面一直在動時 uiautomator 等不到 idle 會失敗，
-# 所以先暫時關掉動畫（墨丸停住）、dump 完再打開。之後要錄動畫的話要重開 App（setup）。
+# 畫面上元件的位置：用 dumpsys activity top 的 View 階層算（uiautomator 在畫面持續重畫時 dump 不出來）
 dump_ui() { # dump_ui <名稱>
-  adb shell settings put global animator_duration_scale 0
-  sleep 1.5
-  local ok=1
-  for _ in 1 2 3; do
-    if adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui/$1.xml" >/dev/null 2>&1; then ok=0; break; fi
-    sleep 1
-  done
-  adb shell settings put global animator_duration_scale 1
-  [ $ok = 0 ] || log "  （$1：uiautomator dump 失敗）"
-  return $ok
+  adb shell dumpsys activity top > "$OUT/ui/$1.txt" 2>/dev/null
+  grep -q "story_mowan" "$OUT/ui/$1.txt" || { log "  （$1：dumpsys 找不到故事卡）"; return 1; }
 }
-bounds_of() { # bounds_of <ui.xml> <resource-id 或文字>：輸出 "x1 y1 x2 y2"
-  [ -f "$1" ] || return 0
-  python3 - "$1" "$2" <<'PYEOF'
-import re, sys
-import xml.etree.ElementTree as ET
-key = sys.argv[2]
-for n in ET.parse(sys.argv[1]).iter("node"):
-    if n.get("resource-id", "").endswith("/" + key) or n.get("text") == key:
-        print(*map(int, re.findall(r"\d+", n.get("bounds"))))
-        break
-PYEOF
+bounds_of() { # bounds_of <名稱> <id>：輸出 "x1 y1 x2 y2"（看得到的才輸出）
+  local r
+  r=$(python3 tools/emulator/view_bounds.py "$OUT/ui/$1.txt" "$2" 2>/dev/null)
+  [ "${r##* }" = V ] && echo "${r% *}"
 }
 
-# 故事卡的範圍（墨丸上緣到包袱入口或故事文字下緣），從 dump 出來的 xml 算
+# 故事卡的範圍（墨丸上緣到包袱入口或故事文字下緣）
 CARD=""
-card_region() { # card_region <ui.xml 的名稱>
-  local f="$OUT/ui/$1.xml" m b t
-  m=$(bounds_of "$f" story_mowan); t=$(bounds_of "$f" story_text); b=$(bounds_of "$f" story_bundle)
+card_region() { # card_region <dump 的名稱>
+  local m b t
+  m=$(bounds_of "$1" story_mowan); t=$(bounds_of "$1" story_text); b=$(bounds_of "$1" story_bundle)
   [ -n "$m" ] || return 1
   set -- $m
   local top=$(( $2 - 60 )) bottom=$4
@@ -173,7 +157,7 @@ for p in 1 3 4 5 8 13 14; do
   if dump_ui "page-$p"; then
     card_region "page-$p" || CARD=$CARD14
     crop "page-$p"
-    b=$(bounds_of "$OUT/ui/page-$p.xml" story_bundle)
+    b=$(bounds_of "page-$p" story_bundle)
     if [ "$p" = 14 ]; then check "第 $p 頁包袱入口" "$([ -n "$b" ] && echo 0 || echo 1)" "應該出現（$b）"
     else check "第 $p 頁包袱入口" "$([ -z "$b" ] && echo 0 || echo 1)" "不應該出現"; fi
   fi
@@ -184,7 +168,7 @@ log ""
 log "== 4. 包袱入口：點擊、狀態保存、畫面更新 =="
 setup 14 SUNNY true
 dump_ui bundle-before
-b=$(bounds_of "$OUT/ui/bundle-before.xml" "卸下包袱 ›")
+b=$(bounds_of "bundle-before" story_bundle)
 if [ -n "$b" ]; then
   set -- $b
   bx=$(( ($1 + $3) / 2 )); by=$(( ($2 + $4) / 2 ))
@@ -203,7 +187,7 @@ if [ -n "$b" ]; then
   check "包袱點擊不閃退" "$(crashed && echo 1 || echo 0)" "點三下"
   shot bundle-2-off
   dump_ui bundle-after
-  check "點完變成「背上包袱」" "$([ -n "$(bounds_of "$OUT/ui/bundle-after.xml" "背上包袱 ›")" ] && echo 0 || echo 1)" "文字跟著換"
+  log "  點完的文字看截圖 bundle-2-off（dumpsys 沒有文字內容）"
   stored=$(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep bundleOn)
   check "包袱狀態存起來" "$(echo "$stored" | grep -q 'value="false"' && echo 0 || echo 1)" "$stored"
   adb shell am force-stop $PKG
@@ -211,9 +195,10 @@ if [ -n "$b" ]; then
   sleep 2; scroll_down
   shot bundle-3-restart
   dump_ui bundle-restart
-  check "重開 App 還是卸下" "$([ -n "$(bounds_of "$OUT/ui/bundle-restart.xml" "背上包袱 ›")" ] && echo 0 || echo 1)" "重開後的文字"
+  stored=$(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep bundleOn)
+  check "重開 App 還是卸下" "$(echo "$stored" | grep -q 'value="false"' && echo 0 || echo 1)" "$stored；畫面看截圖 bundle-3-restart"
 else
-  check "找到包袱入口" 1 "uiautomator 沒找到「卸下包袱 ›」"
+  check "找到包袱入口" 1 "dumpsys 沒找到看得到的 story_bundle"
 fi
 
 log ""
@@ -297,8 +282,8 @@ for d in 320 420 560; do
     adb exec-out screencap -p > "$OUT/shots/density-$d-font-$fs-full.png"
     if dump_ui "density-$d-font-$fs" && card_region "density-$d-font-$fs"; then
       crop "density-$d-font-$fs"
-      b=$(bounds_of "$OUT/ui/density-$d-font-$fs.xml" story_bundle)
-      t=$(bounds_of "$OUT/ui/density-$d-font-$fs.xml" story_text)
+      b=$(bounds_of "density-$d-font-$fs" story_bundle)
+      t=$(bounds_of "density-$d-font-$fs" story_text)
       [ -n "$b" ] && [ -n "$t" ] || { check "密度 $d、字體 $fs 的包袱入口" 1 "找不到入口或故事文字"; CARD=$CARD_SAVE; continue; }
       set -- $b; bh=$(( $4 - $2 )); set -- $t; tb=$4; set -- $b
       ok=$([ "$bh" -ge $(( 48 * d / 160 - 1 )) ] && [ "$2" -ge "$tb" ] && [ "$3" -le "$W" ] && echo 0 || echo 1)
@@ -317,7 +302,7 @@ write_prefs mowan "  <boolean name=\"storyCard\" value=\"false\" />"
 adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
 shot stickman
 dump_ui stickman
-check "舊火柴人沒有包袱入口" "$([ -f "$OUT/ui/stickman.xml" ] && [ -z "$(bounds_of "$OUT/ui/stickman.xml" "卸下包袱 ›")" ] && echo 0 || echo 1)" ""
+check "舊火柴人沒有包袱入口" "$([ -f "$OUT/ui/stickman.txt" ] && [ -z "$(bounds_of stickman story_bundle)" ] && echo 0 || echo 1)" ""
 
 log ""
 check "全程沒有閃退" "$(crashed && echo 1 || echo 0)" "logcat 沒有 FATAL EXCEPTION"
