@@ -107,7 +107,8 @@ class MowanViewTest {
     fun reenablingAnimationsInTheForegroundRedraws() {
         view.weather = Mowan.Weather.SUNNY
         setDurationScale(0f)
-        draw()
+        // 從父層畫，View 才會標成「已經畫過」，之後的 invalidate 才看得出來
+        parent.draw(Canvas(Bitmap.createBitmap(480, 640, Bitmap.Config.ARGB_8888)))
         assertFalse(view.isTicking)
         assertFalse(view.isDirty)
         setDurationScale(1f)
