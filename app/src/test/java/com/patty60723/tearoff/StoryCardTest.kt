@@ -149,37 +149,41 @@ class StoryCardTest {
         assertEquals(100.0, view.timeline.sample(android.os.SystemClock.uptimeMillis(), false).sinceStrikeMs!!, 0.0)
     }
 
-    /** W7：關閉動畫時故事卡上的墨丸停在代表姿勢，不排重畫；打開後繼續動 */
+    /**
+     * W7：關閉動畫時故事卡上的墨丸停在代表姿勢，時間過去畫面也不變（包袱切換也不會讓它動起來）；打開後又會動。
+     * 「不排重畫」本身在 MowanViewTest 檢查；Robolectric 裡 MainActivity 的視窗一直是 GONE，這裡改比對畫出來的像素。
+     */
     @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
     fun reducedMotionOnTheStoryCard() {
         WeatherService.setFakeMood(context, Mood.SUNNY)
         val a = open(14)
-        // 讓視窗跑完第一次 traversal（要等一個畫面的時間），View 才知道自己的視窗看得到；
-        // 沒跑的話 windowVisibility 還是 GONE，本來就不排重畫
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(100))
-        assertEquals(View.VISIBLE, a.mowan.windowVisibility)
-        val canvas = android.graphics.Canvas(android.graphics.Bitmap.createBitmap(300, 400, android.graphics.Bitmap.Config.ARGB_8888))
+        fun pixels(): IntArray {
+            val b = android.graphics.Bitmap.createBitmap(a.mowan.width, a.mowan.height, android.graphics.Bitmap.Config.ARGB_8888)
+            a.mowan.draw(android.graphics.Canvas(b))
+            return IntArray(b.width * b.height).also { b.getPixels(it, 0, b.width, 0, 0, b.width, b.height) }
+        }
         val scale = android.animation.ValueAnimator::class.java.getMethod("setDurationScale", Float::class.javaPrimitiveType)
         try {
             scale.invoke(null, 0f)
-            a.mowan.draw(canvas)
-            assertFalse("關閉動畫時不排重畫", a.mowan.isTicking)
             val still = a.mowan.timeline.sample(android.os.SystemClock.uptimeMillis(), true)
             assertTrue(still.still)
             assertEquals(MowanTimeline.stillClock(Mowan.Weather.SUNNY), still.clockMs, 0.0)
-            // 包袱切換時也一樣不動
+            val first = pixels()
+            advance(700)
+            assertTrue("關閉動畫時，過了 0.7 秒畫面不變", first.contentEquals(pixels()))
+            // 包袱切換：外觀換了，但之後還是靜止
             a.bundleRow.performClick()
-            a.mowan.draw(canvas)
-            assertFalse(a.mowan.isTicking)
+            val off = pixels()
+            assertFalse("卸下包袱畫面要跟著換", first.contentEquals(off))
+            advance(700)
+            assertTrue("卸下包袱後仍然靜止", off.contentEquals(pixels()))
         } finally {
             scale.invoke(null, 1f)
         }
-        a.mowan.draw(canvas)
-        assertTrue(
-            "打開動畫後繼續動（isShown=${a.mowan.isShown}、window=${a.mowan.windowVisibility}、" +
-                "animators=${android.animation.ValueAnimator.areAnimatorsEnabled()}）",
-            a.mowan.isTicking,
-        )
+        val moving = pixels()
+        advance(700)
+        assertFalse("打開動畫後繼續動", moving.contentEquals(pixels()))
     }
 
     private fun advance(ms: Long) = org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(ms))
