@@ -102,17 +102,24 @@ class MowanViewTest {
         assertTrue("打開動畫後繼續動", view.isTicking)
     }
 
-    /** W7：停在前景時系統動畫被打開，墨丸要重畫（之後才會繼續排重畫），不能一直停住 */
+    /**
+     * W7：停在前景時系統動畫被打開，墨丸要重畫（之後才會繼續排重畫），不能一直停住。
+     * Robolectric 改 duration scale 不會通知 listener，這裡直接呼叫 View 註冊的那個；實際的通知在模擬器驗收裡看。
+     */
     @Test
     fun reenablingAnimationsInTheForegroundRedraws() {
         view.weather = Mowan.Weather.SUNNY
         setDurationScale(0f)
-        // 從父層畫，View 才會標成「已經畫過」，之後的 invalidate 才看得出來
-        parent.draw(Canvas(Bitmap.createBitmap(480, 640, Bitmap.Config.ARGB_8888)))
+        draw()
         assertFalse(view.isTicking)
         assertFalse(view.isDirty)
         setDurationScale(1f)
+        val listener = MowanView::class.java.getDeclaredField("scaleListener").apply { isAccessible = true }.get(view)
+            as ValueAnimator.DurationScaleChangeListener
+        listener.onChanged(1f)
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
         assertTrue("打開動畫後要求重畫", view.isDirty)
+        draw()
+        assertTrue(view.isTicking)
     }
 }
