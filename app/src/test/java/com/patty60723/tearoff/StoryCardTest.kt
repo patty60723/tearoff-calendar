@@ -171,7 +171,11 @@ class StoryCardTest {
             scale.invoke(null, 1f)
         }
         a.mowan.draw(canvas)
-        assertTrue("打開動畫後繼續動", a.mowan.isTicking)
+        assertTrue(
+            "打開動畫後繼續動（isShown=${a.mowan.isShown}、window=${a.mowan.windowVisibility}、" +
+                "animators=${android.animation.ValueAnimator.areAnimatorsEnabled()}）",
+            a.mowan.isTicking,
+        )
     }
 
     private fun advance(ms: Long) = org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(ms))
