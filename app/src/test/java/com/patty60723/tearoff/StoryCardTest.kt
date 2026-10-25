@@ -154,6 +154,9 @@ class StoryCardTest {
     fun reducedMotionOnTheStoryCard() {
         WeatherService.setFakeMood(context, Mood.SUNNY)
         val a = open(14)
+        // 讓視窗跑完第一次 layout，View 才知道自己的視窗看得到（沒跑的話 windowVisibility 還是 GONE，本來就不排重畫）
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(View.VISIBLE, a.mowan.windowVisibility)
         val canvas = android.graphics.Canvas(android.graphics.Bitmap.createBitmap(300, 400, android.graphics.Bitmap.Config.ARGB_8888))
         val scale = android.animation.ValueAnimator::class.java.getMethod("setDurationScale", Float::class.javaPrimitiveType)
         try {
