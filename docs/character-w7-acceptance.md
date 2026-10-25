@@ -113,7 +113,7 @@
 | 執行 | 內容 | 結果 |
 |---|---|---|
 | [Emulator acceptance #12](https://github.com/patty60723/tearoff-calendar/actions/runs/40218717255)（`f942dcd`） | 一般驗收 | **PASS 23、FAIL 0、WARN 0**，執行成功 |
-| [Emulator acceptance #13](https://github.com/patty60723/tearoff-calendar/actions/runs/40218720420)（`f942dcd`，`force_fail`） | 故意加一項失敗 | 執行中 |
+| [Emulator acceptance #13](https://github.com/patty60723/tearoff-calendar/actions/runs/40218720420)（`f942dcd`，`force_fail`） | 故意加一項失敗 | PASS 23、FAIL 1（故意的那一項）→ 「Run on the emulator」這一步失敗、整次執行**失敗**，報告照樣上傳。證明退出碼有正確傳到 CI |
 
 ### W7 最終狀態
 
