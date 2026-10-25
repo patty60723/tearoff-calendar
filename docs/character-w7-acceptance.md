@@ -1,6 +1,7 @@
 # 墨丸 V3 — W7 整合驗收報告
 
 > 日期：2026-10-25　分支：`feature/mowan-weather-poses`
+> **狀態：W7 結案**（獨立審查通過；驗收腳本的退出碼已修正並重跑，見文末「結案」）
 > 驗收素材（截圖、GIF、影片、模擬器紀錄）：[`acceptance/mowan-w7` 分支](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-w7)
 > 相關文件：[整合規格](character-integration-spec.md)・[實作計畫](character-implementation-plan.md)・[未定案事項](character-open-decisions.md)
 
@@ -55,7 +56,7 @@
 | M4 | 48px 顯示 | 紙帽（白色三角）、圍巾（紅）、包袱（綠點）還認得出；**表情看不出來**、四肢只剩約 1px 淡線 | 目前 App 和 Widget 都沒有 48px 的 V3。P5 做 Widget 時需要簡化版（規格已列） |
 | M5 | 冷天白氣疊在右臉頰（新） | 白氣出現時那一團雲疊在臉的輪廓裡，小尺寸看起來像臉上的污點。這是原型的設計，黃金數值一致 | 美術決定是否把白氣往外移；這輪不改 |
 | M6 | 雷雨閃電疊在傘緣（新） | 閃電約 0.3 秒，畫在傘右緣前面 | 看起來像閃電在傘後方的天空，可接受 |
-| M7 | Reduced Motion 時 App 仍有少量重畫（新） | 關閉動畫後 10 秒有 38 張重畫，但畫面像素完全不變。V3 本身不排重畫（測試證明），來源還沒找到。對照組：舊火柴人故事卡關閉動畫時 10 秒 390 張（**舊火柴人不理會 Reduced Motion**，是既有行為） | P7 效能 QA 時用 Layout Inspector 找來源 |
+| M7 | Reduced Motion 時 App 仍有少量重畫（新） | 關閉動畫後 10 秒有 38 張重畫，但畫面像素完全不變。V3 本身不排重畫（測試證明）。很可能的來源：App 日曆頁右下角的小人用 Widget 的 `ViewFlipper` 輪播，它不理會 Reduced Motion（P5 會一起處理）。對照組：舊火柴人故事卡關閉動畫時 10 秒 390 張（**舊火柴人不理會 Reduced Motion**，是既有行為） | P5 處理日曆頁的 `ViewFlipper`；P7 再量一次 |
 | M8 | 模擬器密度截圖有一部分被切掉（素材問題） | 捲到底時大密度、大字體的故事卡上半部在螢幕外 | 完整卡片看 Robolectric 的 `story-card-*.png`；入口檢查不受影響 |
 
 ### Blocker（正式整合前必須修正）
@@ -94,3 +95,29 @@
 - 包袱切換維持故事卡文字入口，不加點擊墨丸切換。
 - 舊版 `playWeather` 和 V3 天氣動畫的整合留到 P6／P7。
 - D-19 雷雨間隔維持 15–40 秒：模擬器兩次錄影分別在第 28、30 秒左右打雷，沒有發現太頻繁或太久的問題。
+
+## 結案（2026-10-25）
+
+### 驗收腳本的退出碼
+
+審查指出 `tools/emulator/w7-acceptance.sh` 的 `check()` 只印 PASS／FAIL、最後固定 `exit 0`，驗收失敗時 CI 仍可能顯示成功（之前靠 workflow 另外 grep 報告補救）。已修正：
+
+- `check` 累計 PASS／FAIL 數量；**任何一項 FAIL，或必要檢查少跑（應該 23 項）**，腳本最後 `exit 1`。
+- 讀不到畫面結構時，該項算 FAIL，不再默默跳過。
+- 截圖、錄影、GIF 這類素材問題改成 **WARN**，只記錄，不算功能失敗。
+- workflow 拿掉 grep 報告的步驟，直接由腳本的退出碼決定成敗（`reactivecircus/android-emulator-runner` 遇到非零就讓這一步失敗）；結果同時寫進執行摘要頁。
+- 手動觸發時可以勾 `force_fail`，故意加一項失敗，確認 CI 會變紅。
+
+### 重跑結果
+
+| 執行 | 內容 | 結果 |
+|---|---|---|
+| [Emulator acceptance #12](https://github.com/patty60723/tearoff-calendar/actions/runs/40218717255)（`f942dcd`） | 一般驗收 | **PASS 23、FAIL 0、WARN 0**，執行成功 |
+| [Emulator acceptance #13](https://github.com/patty60723/tearoff-calendar/actions/runs/40218720420)（`f942dcd`，`force_fail`） | 故意加一項失敗 | 執行中 |
+
+### W7 最終狀態
+
+- **結案**。Blocker 0；Minor 8 項（M1–M8）不阻擋 W7，M4（48px）與 M7（日曆頁 `ViewFlipper`）交給 P5。
+- **Not tested 維持不變**：實機動畫手感、實機效能與耗電、Android 8–12、廠商字體等，不因結案改成 Pass。
+- V3 繼續在除錯開關後面，P7 才改成預設。已驗收的造型、關節、天氣動作與包袱不再調整。
+- 下一步：P5 Widget V3，計畫與待決策事項見[實作計畫 P5](character-implementation-plan.md#p5--widget-v3)。
