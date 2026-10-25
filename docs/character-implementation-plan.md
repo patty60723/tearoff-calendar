@@ -243,21 +243,75 @@ W7 的實際結果（[驗收報告](character-w7-acceptance.md)）：
 
 ## P5 — Widget V3
 
-- **目標**：Widget 改用 V3 renderer，並處理既有的 bitmap 與 JSON 技術債。
-- **檔案**：`CalendarWidget.kt`、`res/layout/widget_*.xml`
-- **技術**：
-  - 故事資料解析一次就快取。
-  - 依 D-04 決定送靜態圖或 5 張 boil 影格。
-  - 計算 bitmap 總位元組，加上限保護。
-  - 48px 規則做成設定（D-07）。
-- **依賴**：P1、P3。
-- **驗收**：
-  - 4 種版面截圖。
-  - bitmap 總大小測試低於設定的預算。
-  - 低階機實測更新不失敗。
-- **風險**：
-  - `ViewFlipper` 在不同 launcher 的行為不一致。
-  - 48px 下 V3 筆觸可能太細 → 依 D-07。
+> 狀態：**計畫已提出，等待決策（D-04、D-07、D-23～D-27），還沒開始實作**（2026-10-25）。
+
+### 現況（讀過程式碼）
+
+- `CalendarWidget.build()` 同時被兩個地方用：桌面小工具（4 種版面）和 **App 主畫面的日曆頁**（`MainActivity` 傳更大的 `stickmanDp`）。改 Widget 的角色，日曆頁右下角的小人也會一起變。
+- 角色區是 `ViewFlipper` + 6 張 bitmap（`StickmanRenderer.frames`），`autoStart` 輪播。尺寸：COMPACT 36dp、WIDE 42dp、MEDIUM 44dp、TALL 48dp（寬；高 = 寬 × 4/3），密度最多算到 3x。
+- Android 12 以上一次送 4 種版面（SizeF map），所以一次更新 = 4 × 6 = 24 張 bitmap，3x 時約 2 MB。
+- `setStickman` 每個版面都 new 一次 `StoryBook`（重新解析故事 JSON 4 次）。
+- `ViewFlipper` 不理會系統的「移除動畫」；W7 的 Minor M7（關閉動畫時 App 仍有少量重畫）很可能就是日曆頁上這個 `ViewFlipper`。
+
+### 角色在 Widget 裡怎麼畫
+
+1. **同一套 V3 renderer**：`Mowan.frame(parts, variant, hatOn, weather, stillClock(weather), …, still = true, bundleOn)`。部位、紙帽、包袱、天氣都從 App 同一個來源讀（`StoryBook.parts`、`MowanSettings`、`WeatherService.current` + `weatherOf`），所以跟 App 一致。
+2. **姿勢一律用靜止代表姿勢**（`MowanTimeline.stillClock`）：跟 App 的 Reduced Motion 畫面是同一張，W7 已經驗收過；Widget 不播天氣動作、不打雷、不演節日主演出（D-16）。
+3. **會不會動只剩 line boil**（D-04）：建議 (a) 靜態一張；如果選 (b)，5 張 boil 影格，系統關閉動畫時退回 (a)。
+4. **小尺寸用簡化版，不直接縮小**（D-07）。
+
+### 小尺寸簡化策略（D-07 的具體做法）
+
+依「角色實際畫出來的高度（px）」分兩級，不看 dp，因為同一個 36dp 在 mdpi 只有 48px、在 xxxhdpi 有 192px：
+
+| 等級 | 角色高度 | 畫法 |
+|---|---|---|
+| **完整** | ≥ 120 px | 跟 App 一樣（現有黃金數值不變） |
+| **簡化** | < 120 px（48px 是主要目標） | 見下方 |
+
+簡化版在 `Mowan.render` 加一個 `detail` 參數，用每一筆既有的 `part` 標籤過濾與加粗，**不改任何座標**：
+
+- **保留**：頭的輪廓、一筆、眼睛、身體與四肢的姿勢、紙帽、圍巾、包袱、雨傘、當天天氣的一個主要元素（太陽、雲、雨絲、雪花）。
+- **加粗**：所有筆畫畫出來至少 1.5 px（依縮放比例換算 strokeWidth 的下限），避免細線消失；圍巾、包袱改成實心色塊，不畫碎花、皺褶。
+- **拿掉**：腮紅、嘴（< 72 px 時）、汗滴、白氣、霧的第二條帶子、地面陰影、多餘的雨絲與雪花（只留 3–4 個、稍微放大）。
+- **表情**：只留眼睛。48px 時表情本來就看不出來（W7 M4），不勉強保留。
+- 冷天抱身（W7 M1）在簡化版靠加粗的手臂圈來辨識，不另外改姿勢。
+
+如果 D-07 選「單一元素」（原型建議：只畫頭＋一筆），那簡化版改成只畫頭部、一筆、紙帽與天氣小圖示，其他規則一樣。
+
+### 更新與效能
+
+- **更新時機**：維持現有（午夜、撕頁、天氣抓到新資料、時間／開機／App 更新廣播、`updatePeriodMillis` 3 小時）。另外補上**紙帽與包袱切換**時呼叫 `refreshAll`（目前故事卡的「卸下包袱 ›」不會更新 Widget）。
+- **Bitmap 預算**：系統對一次 Widget 更新的 bitmap 記憶體上限約是螢幕 1.5 倍大小（1080×2400 約 15 MB）。V3 靜態 1 張 × 4 版面，3x 時約 0.34 MB；5 張 boil 約 1.7 MB。加一個測試算總位元組，超過設定的預算（建議 1 MB）就失敗。
+- **快取**：故事解析一次（`StoryBook.beats` 改成 process 內共用）；同一次更新裡 4 個版面共用同一份 parts、天氣。
+- **Reduced Motion**：建 RemoteViews 時讀 `ValueAnimator.areAnimatorsEnabled()`；關閉時只送 1 張、不設 flip。日曆頁上的 `ViewFlipper` 也一樣（順便處理 W7 M7）。
+- **開關**：Widget 和日曆頁的 V3 跟故事卡用同一個除錯開關（「故事卡用墨丸 V3」，D-23），P7 才改成預設。關閉時完全走舊火柴人，現有截圖不變。
+
+### 不能破壞的東西
+
+- 日期、星期、月份、宜忌、忌、農曆、節日、日出日落、天氣文字、版面切換規則（`PageLayout`）全部不動；角色區的大小與位置不動。
+- 舊火柴人路徑保留（D-15）。
+
+### 測試
+
+| 類型 | 內容 |
+|---|---|
+| JVM | 完整等級的 Widget 影格跟 App 靜止畫面逐筆一樣（同一個 `Mowan.frame`）；簡化等級：保留／拿掉的 part 清單、最細筆畫 ≥ 1.5 px、部位與天氣元素的有無照規則；14 頁 × 8 天氣 × 紙帽／包袱 組合都畫得出來 |
+| 現有 Golden | `MowanGoldenTest`、`WeatherRenderGoldenTest`、`BundleTest` 不能變（完整等級不改座標） |
+| Robolectric | 4 種版面 × 第 1、4、11、14 頁 × 8 種天氣建得出來；文字欄位跟改之前一樣（逐欄比對）；bitmap 總位元組在預算內；關閉動畫時只送 1 張；開關關閉時跟舊版完全一樣；包袱、紙帽切換後 Widget 有更新 |
+| 「細線不消失」 | Robolectric 在 48／72／96 px 畫簡化版，數頭部、身體範圍的墨色像素，低於門檻就失敗（防止之後改壞） |
+| CI 截圖 | `widget-*.png` 4 種版面 × V3；小尺寸對照（mdpi／xhdpi／xxxhdpi × 4 版面 × 8 天氣）；完整 vs 簡化並排 |
+| 模擬器 | 現有 `w7-acceptance.sh` 加一段：在主畫面放 Widget（`appwidget grantbind` + 測試用 host Activity）截圖；不行的話列 Not tested |
+| 人工 | 48px 簡化版的美術（認不認得出是墨丸）仍需人看，跟自動測試分開列 |
+
+### 建議的步驟
+
+1. **P5-1**：快取故事解析、Widget 更新的 bitmap 預算測試（先量現況）。
+2. **P5-2**：`detail` 參數與簡化規則（純 Kotlin + JVM 測試），完整等級的 Golden 不變。
+3. **P5-3**：`CalendarWidget` 接 V3（開關後面）、Reduced Motion、包袱／紙帽切換時更新。
+4. **P5-4**：截圖、模擬器、驗收報告。
+
+- **風險**：`ViewFlipper` 在不同 launcher 行為不一；低階機一次建 4 個版面的時間（目標 < 50 ms，用測試量）；簡化版的美術需要另外審。
 - **複雜度**：中。
 
 ## P6 — 節日系統
