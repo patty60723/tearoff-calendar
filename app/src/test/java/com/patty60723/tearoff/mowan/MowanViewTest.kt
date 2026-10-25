@@ -101,4 +101,17 @@ class MowanViewTest {
         draw()
         assertTrue("打開動畫後繼續動", view.isTicking)
     }
+
+    /** W7：停在前景時系統動畫被打開，墨丸要重畫（之後才會繼續排重畫），不能一直停住 */
+    @Test
+    fun reenablingAnimationsInTheForegroundRedraws() {
+        view.weather = Mowan.Weather.SUNNY
+        setDurationScale(0f)
+        draw()
+        assertFalse(view.isTicking)
+        assertFalse(view.isDirty)
+        setDurationScale(1f)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertTrue("打開動畫後要求重畫", view.isDirty)
+    }
 }

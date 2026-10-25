@@ -258,7 +258,7 @@ sleep 3
 adb shell settings put global animator_duration_scale 1
 sleep 2
 f=$(frames_in 5 reduced-live)
-log "  INFO  留在前景、關掉又打開動畫：之後 5 秒畫了 $f 張"
+check "留在前景、關掉又打開動畫後繼續動" "$([ "${f%% *}" -ge 60 ] 2>/dev/null && echo 0 || echo 1)" "之後 5 秒畫了 $f 張（Android 13 以上）"
 record reduced-live 4
 
 log ""

@@ -3,6 +3,7 @@ package com.patty60723.tearoff.mowan
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
+import android.os.Build
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
@@ -15,6 +16,7 @@ import android.view.View
  * - 換頁、換紙帽或包袱不會讓動作重來；只有換天氣會。
  * - 系統關掉動畫（Reduced Motion）時：固定第一張筆觸影格、停在代表姿勢、不打雷，不排任何重畫。
  * - 看不到的時候（App 在背景、被蓋住、離開畫面）不排重畫；回來時錯過的打雷不補播。
+ * - App 停在前景時系統動畫被打開（例如分割畫面裡改設定），Android 13 以上會通知，墨丸馬上恢復動作。
  */
 class MowanView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
@@ -105,8 +107,17 @@ class MowanView @JvmOverloads constructor(
         if (isVisible) invalidate() else stop()
     }
 
+    /** 系統動畫設定改變：停住的墨丸要重畫一次才知道可以動了（通知可能來自其他執行緒） */
+    private val scaleListener = ValueAnimator.DurationScaleChangeListener { post { invalidate() } }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.registerDurationScaleChangeListener(scaleListener)
+    }
+
     override fun onDetachedFromWindow() {
         stop()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.unregisterDurationScaleChangeListener(scaleListener)
         super.onDetachedFromWindow()
     }
 
