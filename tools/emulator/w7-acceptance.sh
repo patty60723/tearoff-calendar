@@ -10,11 +10,28 @@ mkdir -p "$OUT/shots" "$OUT/video" "$OUT/ui"
 LOG="$OUT/report.txt"
 : > "$LOG"
 log() { echo "$*" | tee -a "$LOG"; }
+
+# 必要的驗收項目用 check：任何一項 FAIL，腳本最後就以非零結束（CI 會失敗）。
+# 截圖、錄影、GIF 這類素材出問題只用 warn 記下來，不算功能失敗。
+PASS_N=0
+FAIL_N=0
+WARN_N=0
+# 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
+EXPECTED_CHECKS=23
 check() { # check <名稱> <條件結果 0/1> <說明>
-  if [ "$2" = 0 ]; then log "PASS  $1 — $3"; else log "FAIL  $1 — $3"; fi
+  if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
+  else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
+}
+warn() { WARN_N=$((WARN_N + 1)); log "WARN  $*"; }
+finish() {
+  log ""
+  local ran=$((PASS_N + FAIL_N))
+  [ "$ran" -ge "$EXPECTED_CHECKS" ] || { FAIL_N=$((FAIL_N + 1)); log "FAIL  必要檢查只跑了 $ran 項（應該 $EXPECTED_CHECKS 項）"; }
+  log "結果：PASS $PASS_N、FAIL $FAIL_N、WARN $WARN_N（WARN 是素材問題，不影響結果）"
+  [ "$FAIL_N" = 0 ] && exit 0 || exit 1
 }
 
-adb install -r "$APK" >/dev/null
+adb install -r "$APK" >/dev/null || { check "安裝 APK" 1 "$APK"; finish; }
 adb shell svc power stayon true
 adb shell input keyevent KEYCODE_WAKEUP
 adb shell wm dismiss-keyguard
@@ -94,9 +111,13 @@ card_region() { # card_region <dump 的名稱>
 
 shot() { # shot <名稱>：整個畫面，加上裁切後的故事卡
   adb exec-out screencap -p > "$OUT/shots/$1-full.png"
+  [ -s "$OUT/shots/$1-full.png" ] || warn "截圖 $1 是空的"
   crop "$1"
 }
-crop() { [ -n "$CARD" ] && convert "$OUT/shots/$1-full.png" -crop "$CARD" +repage "$OUT/shots/$1.png"; }
+crop() {
+  [ -n "$CARD" ] || { warn "截圖 $1 沒有裁切（找不到故事卡位置）"; return 0; }
+  convert "$OUT/shots/$1-full.png" -crop "$CARD" +repage "$OUT/shots/$1.png" || warn "截圖 $1 裁切失敗"
+}
 
 frames_in() { # 這段時間 App 畫了幾張（gfxinfo），印出 "總數 jank"
   adb shell dumpsys gfxinfo $PKG reset >/dev/null
@@ -114,12 +135,13 @@ record() { # record <名稱> <秒數> [GIF 的 FPS] [GIF 寬度]：錄影，裁�
   to_gif "$1" "${3:-12}" "${4:-480}"
 }
 to_gif() {
-  [ -n "$CARD" ] || return
+  [ -s "$OUT/video/$1-full.mp4" ] || { warn "錄影 $1 沒有錄到"; return 0; }
+  [ -n "$CARD" ] || { warn "錄影 $1 沒有裁切成 GIF（找不到故事卡位置）"; return 0; }
   local w h x y fps=${2:-12} gw=${3:-480}
   w=${CARD%%x*}; h=${CARD#*x}; h=${h%%+*}; y=${CARD##*+}; x=0
   ffmpeg -loglevel error -y -i "$OUT/video/$1-full.mp4" -vf "crop=$w:$h:$x:$y,fps=$fps,scale=$gw:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer" -loop 0 "$OUT/video/$1.gif"
-  ffmpeg -loglevel error -y -i "$OUT/video/$1-full.mp4" -vf "crop=$w:$h:$x:$y" -c:v libx264 -pix_fmt yuv420p -an "$OUT/video/$1.mp4"
-  rm -f "$OUT/video/$1-full.mp4"
+  ffmpeg -loglevel error -y -i "$OUT/video/$1-full.mp4" -vf "crop=$w:$h:$x:$y" -c:v libx264 -pix_fmt yuv420p -an "$OUT/video/$1.mp4" &&
+    rm -f "$OUT/video/$1-full.mp4" || warn "錄影 $1 轉檔失敗（保留原始影片）"
 }
 
 crashed() { adb logcat -d | grep -q "FATAL EXCEPTION" ; }
@@ -129,7 +151,7 @@ log "== 1. 8 種天氣（第 14 頁）=="
 setup 14 SUNNY
 log "  寫入的設定：$(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | tr '\n' ' ')"
 dump_ui layout-14 && card_region layout-14
-log "  故事卡範圍：${CARD:-找不到}"
+[ -n "$CARD" ] && log "  故事卡範圍：$CARD" || warn "找不到故事卡位置，截圖和錄影不會裁切"
 for m in SUNNY HOT CLOUDY FOG RAIN THUNDER COLD SNOW; do
   setup 14 $m
   shot "weather-$m"
@@ -160,6 +182,8 @@ for p in 1 3 4 5 8 13 14; do
     b=$(bounds_of "page-$p" story_bundle)
     if [ "$p" = 14 ]; then check "第 $p 頁包袱入口" "$([ -n "$b" ] && echo 0 || echo 1)" "應該出現（$b）"
     else check "第 $p 頁包袱入口" "$([ -z "$b" ] && echo 0 || echo 1)" "不應該出現"; fi
+  else
+    check "第 $p 頁包袱入口" 1 "讀不到畫面結構，無法檢查"
   fi
 done
 CARD=$CARD14
@@ -288,6 +312,8 @@ for d in 320 420 560; do
       set -- $b; bh=$(( $4 - $2 )); set -- $t; tb=$4; set -- $b
       ok=$([ "$bh" -ge $(( 48 * d / 160 - 1 )) ] && [ "$2" -ge "$tb" ] && [ "$3" -le "$W" ] && echo 0 || echo 1)
       check "密度 $d、字體 $fs 的包袱入口" "$ok" "入口 $b（高 $bh px），故事文字下緣 $tb"
+    else
+      check "密度 $d、字體 $fs 的包袱入口" 1 "讀不到畫面結構，無法檢查"
     fi
     CARD=$CARD_SAVE
   done
@@ -307,4 +333,6 @@ check "舊火柴人沒有包袱入口" "$([ -f "$OUT/ui/stickman.txt" ] && [ -z 
 log ""
 check "全程沒有閃退" "$(crashed && echo 1 || echo 0)" "logcat 沒有 FATAL EXCEPTION"
 adb logcat -d | grep -A20 "FATAL EXCEPTION" > "$OUT/crash.txt" || true
-exit 0
+# 手動觸發時可以故意加一項失敗，確認 CI 真的會變紅
+[ "${W7_FORCE_FAIL:-0}" = 1 ] && check "故意失敗（確認退出碼）" 1 "W7_FORCE_FAIL=1"
+finish

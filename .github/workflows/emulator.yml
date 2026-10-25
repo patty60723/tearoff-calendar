@@ -7,6 +7,11 @@ on:
     branches: [feature/mowan-weather-poses]
     paths-ignore: ['docs/**']
   workflow_dispatch:
+    inputs:
+      force_fail:
+        description: 故意加一項失敗，確認 CI 會變紅
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -46,15 +51,21 @@ jobs:
           profile: pixel_6
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: bash tools/emulator/w7-acceptance.sh app/build/outputs/apk/debug/app-debug.apk emulator-out
+          # 腳本有任何必要檢查 FAIL 就以非零結束，這一步跟著失敗
+          script: W7_FORCE_FAIL=${{ inputs.force_fail && '1' || '0' }} bash tools/emulator/w7-acceptance.sh app/build/outputs/apk/debug/app-debug.apk emulator-out
 
+      # 結果也寫到這次執行的摘要頁；失敗時照樣上傳、推到分支
       - name: Show report
         if: always()
-        run: cat emulator-out/report.txt || true
-
-      # 報告裡有 FAIL 就讓這次執行失敗（結果還是會上傳、推到分支）
-      - name: Check report
-        run: "! grep -q '^FAIL' emulator-out/report.txt"
+        run: |
+          cat emulator-out/report.txt || true
+          {
+            echo '## 模擬器驗收'
+            echo
+            echo '```'
+            grep -E '^(PASS|FAIL|WARN|結果)' emulator-out/report.txt || echo '沒有報告'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         if: always()
