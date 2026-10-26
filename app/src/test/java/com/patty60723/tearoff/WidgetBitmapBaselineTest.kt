@@ -20,7 +20,8 @@ import java.io.File
  * 三種數字分開記：
  * - 像素估算：寬 × 高 × 4 bytes（ARGB_8888）× 張數，用公式算的。
  * - RemoteViews 自己的估算：`RemoteViews.estimateMemoryUsage()`（隱藏 API），AppWidgetManager 用它檢查上限。
- * - Parcel 大小：把 RemoteViews 寫進 Parcel 後的 dataSize。大 bitmap 會放在共享記憶體（blob），不一定算在這裡。
+ * - Parcel 大小：把 RemoteViews 寫進 Parcel 後的 dataSize。在 Robolectric 裡 bitmap 整個寫進 Parcel；
+ *   實機上大的 bitmap 可能改走共享記憶體（blob），所以這一欄不能當成實際的 Binder 傳輸量。
  * 這些都是 Robolectric 裡算的，不是實機量測。
  */
 @RunWith(RobolectricTestRunner::class)
@@ -53,7 +54,11 @@ class WidgetBitmapBaselineTest {
         val out = StringBuilder()
         out.appendLine("# 小工具 bitmap 基準（P5-1，舊火柴人，換 V3 之前）")
         out.appendLine()
-        out.appendLine("Robolectric 量測（Android ${android.os.Build.VERSION.SDK_INT}），不是實機。密度最多算到 3x（`CalendarWidget.setStickman`）。")
+        out.appendLine("Robolectric 量測（Android ${android.os.Build.VERSION.SDK_INT}），不是實機。密度最多算到 3x（`CalendarWidget.setStickman`），所以 xxxhdpi 跟 xxhdpi 一樣。")
+        out.appendLine()
+        out.appendLine("- 像素估算：寬 × 高 × 4 bytes × 張數，公式算的。")
+        out.appendLine("- RemoteViews 估算：`RemoteViews.estimateMemoryUsage()`，系統檢查上限時用的就是這個數字。")
+        out.appendLine("- Parcel 大小：Robolectric 裡把 RemoteViews 寫進 Parcel 的大小；實機上大 bitmap 可能走共享記憶體，不能當成實際傳輸量。")
         out.appendLine()
         out.appendLine("| 密度 | 版面 | 小人 dp | 每張 px | 張數 | 像素估算 | 其中輪播多出來的（5/6） | RemoteViews 估算 | Parcel 大小 |")
         out.appendLine("|---|---|---|---|---|---|---|---|---|")
@@ -74,11 +79,11 @@ class WidgetBitmapBaselineTest {
                         "${kb(estimate(views))} | ${kb(parcelSize(views))} |",
                 )
             }
+            // Android 8–11：只送一種版面（這裡量最大的 TALL）。要在組合之前量：組合後 4 個版面共用同一份 bitmap 快取
+            val single = estimate(perLayout.getValue(PageLayout.TALL))
             // Android 12 以上：4 種版面放在同一個 RemoteViews 一次送出
             val all = RemoteViews(perLayout.entries.associate { (l, v) -> SizeF(l.minWidthDp, l.minHeightDp) to v })
-            val biggest = perLayout.entries.maxBy { it.key.stickmanDp }
-            summary += "| $q | ${kb(pixels)} | ${kb(pixels / frames)} | ${kb(estimate(all))} | ${kb(parcelSize(all))} | " +
-                "${kb(estimate(biggest.value))}（${biggest.key.name}） |"
+            summary += "| $q | ${kb(pixels)} | ${kb(pixels / frames)} | ${kb(estimate(all))} | ${kb(parcelSize(all))} | ${kb(single)}（TALL） |"
             assertTrue(pixels > 0)
         }
         out.appendLine()
