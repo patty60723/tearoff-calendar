@@ -14,13 +14,17 @@ import kotlin.random.Random
  * @param random 打雷間隔用的亂數
  * @param higherPriorityPlaying 現在有沒有比「天氣日常」更優先的演出（成長故事、節日演出）。
  *   有的話，輪到的那次打雷整個跳過、不補播（整合規格 §5.4）。
- * @param thunderAllowed 今天能不能打雷。節日當天整天不打雷（D-31），不只演出的時候；雨與雷雨雲照常。
  */
 class MowanTimeline(
     private val random: Random = Random.Default,
     private val higherPriorityPlaying: () -> Boolean = { false },
-    private val thunderAllowed: () -> Boolean = { true },
 ) {
+    /**
+     * 今天能不能打雷。節日當天整天不打雷（D-31），不只演出的時候；雨與雷雨雲照常。
+     * 不放在建構子：既有的呼叫 `MowanTimeline(random) { … }` 的尾端 lambda 要一直是 [higherPriorityPlaying]。
+     */
+    var thunderAllowed: () -> Boolean = { true }
+
     /** 某一刻要畫的東西 */
     data class Sample(
         /** 姿勢與環境的時間 */

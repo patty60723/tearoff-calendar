@@ -83,10 +83,10 @@ class MowanView @JvmOverloads constructor(
     val director = MowanDirector()
 
     /** 時間軸（測試用可以讀）。有更高優先的演出時，雷雨的驚嚇跳過；節日當天整天不打雷 */
-    internal val timeline = MowanTimeline(
-        higherPriorityPlaying = { director.aboveWeather() },
-        thunderAllowed = { festival == null },
-    ).also { it.setWeather(Mowan.Weather.NONE, SystemClock.uptimeMillis()) }
+    internal val timeline = MowanTimeline(higherPriorityPlaying = { director.aboveWeather() }).also {
+        it.thunderAllowed = { festival == null }
+        it.setWeather(Mowan.Weather.NONE, SystemClock.uptimeMillis())
+    }
 
     /** 系統的「移除動畫」設定（測試可以換掉） */
     internal var reducedMotion: () -> Boolean = { !ValueAnimator.areAnimatorsEnabled() }

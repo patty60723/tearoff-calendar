@@ -10,7 +10,7 @@ class FestivalThunderTest {
     private val t0 = 1_000_000L
 
     private fun strikes(allowed: Boolean, priority: Boolean = false): Int {
-        val tl = MowanTimeline(Random(3), higherPriorityPlaying = { priority }, thunderAllowed = { allowed })
+        val tl = MowanTimeline(Random(3), higherPriorityPlaying = { priority }).also { it.thunderAllowed = { allowed } }
         tl.setWeather(Mowan.Weather.THUNDER, t0)
         var n = 0
         var last: Double? = null
@@ -32,7 +32,7 @@ class FestivalThunderTest {
 
     @Test
     fun rainStillFallsOnFestivalDays() {
-        val tl = MowanTimeline(Random(3), thunderAllowed = { false }).also { it.setWeather(Mowan.Weather.THUNDER, t0) }
+        val tl = MowanTimeline(Random(3)).also { it.thunderAllowed = { false }; it.setWeather(Mowan.Weather.THUNDER, t0) }
         val a = tl.sample(t0 + 1000, false)
         val b = tl.sample(t0 + 2000, false)
         assertNull(a.sinceStrikeMs)
