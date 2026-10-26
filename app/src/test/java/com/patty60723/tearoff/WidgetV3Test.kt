@@ -80,7 +80,11 @@ class WidgetV3Test {
         (widthDp * density).toInt(), (widthDp * 4 / 3 * density).toInt(), density,
     )
 
-    /** V3：一張靜態圖畫在 mowan_still；ViewFlipper 隱藏、沒有圖、輪播間隔一天 */
+    /**
+     * V3：一張靜態圖畫在 mowan_still；ViewFlipper 隱藏、沒有圖、輪播間隔一天。
+     * 「畫面真的不重畫」在 Robolectric 測不出來（視窗一直被當成看不到，舊火柴人也不會輪播），
+     * 由模擬器驗收的小工具宿主量重畫次數（tools/emulator/w7-acceptance.sh 第 10 段）。
+     */
     @Test
     fun oneStillPictureInEveryLayout() {
         for (layout in PageLayout.entries) {
@@ -93,42 +97,6 @@ class WidgetV3Test {
             assertEquals(at, CalendarWidget.STILL_FLIP_MS, flipper.flipInterval)
             frameIds.forEach { assertEquals("$at 隱藏的 ViewFlipper 不留圖", null, v.findViewById<ImageView>(it).drawable) }
         }
-    }
-
-    /**
-     * 放進真的視窗（attach、看得到）之後過一個小時：V3 的畫面一個像素都不變、隱藏的 ViewFlipper 也沒換頁；
-     * 舊火柴人 1 秒內就會換圖（對照組）。
-     */
-    @Test
-    fun staysStaticOnScreen() {
-        val activity = Robolectric.buildActivity(android.app.Activity::class.java).setup().get()
-        fun attach(): View {
-            val host = FrameLayout(activity)
-            activity.setContentView(host)
-            val v = applied(PageLayout.TALL)
-            host.addView(v)
-            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-            return v
-        }
-        fun pixels(v: View): Bitmap {
-            val w = v.width.coerceAtLeast(1)
-            val h = v.height.coerceAtLeast(1)
-            return Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { v.draw(Canvas(it)) }
-        }
-        val v3 = attach()
-        val flipper = v3.findViewById<android.widget.ViewFlipper>(R.id.stickman)
-        val before = pixels(v3)
-        val child = flipper.displayedChild
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofHours(1))
-        assertEquals("隱藏的 ViewFlipper 一小時內沒換頁", child, flipper.displayedChild)
-        assertTrue("V3 畫面一小時內不變", pixels(v3).sameAs(before))
-
-        MowanSettings.setStoryCard(context, false)
-        val old = attach()
-        val oldFlipper = old.findViewById<android.widget.ViewFlipper>(R.id.stickman)
-        val oldChild = oldFlipper.displayedChild
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1))
-        assertTrue("舊火柴人照樣輪播", oldFlipper.displayedChild != oldChild)
     }
 
     /** 同一個版面切換 V3／舊火柴人（launcher 重新套用 RemoteViews）：顯示的是對的那一個 */
