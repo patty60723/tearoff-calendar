@@ -1,6 +1,7 @@
 package com.patty60723.tearoff.story
 
 import android.content.Context
+import android.content.res.AssetManager
 import com.patty60723.tearoff.Almanac
 import com.patty60723.tearoff.AppClock
 import com.patty60723.tearoff.weather.WeatherService
@@ -14,11 +15,8 @@ class StoryBook(context: Context) {
     private val assets = context.assets
     private val appContext = context.applicationContext
 
-    val beats: List<Beat> by lazy {
-        assets.list(DIR).orEmpty().filter { it.endsWith(".json") }.sorted().flatMap { file ->
-            StoryParser.parse(assets.open("$DIR/$file").bufferedReader().use { it.readText() })
-        }
-    }
+    /** 故事片段。來自 App 內附的 assets，整個 process 只解析一次（見 [Assets]）。 */
+    val beats: List<Beat> get() = Assets.beats(assets)
 
     /** 已經撕了幾頁 */
     val page: Int get() = prefs.getInt(KEY_PAGE, 0)
@@ -119,6 +117,33 @@ class StoryBook(context: Context) {
     private fun recent() = prefs.getString(KEY_RECENT, "").orEmpty().split(",").filter { it.isNotEmpty() }
 
     data class TornPage(val page: Int, val date: LocalDate, val text: String, val action: String?)
+
+    /**
+     * 故事 assets 的解析結果。assets 是 APK 裡的檔案，App 執行期間不會變（更新 App 會重開 process），
+     * 所以整個 process 共用一份；會變的狀態（頁數、名字、最近的片段）都還是每次從 prefs 讀。
+     * 以前每個 [StoryBook] 都重新解析：小工具一次更新建 4 種版面就解析 4 次，App 日曆頁每換一頁也解析一次。
+     */
+    internal object Assets {
+        @Volatile
+        private var cached: List<Beat>? = null
+
+        /** 實際解析了幾次（測試用） */
+        @Volatile
+        var parseCount = 0
+            private set
+
+        fun beats(assets: AssetManager): List<Beat> = cached ?: synchronized(this) {
+            cached ?: assets.list(DIR).orEmpty().filter { it.endsWith(".json") }.sorted().flatMap { file ->
+                StoryParser.parse(assets.open("$DIR/$file").bufferedReader().use { it.readText() })
+            }.also {
+                cached = it
+                parseCount++
+            }
+        }
+
+        /** 測試用：清掉快取，下一次重新解析 */
+        fun clear() = synchronized(this) { cached = null }
+    }
 
     private companion object {
         const val DIR = "story"

@@ -1,11 +1,13 @@
 package com.patty60723.tearoff
 
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -13,6 +15,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.ViewFlipper
 import android.widget.Toast
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
@@ -46,6 +49,7 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.today).setOnClickListener { show(topDate()) }
 
         pad = findViewById(R.id.page)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.registerDurationScaleChangeListener(scaleListener)
         pad.pageBelow = { w, h -> snapshot(pageView(date?.plusDays(1) ?: AppClock.today(this)), w, h) }
         pad.onTorn = { onTorn() }
         pad.onBlocked = {
@@ -225,7 +229,8 @@ class MainActivity : Activity() {
         val page = Almanac.page(newDate ?: today)
 
         pad.removeAllViews()
-        pad.addView(if (newDate == null) coverView() else pageView(newDate))
+        pad.addView(if (newDate == null) coverView() else pageView(newDate).also { it.stickmanFlipper()?.isAutoStart = false })
+        updatePageMotion()
         // 只有最上面那張、而且還有沒撕的頁時才能撕
         pad.tearable = newDate == topDate() && book.nextDate(today) != null
 
@@ -312,6 +317,30 @@ class MainActivity : Activity() {
             )
         }
         return frame
+    }
+
+    private fun View.stickmanFlipper(): ViewFlipper? = findViewById(R.id.stickman)
+
+    /**
+     * 日曆頁上的小人是小工具的 ViewFlipper（RemoteViews 套出來的），它輪播圖片不看系統的動畫設定。
+     * 系統關閉動畫時停在第一張、不輪播（不然每一兩百毫秒就重畫一次）；打開時才輪播。
+     * 設定改了會再叫一次（Android 13 以上有通知；更舊的版本回到 App 時 onResume 會重建這一頁）。
+     */
+    internal fun updatePageMotion() {
+        val flipper = pad.stickmanFlipper() ?: return
+        if (ValueAnimator.areAnimatorsEnabled()) {
+            flipper.startFlipping()
+        } else {
+            flipper.stopFlipping()
+            flipper.displayedChild = 0
+        }
+    }
+
+    private val scaleListener = ValueAnimator.DurationScaleChangeListener { runOnUiThread { if (::pad.isInitialized) updatePageMotion() } }
+
+    override fun onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.unregisterDurationScaleChangeListener(scaleListener)
+        super.onDestroy()
     }
 
     private fun snapshot(view: View, width: Int, height: Int): Bitmap {

@@ -17,7 +17,7 @@ PASS_N=0
 FAIL_N=0
 WARN_N=0
 # 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
-EXPECTED_CHECKS=23
+EXPECTED_CHECKS=24
 check() { # check <名稱> <條件結果 0/1> <說明>
   if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
   else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
@@ -253,7 +253,8 @@ shot reduced-2
 diff=$(compare -metric AE "$OUT/shots/reduced-1.png" "$OUT/shots/reduced-2.png" null: 2>&1 | awk '{print $1}')
 check "關閉動畫時故事卡不動" "$([ "${diff%.*}" = 0 ] && echo 0 || echo 1)" "相隔 3 秒的兩張故事卡差 $diff 個像素"
 f=$(frames_in 10 reduced)
-log "  INFO  關閉動畫、V3 故事卡：10 秒內畫了 $f 張"
+# P5-1：日曆頁的 ViewFlipper 關閉動畫時也停住，整個 App 應該幾乎不重畫（W7 M7）
+check "關閉動畫時整個 App 幾乎不重畫" "$([ "${f%% *}" -le 10 ] 2>/dev/null && echo 0 || echo 1)" "V3 故事卡：10 秒內畫了 $f 張"
 for m in HOT CLOUDY FOG RAIN THUNDER COLD SNOW; do
   setup 14 $m
   sleep 1
