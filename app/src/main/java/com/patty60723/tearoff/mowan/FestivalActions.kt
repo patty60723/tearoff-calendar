@@ -19,7 +19,8 @@ object FestivalActions {
     enum class Action(val label: String, val durMs: Long, val keyMs: Long) {
         BOW("拜年：作揖、遞紅包", 4200, 2300),
         LOOK_ENVELOPE("看看紅包", 2200, 900),
-        SOCK("掛襪子、看禮物", 4400, 2300),
+        /** 扶正歪掉的聖誕襪、看禮物（D-39；識別名稱沿用 SOCK） */
+        SOCK("扶正聖誕襪、看禮物", 4400, 2300),
         PEEK_GIFT("偷看禮物", 2000, 900),
         TOAST("舉月餅望月", 4600, 2900),
         GAZE_MOON("抬頭望月", 2600, 1200),
@@ -97,7 +98,7 @@ object FestivalActions {
         val head: Boolean,
         /** 雨傘跟著點頭前傾（撐傘的手不動） */
         val umbrellaTilt: Boolean = false,
-        /** 會用到腳站著（掛襪子要站得夠高） */
+        /** 會用到腳站著（扶正聖誕襪要站得夠高） */
         val stand: Boolean = false,
     )
 

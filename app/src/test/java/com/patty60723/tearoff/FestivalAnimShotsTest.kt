@@ -98,9 +98,9 @@ class FestivalAnimShotsTest {
     @Test
     fun xmas() {
         gif("p6-xmas-main", listOf(
-            Panel("掛襪子、看禮物（晴）", Festival.XMAS, Weather.SUNNY, action = Action.SOCK),
-            Panel("掛襪子（雪）", Festival.XMAS, Weather.SNOW, action = Action.SOCK),
-            Panel("掛襪子（雨，左手）", Festival.XMAS, Weather.RAINY, action = Action.SOCK),
+            Panel("扶正聖誕襪、看禮物（晴）", Festival.XMAS, Weather.SUNNY, action = Action.SOCK),
+            Panel("扶正聖誕襪（雪）", Festival.XMAS, Weather.SNOW, action = Action.SOCK),
+            Panel("扶正聖誕襪（雨，左手）", Festival.XMAS, Weather.RAINY, action = Action.SOCK),
         ))
         gif("p6-xmas-idle", listOf(Panel("偷看禮物", Festival.XMAS, Weather.SUNNY, action = Action.PEEK_GIFT)))
     }

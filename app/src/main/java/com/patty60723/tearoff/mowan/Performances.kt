@@ -13,7 +13,7 @@ import kotlin.math.exp
 import kotlin.math.sin
 
 /**
- * 節日的主演出與待機（P6-3），照原型 core.js 的 `ACTIONS_V1`、Phase 2A.2 的 `ACTIONS`（作揖、掛襪、舉月餅的
+ * 節日的主演出與待機（P6-3），照原型 core.js 的 `ACTIONS_V1`、Phase 2A.2 的 `ACTIONS`（作揖、扶正聖誕襪、舉月餅的
  * 完整版與雨天版用「預備 → 動作 → 停留 → 收尾」的 v2）與 `buildFrame` 移植。
  * 演出疊在節日站姿（[Poses.festival]）上；層級由 [FestivalActions.levelFor] 決定、演出開始時鎖定（D-35）。
  *
@@ -38,8 +38,24 @@ internal object Performances {
     /** 舉月餅前先在腹前捧著 */
     val L_CRADLE = pts(60.5, 77.0, 55.6, 81.4, 53.4, 86.0, 52.6, 89.0)
     val R_CRADLE = mirror(L_CRADLE)
-    /** 手尖碰到襪子的腳尖 */
+    /** 原型的手尖碰到襪子腳尖（P6-3 審核後不再使用，只留給比對） */
     val L_TOUCH = pts(60.5, 77.0, 54.0, 75.2, 47.0, 74.2, 39.6, 73.4)
+
+    // ---------- 扶正聖誕襪（D-39，2026-10-26 P6-3 動態審核方案 A） ----------
+    /** 襪子歪的角度（度）：負的是腳尖往墨丸這邊歪；原型是 +11°，看不太出來 */
+    const val SOCK_TILT = -22.0
+    /** 手碰到襪子的時間（原型 1500 ms） */
+    const val SOCK_CONTACT_MS = 1500.0
+    /** 襪子扶正的時間（原型 1750 ms） */
+    const val SOCK_STRAIGHT_MS = 1750.0
+    /** 手尖碰到「歪著的襪子」的襪身中段（右緣、襪口下約 10 單位） */
+    val L_TOUCH_TILTED = pts(60.5, 77.0, 52.6, 73.6, 44.6, 69.6, 37.2, 66.2)
+    /** 伸過去的途中：手在襪子右上方 */
+    val L_REACH_SOCK = pts(60.5, 77.0, 54.0, 72.4, 48.0, 66.8, 42.5, 61.0)
+    /** 放手：手先往右離開襪子 */
+    val L_RELEASE_SOCK = pts(60.5, 77.0, 54.2, 73.8, 48.0, 70.8, 42.0, 68.0)
+    /** 襪子扶正後，手尖還在襪身中段（手跟著把襪子推正） */
+    val L_TOUCH_STRAIGHT = pts(60.5, 77.0, 52.4, 73.8, 43.6, 70.4, 34.2, 67.4)
 
     /**
      * 背著包袱時左手拿道具的捧、遞（P6-2 審核後的局部修正，跟 [Poses.L_HOLD_BUNDLE] 一起）：
@@ -180,16 +196,21 @@ internal object Performances {
             }
             Action.SOCK -> {
                 if (lv == Level.FULL) {
-                    // 襪子一開始有點歪；伸手把它扶正，放手後只剩很小的擺動
+                    // 扶正歪掉的聖誕襪（D-39）：一開始襪子慢慢歪向墨丸（約 22°），手伸過去碰到襪身中段，
+                    // 碰到以後才把襪子扶正，手跟著襪子推回去；放手後只剩很小的擺動。時間點照原型。
                     val h = if (s.caps.holdL && s.hand(Hand.L) == null) Hand.L else Hand.R
                     o.sockSwing = when {
-                        t < 1500 -> 11.0
-                        t < 1750 -> track(t, listOf(1500.0 to 11.0, 1750.0 to 0.0))
+                        t < SOCK_CONTACT_MS -> track(t, listOf(0.0 to 0.0, 500.0 to SOCK_TILT))
+                        t < SOCK_STRAIGHT_MS -> track(t, listOf(SOCK_CONTACT_MS to SOCK_TILT, SOCK_STRAIGHT_MS to 0.0))
                         t < 2300 -> 0.0
                         else -> 2.2 * exp(-(t - 2300) / 500) * sin((t - 2300) / 1000 * TAU * 1.6)
                     }
                     val p0 = armOf(base, h)
-                    o.arm(h, trackPts(t, listOf(0.0 to p0, 800.0 to p0, 1500.0 to L_TOUCH, 2300.0 to L_TOUCH, 2900.0 to p0)))
+                    // 手從襪子右上方過去（不穿過歪出來的腳尖），碰到襪身中段；放手時先往右離開再放下
+                    o.arm(h, trackPts(t, listOf(
+                        0.0 to p0, 650.0 to p0, 1200.0 to L_REACH_SOCK, SOCK_CONTACT_MS to L_TOUCH_TILTED, SOCK_STRAIGHT_MS to L_TOUCH_STRAIGHT,
+                        2300.0 to L_TOUCH_STRAIGHT, 2450.0 to L_RELEASE_SOCK, 2900.0 to p0,
+                    )))
                     o.headAngle = track(t, listOf(0.0 to 0.0, 600.0 to -5.0, 1500.0 to -4.5, 2050.0 to -3.5, 2300.0 to -4.0, 2800.0 to 0.0, 3300.0 to 6.5, 3600.0 to 6.0, 4400.0 to 0.0))
                     o.headDy = track(t, listOf(0.0 to 0.0, 1950.0 to 0.0, 2100.0 to 0.9, 2300.0 to 0.0, 3150.0 to 0.0, 3350.0 to -1.1, 3700.0 to 0.0))
                     o.gaze = trackPt(t, listOf(

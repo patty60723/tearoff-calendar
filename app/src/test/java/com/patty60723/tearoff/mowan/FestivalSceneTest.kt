@@ -167,7 +167,7 @@ class FestivalSceneTest {
         scene(4, Festival.SPRING).let { assertEquals(Item.ENVELOPE, it.hand(Hand.R)); assertTrue(it.shown(Item.CAISHEN)) }
         scene(4, Festival.MOON).let { assertEquals("月餅先放左手，沒有左手改右手", Item.MOONCAKE, it.hand(Hand.R)) }
         scene(4, Festival.MOON, Weather.RAINY).let { assertFalse("右手撐傘，沒有空手", it.shown(Item.MOONCAKE)) }
-        assertEquals("第 4 頁晴天掛襪子：沒有腳 → 指向版", Level.POINT, FestivalActions.levelFor(Action.SOCK, scene(4, Festival.XMAS)))
+        assertEquals("第 4 頁晴天扶正聖誕襪：沒有腳 → 指向版", Level.POINT, FestivalActions.levelFor(Action.SOCK, scene(4, Festival.XMAS)))
         // 第 5 頁：雙手
         scene(5, Festival.MOON).let { assertEquals(Item.MOONCAKE, it.hand(Hand.L)) }
         assertEquals(Level.POINT, FestivalActions.levelFor(Action.SOCK, scene(5, Festival.XMAS)))

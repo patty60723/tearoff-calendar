@@ -77,7 +77,7 @@ class FestivalActionsTest {
             assertEquals(setOf(Hand.L), FestivalActions.uses(Action.BOW, FestivalActions.levelFor(Action.BOW, it), it).hands)
             assertEquals(setOf(Hand.L), FestivalActions.uses(Action.LOOK_ENVELOPE, FestivalActions.levelFor(Action.LOOK_ENVELOPE, it), it).hands)
         }
-        // 聖誕雷雨：右手撐傘，掛襪子用左手
+        // 聖誕雷雨：右手撐傘，扶正聖誕襪用左手
         scene(14, Festival.XMAS, Weather.THUNDER).let { assertEquals(setOf(Hand.L), FestivalActions.uses(Action.SOCK, Level.FULL, it).hands) }
         // 聖誕第 4 頁雨天：唯一的右手撐傘 → 不能伸手，抬頭看襪子
         scene(4, Festival.XMAS, Weather.RAINY).let { assertEquals(Level.HEAD, FestivalActions.levelFor(Action.SOCK, it)) }

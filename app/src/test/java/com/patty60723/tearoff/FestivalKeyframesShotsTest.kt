@@ -92,9 +92,9 @@ class FestivalKeyframesShotsTest {
 
     @Test
     fun xmas() {
-        val times = listOf(0 to "開始（襪子歪）", 800 to "抬頭看襪子", 1200 to "手抬起", 1500 to "碰到襪子", 1750 to "扶正", 2300 to "確認", 2900 to "手放下", 3600 to "看見禮物", 4400 to "結束")
-        sheet("3-xmas-sock", "聖誕・掛襪子（晴，第 14 頁）", times.map { (t, n) -> Shot(n, Festival.XMAS, Weather.SUNNY, Action.SOCK, t.toDouble()) },
-            zoom = doubleArrayOf(14.0, 20.0, 94.0, 110.0), perRow = 9)
+        val times = listOf(0 to "開始", 500 to "襪子歪掉", 800 to "抬頭看襪子", 1200 to "手抬起", 1500 to "碰到襪身", 1625 to "扶正中", 1750 to "扶正", 2300 to "確認", 2900 to "手放下", 3600 to "看見禮物", 4400 to "結束")
+        sheet("3-xmas-sock", "聖誕・扶正聖誕襪（晴，第 14 頁；D-39 方案 A）", times.map { (t, n) -> Shot(n, Festival.XMAS, Weather.SUNNY, Action.SOCK, t.toDouble()) },
+            zoom = doubleArrayOf(14.0, 20.0, 94.0, 110.0), perRow = 11)
     }
 
     @Test

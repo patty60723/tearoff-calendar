@@ -59,8 +59,13 @@ class FestivalPerformanceGoldenTest {
             if (!scene.caps.stand) pose = pose.shifted(Mowan.GROUND_DY)
 
             val P = g.getJSONObject("P")
-            for ((name, mine) in listOf("body" to pose.body, "armL" to pose.armL, "armR" to pose.armR, "legL" to pose.legL, "legR" to pose.legR, "tail" to pose.tail))
+            // D-39（P6-3 動態審核方案 A）：完整版的聖誕襪改成「扶正歪掉的襪子」，扶的那隻手（左手）與襪子角度刻意跟原型不同，
+            // 規則在 FestivalPerformanceTest.sock*；其他欄位照樣比對
+            val sockA = p.action == Action.SOCK && p.level == Level.FULL
+            for ((name, mine) in listOf("body" to pose.body, "armL" to pose.armL, "armR" to pose.armR, "legL" to pose.legL, "legR" to pose.legR, "tail" to pose.tail)) {
+                if (sockA && name == "armL") continue
                 assertPts("$at $name", pts(P.getJSONArray(name)), mine)
+            }
             assertEquals("$at 頭的角度", P.optDouble("headAngle", 0.0), pose.headAngle, tol)
             assertEquals("$at 頭的位移", P.optDouble("headDy", 0.0), pose.headDy, tol)
             assertEquals("$at 脖子", P.optDouble("neckDy", 0.0), pose.neckDy, tol)
@@ -79,7 +84,7 @@ class FestivalPerformanceGoldenTest {
 
             val props = g.getJSONObject("props")
             assertEquals("$at 襪子落下", props.getDouble("sockDy"), fx.sockDy, tol)
-            assertEquals("$at 襪子擺動", props.getDouble("sockSwing"), fx.sockSwing, tol)
+            if (!sockA) assertEquals("$at 襪子擺動", props.getDouble("sockSwing"), fx.sockSwing, tol)
             assertEquals("$at 月光", props.getDouble("glow"), fx.glow, tol)
             assertEquals("$at 線索淡入", props.getDouble("cueIn"), fx.cueIn, tol)
         }
@@ -113,9 +118,12 @@ class FestivalPerformanceGoldenTest {
             }
             val ops = g.getJSONArray("ops")
             assertEquals("$label 的筆畫數", ops.length(), frame.ops.size)
+            // D-39：完整版聖誕襪的襪子與左手刻意跟原型不同（見上面）
+            val skip = if (p.action == Action.SOCK && p.level == Level.FULL) setOf("sock", "armL") else emptySet()
             for (k in 0 until ops.length()) {
                 val o = ops.getJSONObject(k)
                 val op = frame.ops[k]
+                if (op.part in skip) continue
                 val at = "$label 第 $k 筆（${op.part}）"
                 assertEquals(at, o.getString("layer").uppercase(), op.layer.name)
                 assertEquals(at, o.optDouble("opacity", 1.0), op.alpha.toDouble(), 1e-6)

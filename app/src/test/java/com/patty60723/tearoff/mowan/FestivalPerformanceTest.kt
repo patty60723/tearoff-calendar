@@ -293,4 +293,76 @@ class FestivalPerformanceTest {
             }
         }
     }
+
+    // ---------- 扶正聖誕襪（D-39，P6-3 動態審核方案 A） ----------
+
+    private val sockScene by lazy { FestivalScene.resolve(FestivalFixtures.parts(14), Festival.XMAS, Weather.SUNNY, true, true) }
+
+    private fun sockAt(t: Double): Pair<Pose, Performances.Fx> = Performances.pose(sockScene, t, Performance(Action.SOCK, Level.FULL, t))
+
+    /** 手尖到襪身（襪子紅色填色）的最近距離，以及最近點在襪子自己座標裡的 y（襪口 0、腳尖約 19） */
+    private fun contact(t: Double): Pair<Double, Double> {
+        val (p, fx) = sockAt(t)
+        val frame = Mowan.frame(FestivalFixtures.parts(14), 0, true, Weather.SUNNY, t, festival = Festival.XMAS, performance = Performance(Action.SOCK, Level.FULL, t))
+        val sock = polygon(frame.ops.first { it.part == "sock" && it.fill == Props.RED })
+        val tip = p.armL.last()
+        val near = sock.minBy { hypot(it.x - tip.x, it.y - tip.y) }
+        val d = if (inside(tip, sock)) 0.0 else hypot(near.x - tip.x, near.y - tip.y)
+        // 轉回襪子的座標（以襪口的掛點為原點，扣掉擺動角度）
+        val a = Math.toRadians(-fx.sockSwing)
+        val dx = near.x - Props.SOCK_TOP.x
+        val dy = near.y - (Props.SOCK_TOP.y + fx.sockDy)
+        return d to (dx * kotlin.math.sin(a) + dy * kotlin.math.cos(a))
+    }
+
+    /** 襪子歪約 22°，一開始慢慢歪過去（0 ms 跟待機一樣是正的），手碰到以前一直歪著，碰到後 250 ms 內扶正 */
+    @Test
+    fun sockTiltAndStraightenAngles() {
+        assertEquals("0 ms 襪子是正的", 0.0, sockAt(0.0).second.sockSwing, 1e-9)
+        assertEquals("歪的角度", -22.0, Performances.SOCK_TILT, 0.0)
+        for (t in listOf(500.0, 800.0, 1200.0, 1499.0)) assertEquals("${t}ms 碰到以前一直歪著", Performances.SOCK_TILT, sockAt(t).second.sockSwing, 1e-9)
+        var prev = Performances.SOCK_TILT
+        for (t in (1500..1750 step 25).map { it.toDouble() }) {
+            val sw = sockAt(t).second.sockSwing
+            assertTrue("${t}ms 扶正的過程只往正的方向走：$sw", sw >= prev - 1e-9)
+            prev = sw
+        }
+        assertEquals("1750 ms 扶正", 0.0, sockAt(1750.0).second.sockSwing, 1e-9)
+        for (t in (2300..4400 step 50).map { it.toDouble() }) assertTrue("${t}ms 放手後只剩小擺動", kotlin.math.abs(sockAt(t).second.sockSwing) < 2.5)
+        assertEquals("結束時接回待機（襪子正的）", 0.0, sockAt(4400.0).second.sockSwing, 0.05)
+        assertEquals("代表姿勢（關閉動畫）襪子是正的", 0.0, Performances.pose(sockScene, 2300.0, Performance(Action.SOCK, Level.FULL, 0.0, held = true)).second.sockSwing, 0.0)
+    }
+
+    /** 接觸時機：1500 ms 以前手沒碰到襪子；1500 ms 碰到，扶正的整段（到 2300 ms）手都貼著襪身；手放下後離開 */
+    @Test
+    fun sockContactTiming() {
+        // 伸過去的整段（每 50 ms）都沒有穿過襪子，到 1400 ms 還有空隙
+        for (t in (0..1400 step 50).map { it.toDouble() }) assertTrue("${t}ms 還沒碰到：${contact(t).first}", contact(t).first > 1.0)
+        for (t in (1500..2300 step 50).map { it.toDouble() }) assertTrue("${t}ms 手要貼著襪身：${contact(t).first}", contact(t).first <= 1.0)
+        // 放手後往右離開、再放下，不穿過襪子
+        for (t in (2450..4400 step 50).map { it.toDouble() }) assertTrue("${t}ms 手已經離開：${contact(t).first}", contact(t).first > 1.0)
+        for (t in listOf(2900.0, 3600.0, 4400.0)) assertTrue("${t}ms 手已經放下：${contact(t).first}", contact(t).first > 5)
+    }
+
+    /** 接觸位置：襪身中段（襪口 0–4.4 是白色反摺、腳尖約 19；中段 6–14），不是腳尖 */
+    @Test
+    fun sockContactIsMidBody() {
+        for (t in (1500..2300 step 100).map { it.toDouble() }) {
+            val y = contact(t).second
+            assertTrue("${t}ms 碰到的位置 y=$y 不在襪身中段", y in 6.0..14.0)
+        }
+    }
+
+    /** 0 ms 與結束：手臂、頭、身體都跟待機站姿一樣（襪子的角度見上面） */
+    @Test
+    fun sockStartsAndEndsAtTheStance() {
+        for (t in listOf(0.0, Action.SOCK.durMs.toDouble())) {
+            val base = Performances.pose(sockScene, t, null).first
+            val p = sockAt(t).first
+            assertEquals("${t}ms", base.armL, p.armL)
+            assertEquals("${t}ms", base.armR, p.armR)
+            assertEquals("${t}ms", base.headAngle, p.headAngle, 1e-9)
+            assertEquals("${t}ms", base.body, p.body)
+        }
+    }
 }
