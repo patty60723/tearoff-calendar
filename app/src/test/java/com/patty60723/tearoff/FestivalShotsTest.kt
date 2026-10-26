@@ -174,7 +174,7 @@ class FestivalShotsTest {
             Festival.XMAS to Weather.RAINY, Festival.XMAS to Weather.SNOW, Festival.SPRING to Weather.THUNDER, Festival.SPRING to Weather.FOG,
             Festival.MOON to Weather.CLOUDY, Festival.MOON to Weather.FOG, Festival.MOON to Weather.SUNNY, Festival.MOON to Weather.RAINY,
         )
-        val envs = listOf(ArtConfig.SmallEnv.FESTIVAL to "A 節日背景優先", ArtConfig.SmallEnv.WEATHER to "B 天氣環境優先", ArtConfig.SmallEnv.BOTH to "C 兩個都留（對照）")
+        val envs = listOf(ArtConfig.SmallEnv.FESTIVAL to "A 節日背景優先", ArtConfig.SmallEnv.WEATHER to "B 天氣環境優先", ArtConfig.SmallEnv.BOTH to "C 兩個都留 （對照）")
         grid("7-widget-candidates", cases.map { (f, w) -> "${name[f]}・${weatherName[w]}" }, envs.map { it.second.replace(" ", "\n") }, 216, 288, left = 140) { r, i ->
             val (f, w) = cases[i]
             zoom(render(192, f, w, detail = Detail.simplified(192.0), art = ArtConfig(smallEnv = envs[r].first), bg = 0xFFFAF7F0.toInt()), 288)
