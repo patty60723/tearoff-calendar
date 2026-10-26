@@ -311,6 +311,42 @@ D-07 已確認用簡化的完整角色（不只畫頭）。D-26：只保留一�
 3. **P5-3**：`CalendarWidget` 接 V3（開關後面）、Reduced Motion、包袱／紙帽切換時更新。
 4. **P5-4**：截圖、模擬器、驗收報告。
 
+### P5-1 的實際結果（2026-10-26）
+
+**故事資料快取**
+
+- 呼叫鏈：`CalendarWidget.render` → 每種版面 `build` → `setStickman` → `StoryBook(context)` → `beats`（每個實例各自 lazy 解析）。Android 12 以上一次更新 4 種版面 = 解析 4 次（每個小工具）；App 日曆頁每次換頁、下一頁的快照也各自解析。
+- 改成 `StoryBook.Assets`：故事 assets（APK 內附，執行期間不變）整個 process 解析一次、共用。頁數、名字、最近片段等狀態**沒有**快取，每次照樣從 prefs 讀。`StoryBook` 的 API 不變。
+- `StoryCacheTest`：小工具 4 種版面 → 解析 1 次、第二次更新 0 次；開 App（含故事卡、日曆頁、下一頁快照）→ 1 次；跳頁後 `parts`／`page` 立刻是新的。
+
+**Bitmap 基準（舊火柴人，Robolectric 量測，不是實機）**：`WidgetBitmapBaselineTest`，完整表格在 CI 截圖分支的 `p5/bitmap-baseline.md`。
+
+| 密度 | Android 12+ 一次更新（4 版面 × 6 張） | 只送 1 張時 | Android 8–11（只送 TALL，6 張） |
+|---|---|---|---|
+| mdpi | 227 KB | 38 KB | 72 KB |
+| xhdpi | 912 KB | 152 KB | 288 KB |
+| xxhdpi／xxxhdpi（密度上限 3x） | **2053 KB** | 342 KB | 648 KB |
+
+- 數字是 `RemoteViews.estimateMemoryUsage()`（系統檢查上限時用的），跟像素估算（寬 × 高 × 4 × 張數）完全一樣。
+- 6 張輪播佔了 5/6；換成 D-04 的靜態一張，xxhdpi 從 2053 KB 降到約 342 KB（V3 尺寸一樣時）。
+- xxhdpi 以上目前就超過 1 MB 的初始預算，但還遠低於系統上限（AOSP 規則：螢幕寬 × 高 × 6 bytes，1080×2400 約 15 MB；讀原始碼得到，沒在實機量）。
+- Parcel 大小在 Robolectric 裡比估算多約 13 KB；實機上大 bitmap 可能走共享記憶體，這一欄不能當實際傳輸量。
+- App 日曆頁的小人（xxhdpi、411dp）每張 181×241 px × 6 張 ≈ 1 MB，只在 App 裡，不經過小工具傳送。
+
+**Reduced Motion／ViewFlipper（W7 M7）**
+
+- 來源確認：App 日曆頁是 `CalendarWidget.build(TALL)` 用 `RemoteViews.apply` 套出來的，裡面的 `ViewFlipper`（`autoStart`）用 `postDelayed` 換圖，不看系統動畫設定。小工具和日曆頁共用同一個 `setStickman`（6 張圖 + `setFlipInterval`）。
+- 修正（只動 App 日曆頁，不動小工具）：`MainActivity.updatePageMotion()` 關閉動畫時 `stopFlipping` 並停在第一張；打開時才輪播。Android 13 以上收到設定通知就切換；更舊的版本回到 App 時 `onResume` 會重建這一頁。舊火柴人和 V3 兩種模式的日曆頁都適用。
+- 證據：`PageMotionTest`（兩種模式、關閉／打開、切換不卡住）；模擬器關閉動畫後整個 App 10 秒內重畫 **0 張**（修正前 38 張），新增為必要檢查。
+- 還沒處理：故事卡的**舊火柴人**（`StickmanView`，V3 開關關閉時才看得到）不理會 Reduced Motion，關閉動畫時 10 秒約 290 張。這是舊模式的既有行為，P7 決定舊火柴人去留（D-15）時一起處理。桌面小工具的 `ViewFlipper` 在 P5-3 改成靜態一張（D-04）後自然解決。
+
+**P5-2 開始前要注意**
+
+- D-25 的 120 px 是「實際繪製高度」：同一個版面在 mdpi 是 48–64 px（簡化），在 xxhdpi 是 144–192 px（完整）；日曆頁約 241 px（完整）。截圖要涵蓋不同密度才看得出切換點。
+- 小工具的 `ViewFlipper` 版面保留 6 個 ImageView；靜態時只設第一張、其他不設 bitmap，並停止輪播，不改版面檔。
+- 簡化版的「至少 1.5 px」要用實際縮放比例換算（mdpi 的 48 px 角色 viewBox 縮放約 0.3），規則放在 renderer，不放在小工具。
+- Android 12 以上 4 個版面共用同一份 bitmap 快取，量預算時要量組合後的 RemoteViews。
+
 - **風險**：`ViewFlipper` 在不同 launcher 行為不一；低階機一次建 4 個版面的時間（目標 < 50 ms，用測試量）；簡化版的美術需要另外審。
 - **複雜度**：中。
 
