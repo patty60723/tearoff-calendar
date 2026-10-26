@@ -9,7 +9,8 @@ package com.patty60723.tearoff.mowan
  * - **加粗**留下來的線：主要墨線（頭、一筆、眼睛、身體、四肢、傘柄、圍巾）畫出來至少 [MAIN_INK_PX]，
  *   配件輪廓（紙帽、包袱、傘面、拳頭）與環境至少 [ACCENT_INK_PX]。只把太細的加到下限，本來就夠粗的不動。
  *
- * 要不要簡化看的是角色**畫出來的高度**（px），由 [of] 決定；筆畫下限一定用 px 換算（像素才會讓線消失）。
+ * 要不要簡化看的是角色的**視覺高度**（dp，D-25：低於 72 dp），由 [of] 決定；同一個實際大小在每種密度細節一樣。
+ * 筆畫下限、嘴巴畫不畫一定用 px 換算（像素才會讓線消失）。
  *
  * @param heightPx 角色（viewBox 160 單位高）實際畫出來的高度
  */
@@ -43,8 +44,8 @@ class Detail private constructor(val simplified: Boolean, val heightPx: Double) 
         const val ACCENT_INK_PX = 1.0
         const val MOUTH_MIN_PX = 96.0
 
-        /** D-25 暫定：120 px */
-        val DEFAULT_RULE: Rule = Rule.ByPx(120.0)
+        /** D-25（2026-10-26 確認）：角色視覺高度低於 72 dp 用簡化版；筆畫下限與嘴巴照樣看 px */
+        val DEFAULT_RULE: Rule = Rule.ByDp(72.0)
 
         /** 完整版：原本的畫法 */
         val FULL = Detail(false, Double.MAX_VALUE)

@@ -31,9 +31,34 @@ class DetailTest {
     // ---------- 門檻 ----------
 
     @Test
-    fun defaultRuleIsTheTentative120px() {
-        for (h in sizes) assertEquals("$h px", h < 120, Detail.of(h, 1.0).simplified)
-        assertSame(Detail.FULL, Detail.of(120.0, 3.0))
+    fun defaultRuleIsSeventyTwoDp() {
+        assertEquals(Detail.Rule.ByDp(72.0), Detail.DEFAULT_RULE)
+        val densities = listOf(1.0, 1.5, 2.0, 2.625, 3.0, 3.5, 4.0)
+        for (d in densities) {
+            // 邊界：71.9 dp 簡化、72 dp 完整，跟密度無關
+            assertTrue("$d：71.9 dp", Detail.of(71.9 * d, d).simplified)
+            assertSame("$d：72 dp", Detail.FULL, Detail.of(72.0 * d, d))
+            assertSame("$d：128 dp（故事卡）", Detail.FULL, Detail.of(128.0 * d, d))
+            assertSame("$d：80 dp（App 日曆頁）", Detail.FULL, Detail.of(80.0 * d, d))
+            for (dp in listOf(48.0, 56.0, 58.7, 64.0)) assertTrue("$d：$dp dp（小工具）", Detail.of(dp * d, d).simplified)
+        }
+        // 五種尺寸在 mdpi（px = dp）
+        for (h in sizes) assertEquals("$h px @mdpi", h < 72, Detail.of(h, 1.0).simplified)
+    }
+
+    /** 細節等級看 dp，但筆畫下限和嘴巴看實際 px */
+    @Test
+    fun inkFloorAndMouthStillUsePixels() {
+        val mdpi = Detail.of(48.0, 1.0)   // 48 dp、48 px
+        val xxhdpi = Detail.of(144.0, 3.0) // 48 dp、144 px
+        assertTrue(mdpi.simplified && xxhdpi.simplified)
+        // 1.5 px 換成 viewBox 單位：48 px 高時 1 px = 160/48 單位；144 px 高時 1 px = 160/144 單位
+        assertEquals(1.5 * 160 / 48, mdpi.mainInk, 1e-9)
+        assertEquals(1.5 * 160 / 144, xxhdpi.mainInk, 1e-9)
+        assertFalse("48 px 不畫嘴", mdpi.mouth)
+        assertTrue("144 px 畫嘴", xxhdpi.mouth)
+        assertFalse("72 px（48 dp @hdpi）不畫嘴", Detail.of(72.0, 1.5).mouth)
+        assertTrue("96 px（48 dp @xhdpi）畫嘴", Detail.of(96.0, 2.0).mouth)
     }
 
     /** 同一個視覺大小在不同密度：照 px 判斷會不一樣，照 dp 判斷每種密度一樣 */

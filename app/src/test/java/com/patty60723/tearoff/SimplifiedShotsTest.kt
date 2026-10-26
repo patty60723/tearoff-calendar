@@ -117,7 +117,7 @@ class SimplifiedShotsTest {
     /**
      * 4. 同一個視覺大小在不同密度：小工具 TALL（64 dp 高）與 COMPACT（48 dp 高）在 mdpi–xxhdpi。
      * 每一格先畫成真的像素大小，再縮放到同樣的顯示大小（就是在手機上看到的實際大小比例）。
-     * 上兩列照 D-25 暫定的 120 px 判斷；下兩列照 72 dp 判斷（建議）。
+     * 上兩列照舊的暫定值 120 px 判斷（比較用）；下兩列照 D-25 確認的 72 dp。
      */
     @Test
     fun densities() {
