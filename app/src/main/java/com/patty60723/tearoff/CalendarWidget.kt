@@ -11,6 +11,9 @@ import android.os.Bundle
 import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
+import com.patty60723.tearoff.mowan.Mowan
+import com.patty60723.tearoff.mowan.MowanBitmap
+import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.stickman.StickmanRenderer
 import com.patty60723.tearoff.story.StoryBook
@@ -112,7 +115,10 @@ class CalendarWidget : AppWidgetProvider() {
 
                 for (id in intArrayOf(R.id.band, R.id.hills, R.id.rule)) setInt(id, "setColorFilter", palette.main)
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
-                if (stickmanDp > 0) setStickman(context, this, stickmanDp)
+                if (stickmanDp > 0) {
+                    // 故事卡用 V3 時，小工具和 App 日曆頁也用 V3（D-23、D-24）
+                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date) else setStickman(context, this, stickmanDp)
+                }
             }
         }
 
@@ -147,6 +153,31 @@ class CalendarWidget : AppWidgetProvider() {
         private val FRAME_IDS = intArrayOf(
             R.id.frame0, R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4, R.id.frame5,
         )
+
+        /**
+         * V3 墨丸（P5-3）：一張靜態代表姿勢（D-04），跟 App 用同樣的部位、紙帽、包袱、天氣；不播撕頁動作（D-27）。
+         * 版面裡的 ViewFlipper 不動：6 格都放同一張圖（RemoteViews 只存一份），輪播間隔拉到一天，看起來就不會動。
+         * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）。
+         */
+        private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate) {
+            val book = StoryBook(context)
+            val density = context.resources.displayMetrics.density.coerceAtMost(3f)
+            val weather = if (date == AppClock.today(context)) {
+                WeatherService.current(context)?.let { MowanSettings.weatherOf(it.mood) } ?: Mowan.Weather.NONE
+            } else {
+                Mowan.Weather.NONE
+            }
+            val bitmap = MowanBitmap.still(
+                Mowan.partsOf(book.parts), MowanSettings.hatOn(context), MowanSettings.bundleOn(context), weather,
+                widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(), density = density,
+            )
+            for (id in FRAME_IDS) views.setImageViewBitmap(id, bitmap)
+            views.setDisplayedChild(R.id.stickman, 0)
+            views.setInt(R.id.stickman, "setFlipInterval", STILL_FLIP_MS)
+        }
+
+        /** V3 靜態圖時 ViewFlipper 的輪播間隔：一天（6 格都是同一張圖） */
+        internal const val STILL_FLIP_MS = 24 * 60 * 60 * 1000
 
         /** 火柴人目前長到哪裡、最近一次撕頁的動作，畫成幾張圖輪播。 */
         private fun setStickman(context: Context, views: RemoteViews, widthDp: Float) {

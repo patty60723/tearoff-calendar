@@ -44,6 +44,15 @@ class PageMotionTest {
         assertTrue(open().flipper.isFlipping)
     }
 
+    /** P5-3：V3 的日曆頁是一張靜態圖，動畫打開也不輪播 */
+    @Test
+    fun v3PageNeverFlips() {
+        MowanSettings.setStoryCard(context, true)
+        val a = open()
+        assertFalse(a.flipper.isFlipping)
+        assertEquals(0, a.flipper.displayedChild)
+    }
+
     @Test
     fun pageStaysStillWhenAnimationsAreOff() {
         for (v3 in listOf(false, true)) {

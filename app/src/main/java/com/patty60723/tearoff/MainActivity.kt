@@ -184,6 +184,9 @@ class MainActivity : Activity() {
                 // 只換外觀，墨丸的動作不重來
                 this@MainActivity.findViewById<MowanView>(R.id.story_mowan).bundleOn = MowanSettings.bundleOn(this@MainActivity)
                 showBundleToggle(MowanSettings.storyCard(this@MainActivity))
+                // 日曆頁和桌面小工具上的墨丸也要跟著換（P5-3）
+                show(date)
+                CalendarWidget.refreshAll(this@MainActivity)
             }
         }
     }
@@ -328,7 +331,8 @@ class MainActivity : Activity() {
      */
     internal fun updatePageMotion() {
         val flipper = pad.stickmanFlipper() ?: return
-        if (ValueAnimator.areAnimatorsEnabled()) {
+        // V3 是一張靜態圖（P5-3），不用輪播
+        if (ValueAnimator.areAnimatorsEnabled() && !MowanSettings.storyCard(this)) {
             flipper.startFlipping()
         } else {
             flipper.stopFlipping()
