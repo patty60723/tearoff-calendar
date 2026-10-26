@@ -381,8 +381,12 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
     ok=$(echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=GONE" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" && echo 0 || echo 1)
     check "小工具 $L（V3）" "$ok" "${r#*report }"
   done
+  # 綁定後的幾秒內還會陸續收到 onUpdate／尺寸變更（每次都重新套用一次），模擬器的 GPU 也偶爾卡住後補畫；
+  # 所以先量一段只記錄，再量第二段（綁定後約 17 秒起）當作穩定狀態檢查。會輪播的話兩段都會很多（舊火柴人約 170 張）。
+  f0=$(frames_in 10 widget-v3-settle)
+  log "  INFO  V3 小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
   f=$(frames_in 10 widget-v3)
-  check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "${f%% *}" -le 5 ] 2>/dev/null && echo 0 || echo 1)" "10 秒內畫了 $f 張"
+  check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "${f%% *}" -le 5 ] 2>/dev/null && echo 0 || echo 1)" "穩定後 10 秒內畫了 $f 張"
   # 舊火柴人：ViewFlipper 顯示、V3 的圖隱藏（對照組會一直重畫）
   state 14 RAIN false
   host_run old
@@ -443,7 +447,11 @@ if [ -n "$p" ]; then
   adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
   sleep 3
   adb exec-out screencap -p > "$OUT/shots/launcher-pin-dialog.png"
-  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui/launcher-pin.xml" >/dev/null 2>&1
+  # uiautomator 在對話框還在動的時候常常讀不到，多試幾次
+  for _ in 1 2 3 4; do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui/launcher-pin.xml" >/dev/null 2>&1 && break
+    sleep 2
+  done
   a=$(python3 - "$OUT/ui/launcher-pin.xml" <<'PYEOF'
 import re, sys
 import xml.etree.ElementTree as ET
@@ -459,6 +467,11 @@ for want in ["add automatically", "add to home screen", "add", "新增", "加入
             sys.exit()
 PYEOF
 )
+  if [ -z "$a" ]; then
+    # 讀不到畫面結構時，按 Launcher3 對話框「加入」按鈕的位置（右下角）；有沒有真的放上去由下面的 dumpsys 判斷
+    a="$((W * 77 / 100)) $((H * 94 / 100))"
+    log "  讀不到 launcher 對話框的畫面結構，改按右下角的加入按鈕位置 $a"
+  fi
   if [ -n "$a" ]; then
     adb shell input tap $a
     sleep 3
