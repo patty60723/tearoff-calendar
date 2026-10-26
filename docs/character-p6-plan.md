@@ -394,3 +394,84 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - Not tested：實機動畫流暢度、效能、耗電、舊 Android、模擬器上的節日畫面（還沒接畫面）。
 - 最終 commit `87ab431`；CI Build APK #81 通過（259 個 JVM／Robolectric 測試）；模擬器回歸 #38 PASS 41／FAIL 0／WARN 0。
 - 驗收報告：[character-p6-3-acceptance.md](character-p6-3-acceptance.md)。
+
+## 11. P6-4 整合計畫（2026-10-26，等待審核，還沒開始寫程式）
+
+### 11.1 盤點：哪些已經做好、哪些只是還沒接到畫面
+
+| 規則／功能 | 狀態 | 位置 | P6-4 要做的事 |
+|---|---|---|---|
+| 節日日期（D-28）、看「今天」（D-36） | **完成、已測試** | `FestivalTheme.of(date)` | 只要把 `AppClock.today` 傳進去 |
+| 插槽、紙帽讓位（D-05）、月亮與太陽（D-32）、成長焦點期 | **完成、已測試** | `FestivalScene.resolve` | 不用改 |
+| 節日當天不播天氣日常動作、不畫汗滴白氣（D-31） | **完成、已測試**（`Mowan.frame(festival=…)` 用節日站姿） | `Poses.festival` | 只要把節日傳給 `Mowan.frame` |
+| 節日當天雷雨驚嚇不播（D-31） | **規則有（`FestivalScene.thunderStartle`），沒有接** | `MowanTimeline` 現在只在「更高優先的演出正在播」時跳過 | 時間軸要多一個「今天是節日」的條件（整天不打雷，不只演出時） |
+| 降級層級、演出鎖定層級（D-35） | **完成、已測試** | `FestivalActions`、`FestivalSession.level` | 不用改 |
+| 一天一次、開始播就記錄、跨午夜等演完、待機 20–40 秒、Reduced Motion 停在代表姿勢（D-33～D-36） | **狀態機完成、已測試；存放位置只有記憶體版** | `FestivalSession`、`FestivalSession.MemoryLog` | 做 SharedPreferences 版的 `MainLog`；把狀態機接進 `MowanView` |
+| 演出姿勢、道具動作量 | **完成、已測試、已驗收** | `Performances`、`Mowan.frame(performance=…)` | 不用改 |
+| 優先順序（成長故事 > 主演出 > 待機 > 天氣日常） | **介面完成、已測試**；V3 沒有成長故事動作 | `MowanDirector`、`FestivalSession.Mode.activity` | 演出開始／結束時呼叫 `director.start／finish` |
+| 節日靜態外觀（服裝、道具、背景） | **完成、已驗收** | `Mowan.frame(festival=…)`、`Props` | 日曆頁、小工具的 `MowanBitmap.still` 要多傳節日 |
+| D-16 小工具背景取捨 | **只有候選（A／B／C），方向已定、規則沒做** | `ArtConfig.smallEnv`、`Mowan.render` 的 `festSmall` | 做「A＋最多一個簡化天氣線索」，出候選圖給審核 |
+| 「第一次可見」觸發 | **沒有** | — | `MowanView` 判斷可見＋前景 |
+| App 在前景時跨午夜 | **沒有**：`MainActivity` 只在 `onResume` 重算今天，前景跨午夜不會換頁、也不會換節日 | — | 見 D-44 |
+| 除錯：重播主演出、節日頭飾開關 | **邏輯有（`FestivalSession.replay`、`ArtConfig.festivalHeadwear`），選單沒有** | `DebugMenu` | 加兩個選項 |
+| V3 開關、舊火柴人 | 舊火柴人完全不知道節日 | `MowanSettings.storyCard` | 確認 V3 關閉時不記錄、不畫任何節日東西 |
+
+### 11.2 分階段
+
+每階段結束停下來審核。全部都只在 V3 開關打開時生效；V3 關閉時舊火柴人、舊小工具完全不變。
+
+**P6-4a：狀態保存與 `MowanView` 接線（App 故事卡內部，沒有新的 UI）**
+- `MowanSettings`：SharedPreferences 版的 `FestivalSession.MainLog`（記錄最近幾個「日期:節日」key，D-45）。
+- `MowanView`：新增 `date`（今天）、`festival`（由 `FestivalTheme` 算）；裡面放一個 `FestivalSession`；
+  - 畫的時候把節日、演出（`Performance`）傳給 `Mowan.frame`；
+  - 演出中每 33 ms 重畫，沒有演出時照原本的節奏（一般站姿 6 FPS 筆觸、天氣姿勢 33 ms），待機時間到了才重畫；
+  - 第一次「可見」（D-40）時呼叫 `session.enter`；
+  - 演出開始、結束時通知 `director`；節日當天整天不打雷（`MowanTimeline` 加條件）；
+  - Reduced Motion：主演出停在代表姿勢，演出時間到了排一次重畫回到站姿；不排待機；
+  - 天氣更新只換環境，不重播、不改鎖定的層級。
+- 測試（Robolectric）：第一次可見才觸發、背景回來不重播、重建 Activity（新的 View、同一份 prefs）不重播、隔天再播、換節日會播、Reduced Motion 停在代表姿勢且記錄、節日當天不打雷、沒有節日時畫法與重畫排程跟現在一樣（既有 `MowanViewTest` 全部照樣通過）。
+- **主要檔案**：`MowanView.kt`、`MowanTimeline.kt`（加一個條件）、`MowanSettings.kt`。
+
+**P6-4b：App 整合（故事卡、日曆頁、除錯選單、日期改變）**
+- `MainActivity`：故事卡的 `MowanView` 設定今天的日期；V3 開關切換、假日期切換（除錯）、前景跨午夜（D-44）時重新判斷。
+- App 日曆頁：`MowanBitmap.still` 多傳節日；哪一天的頁面畫節日外觀見 D-41。
+- `DebugMenu`：「重播節日主演出」「節日頭飾開關」（D-33：重播只在除錯選單）。
+- 測試（Robolectric）：故事卡、日曆頁、除錯選單；V3 關閉時完全沒有節日；`StoryCardTest`、`PageMotionTest`、`WidgetV3Test` 等既有測試照樣通過。
+- **主要檔案**：`MainActivity.kt`、`MowanBitmap.kt`、`DebugMenu.kt`。
+
+**P6-4c：小工具的節日外觀與 D-16 規則**
+- `CalendarWidget.setMowan`：今天是節日時畫節日靜態外觀（不演出，D-16）；跟 App 日曆頁同一個 `MowanBitmap.still`。
+- D-16：在簡化版（小工具）實作「節日背景優先＋空間允許時最多一個簡化天氣線索」（D-43），出候選圖（8 種天氣 × 3 節日 × 4 種版面）給美術審核後才定案。
+- 測試：小工具 bitmap 預算（節日不增加張數）、4 種版面、密度、跟 App 日曆頁一致、V3 關閉時跟現在一樣。
+- **主要檔案**：`CalendarWidget.kt`、`Mowan.kt`（簡化版的背景取捨）、`ArtConfig.kt`。
+- **停點**：D-16 候選圖美術審核。
+
+**P6-5（原計畫）**：模擬器節日驗收（假日期進春節、聖誕、中秋；第一次可見觸發、重開不播、換天氣不播、Reduced Motion、小工具外觀、跨午夜）、驗收報告、P6 結案。
+
+### 11.3 回歸範圍
+
+- JVM：全部既有測試與黃金數值（`golden*.json`）不變；`Mowan.frame` 沒有節日時的輸出不變（已有 `FestivalRenderTest.noFestivalIsUnchanged`）。
+- Robolectric：`MowanViewTest`（重畫排程、Reduced Motion、背景停止）、`StoryCardTest`、`PageMotionTest`、`WidgetV3Test`（4 種版面、bitmap 預算、舊火柴人）、`StoryCacheTest`。
+- 模擬器：既有 41 項全部照樣通過；節日新增的檢查放在 P6-5。
+
+### 11.4 需要決定的事項（P6-4 開始前）
+
+見[未定案事項](character-open-decisions.md) D-40 到 D-47。摘要：
+
+| # | 問題 | 建議 |
+|---|---|---|
+| D-40 | 「故事卡第一次可見」怎麼判斷 | 墨丸在螢幕上露出至少一半、App 在前景（resumed、視窗有焦點）；故事卡要往下捲才看得到時，捲到才算 |
+| D-41 | App 日曆頁哪一頁畫節日外觀 | 跟 P5 的天氣規則一樣：只有「今天」那一頁畫節日外觀；最上面還是昨天那頁時不畫 |
+| D-42 | 節日當天 V3 開關切換 | V3 關閉時不觸發、不記錄；當天打開 V3 後第一次看到故事卡才演（還是一天一次） |
+| D-43 | D-16 的「空間允許」 | 節日背景跟天氣線索不在同一區域時才留天氣線索：月亮與雲（都在天空）只留月亮；春聯、襪子（左邊）與雨絲、雪花留右邊兩條／兩片；霧留腳邊那條；太陽有月亮就不畫。P6-4c 出候選圖再定 |
+| D-44 | App 停在前景時跨午夜 | 收到系統的日期改變（`ACTION_DATE_CHANGED`、`TIME_CHANGED`、`TIMEZONE_CHANGED`）時，照 `onResume` 的做法重算今天（日曆頁最上面那張、故事卡、節日）；這會讓日曆頁在前景跨午夜時也換頁，**是既有行為的改變**，需要你同意；不同意的話只讓故事卡的節日重新判斷 |
+| D-45 | 「演過了」存多久 | 存最近 10 個 key（約一年份的節日日期，春節 3＋聖誕 1＋中秋 1），超過就丟最舊的 |
+| D-46 | 節日待機長時間放著 | 照原型每 20–40 秒一次，只在故事卡看得到時；看不到、背景、Reduced Motion 時不排。實機耗電另列 Not tested |
+| D-47 | 舊火柴人在節日 | 不做任何節日內容（只有 V3 有） |
+
+### 11.5 已知的邊界情況（實作時處理，不需要決定）
+
+- 演出中撕頁、換頁讓部位變多：層級照 D-35 鎖到演出結束，新長出來的部位用站姿畫。
+- 演出中切到背景：已經記錄過，回來不重播；回來時如果演出時間還沒過，接著演完（時間照實際經過算）。
+- 除錯假日期改變：Activity 重建，`session.enter` 用新的日期判斷。
+- V3 沒有成長故事動作：`FestivalSession.story` 只保留介面，P6-4 不新增故事動作。
