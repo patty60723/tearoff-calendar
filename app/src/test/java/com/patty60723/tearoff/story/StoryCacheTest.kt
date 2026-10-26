@@ -33,6 +33,7 @@ class StoryCacheTest {
     fun widgetUpdateParsesOnce() {
         StoryBook(context).jumpTo(14, AppClock.today(context))
         val page = Almanac.page(AppClock.today(context))
+        StoryBook.Assets.clear() // jumpTo 本身也要讀故事；從這裡開始算
         // 一次小工具更新（Android 12 以上）會建 4 種版面；以前每個版面都 new StoryBook 重新解析，共 4 次
         assertEquals(1, parses { PageLayout.entries.forEach { CalendarWidget.build(context, page, it) } })
         // 之後的更新不再解析
@@ -42,6 +43,7 @@ class StoryCacheTest {
     @Test
     fun appParsesOnce() {
         StoryBook(context).jumpTo(5, AppClock.today(context))
+        StoryBook.Assets.clear() // jumpTo 本身也要讀故事；從這裡開始算
         // App 本身、故事卡、日曆頁（小工具的 TALL 版面）、下一頁的快照：以前各自解析
         assertEquals(1, parses { Robolectric.buildActivity(MainActivity::class.java).setup() })
     }
