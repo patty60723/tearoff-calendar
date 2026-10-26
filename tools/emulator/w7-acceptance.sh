@@ -38,6 +38,8 @@ adb shell wm dismiss-keyguard
 adb shell settings put global window_animation_scale 1
 adb shell settings put global transition_animation_scale 1
 adb shell settings put global animator_duration_scale 1
+# 模擬器剛開機時其他 App（例如 Pixel Launcher）常常 ANR，對話框會蓋住我們的 App、吃掉點擊；不顯示背景 ANR
+adb shell settings put secure anr_show_background 0
 adb logcat -c
 
 SIZE=$(adb shell wm size | tr -d '\r' | awk '{print $NF}')
@@ -145,6 +147,11 @@ to_gif() {
 }
 
 crashed() { adb logcat -d | grep -q "FATAL EXCEPTION" ; }
+dismiss_anr() { # 其他 App 的「沒有回應」對話框還是跳出來的話按返回（等於「等待」），回傳 0 表示有關掉
+  adb shell dumpsys window | grep -q "mCurrentFocus=.*Application Not Responding" || return 1
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+  warn "系統跳出其他 App 的「沒有回應」對話框，已關掉（不是我們的 App）"
+}
 
 log ""
 log "== 1. 8 種天氣（第 14 頁）=="
@@ -207,10 +214,12 @@ if [ -n "$b" ]; then
   tap_bundle() { # tap_bundle <第幾下>：切換成功回傳 0
     local before after
     before=$(bundle_on)
+    dismiss_anr
     adb shell input tap $bx $by; sleep 1.5
     after=$(bundle_on)
     if [ "$before" = "$after" ]; then
       warn "包袱入口第 $1 下沒有反應（$before），再點一次"
+      dismiss_anr
       adb shell input tap $bx $by; sleep 1.5
       after=$(bundle_on)
     fi
