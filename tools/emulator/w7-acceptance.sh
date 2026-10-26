@@ -17,7 +17,7 @@ PASS_N=0
 FAIL_N=0
 WARN_N=0
 # 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
-EXPECTED_CHECKS=24
+EXPECTED_CHECKS=25
 check() { # check <名稱> <條件結果 0/1> <說明>
   if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
   else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
@@ -201,13 +201,29 @@ if [ -n "$b" ]; then
   log "  入口位置 $b（高 $(( $4 - $2 )) px = $(( ($4 - $2) * 160 / 420 )) dp）"
   sleep 1
   shot bundle-1-on
-  # 錄影：3 秒時卸下、6 秒時背上、9 秒時再卸下；伸懶腰不應該重來
-  adb shell screenrecord --time-limit 11 /sdcard/rec.mp4 &
+  # 每點一下就看設定有沒有切換。沒反應時記 WARN 再點一次（模擬器偶爾吃掉點擊：P5-2 有兩次三下後狀態沒變，
+  # 同一份 App 其他次都通過）；再點還是沒切換才算失敗。
+  bundle_on() { adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'name="bundleOn" value="[a-z]*"' | grep -o 'true\|false'; }
+  tap_bundle() { # tap_bundle <第幾下>：切換成功回傳 0
+    local before after
+    before=$(bundle_on)
+    adb shell input tap $bx $by; sleep 1.5
+    after=$(bundle_on)
+    if [ "$before" = "$after" ]; then
+      warn "包袱入口第 $1 下沒有反應（$before），再點一次"
+      adb shell input tap $bx $by; sleep 1.5
+      after=$(bundle_on)
+    fi
+    log "  第 $1 下：$before → $after"
+    [ "$before" != "$after" ]
+  }
+  # 錄影：卸下、背上、再卸下；伸懶腰不應該重來
+  adb shell screenrecord --time-limit 16 /sdcard/rec.mp4 &
   REC=$!
-  sleep 3; adb shell input tap $bx $by
-  sleep 3; adb shell input tap $bx $by
-  sleep 3; adb shell input tap $bx $by
+  toggled=0
+  for k in 1 2 3; do sleep 1.5; tap_bundle $k && toggled=$((toggled + 1)); done
   wait $REC
+  check "包袱入口每一下都切換" "$([ "$toggled" = 3 ] && echo 0 || echo 1)" "3 下裡切換了 $toggled 下"
   adb pull /sdcard/rec.mp4 "$OUT/video/bundle-toggle-full.mp4" >/dev/null 2>&1
   to_gif bundle-toggle
   check "包袱點擊不閃退" "$(crashed && echo 1 || echo 0)" "點三下"
