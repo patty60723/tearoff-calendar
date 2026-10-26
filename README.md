@@ -33,3 +33,7 @@
 | `5a-moon-cake-rain.png`、`5b-moon-cake-snow.png` | 雨、雪看月餅：開始、低頭、捧起、看著、微笑、放回、抬頭、結束 |
 | `6-moon-bundle-pass.png` | 背包袱時月餅舉起（1000–2300 ms）與放下（3300–4400 ms），每 100 ms 一格 |
 | `7a-idle-spring.png`、`7b-idle-xmas.png`、`7c-idle-moon.png` | 三種節日待機 |
+
+## P6-3 動態審核收尾：扶正聖誕襪（D-39 方案 A，commit `87ab431`）
+- `keyframes/3-xmas-sock.png`：修正後重新輸出（取代原本的「掛襪子」拼圖）
+- `keyframes/3-xmas-sock-before-after.png`：上半修正前、下半修正後
