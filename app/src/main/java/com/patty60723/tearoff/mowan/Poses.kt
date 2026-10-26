@@ -118,6 +118,26 @@ internal object Poses {
         )
     }
 
+    // ---------- 節日（P6-2，原型 core.js 的 ARM 與 buildFrame） ----------
+
+    /** 拿著節日道具的手：手臂往外下方，手尖在身體外側 */
+    val R_HOLD = pts(60.8, 77.0, 66.0, 81.5, 70.0, 86.5, 72.5, 90.0)
+    val L_HOLD = pts(60.5, 77.0, 55.3, 81.5, 51.3, 86.5, 48.8, 90.0)
+
+    /**
+     * 節日當天的站姿（D-31）：不播天氣日常動作，也沒有汗滴、白氣、圍巾拉高、皺眉；
+     * 要撐傘時照雨天撐傘（雨、雷雨都是單手），表情與一筆回到一般。拿著節日道具的手用握持姿勢。
+     * 演出（P6-3）會疊在這個站姿上。
+     */
+    fun festival(scene: FestivalScene.Result, time: Double): Pose {
+        val umbrella = scene.hand(FestivalScene.Hand.R) == FestivalScene.Item.UMBRELLA
+        var p = if (umbrella) rainy(time).copy(headAngle = 0.0, face = Face.NORMAL, flick = Flick.NORMAL) else NORMAL
+        val r = scene.hand(FestivalScene.Hand.R)
+        if (r != null && r != FestivalScene.Item.UMBRELLA) p = p.copy(armR = R_HOLD)
+        if (scene.hand(FestivalScene.Hand.L) != null) p = p.copy(armL = L_HOLD)
+        return p
+    }
+
     fun rainy(time: Double) = Pose(
         body = pts(60.5, 68.6, 59.1, 79.0, 59.6, 90.0, 61.0, 101.0),
         armL = pts(60.5, 77.0, 55.0, 80.2, 53.6, 85.6, 57.6, 87.6),

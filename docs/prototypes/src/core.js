@@ -163,6 +163,10 @@
       { pts: circlePts(17.6, -8.2, 2.6), fill: IVORY },
     ] };
   HEADWEAR.earsB = { ...HEADWEAR.ears, name: '玉兔耳朵 B（一筆兩側各一）', multi: [{ theta: -2.28, tilt: -0.12 }, { theta: -0.86, tilt: 0.12 }] };
+  // Phase 2A.2 頭飾 C（從 mowan-hat-umbrella.html 搬過來，只加資料，P6-2）：往頭頂移、角度放正 8°、帽緣往下壓進頭輪廓
+  // 財神帽的耳翼比較寬，只能往頭頂移到 −1.06 rad，再上去會碰到一筆
+  HEADWEAR.caishenC = { ...HEADWEAR.caishen, name: '財神帽 C', theta: -1.06, sink: 1.8, tilt: -0.16 };
+  HEADWEAR.santaC = { ...HEADWEAR.santa, name: '聖誕帽 C', theta: -1.2, sink: 1.8, tilt: -0.16 };
   const HAND_PROPS = {
     envelope: { name: '紅包', shapes: [{ pts: R60([[-3.3, -1.5], [3.3, -1.5], [3.3, 7.5], [-3.3, 7.5]]), fill: FEST_RED }], lines: [[[-3.1, -1.1], [0, 1.6], [3.1, -1.1]]], rot: 0.08 },
     mooncake: { name: '月餅', shapes: [{ pts: circlePts(0, -3.4, 4.4), fill: CAKE }], rings: [[0, -3.4, 2.4]], rot: 0 },

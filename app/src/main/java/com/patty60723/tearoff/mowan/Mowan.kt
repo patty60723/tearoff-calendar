@@ -14,7 +14,7 @@ import kotlin.math.sqrt
  * 墨丸 V3 的造型與一張影格的組成。數值全部來自原型
  * docs/prototypes/src/engine.js、core.js，不在這裡調整比例或五官。
  *
- * 目前有一般、晴天、雨天三種場景（Phase 2B 的 P2）；節日、48px 規則還沒做。
+ * 天氣 8 種（P4）、小尺寸簡化（P5）、節日服裝與道具的靜態畫法（P6-2）；節日演出在 P6-3。
  */
 object Mowan {
     // ---------- 色票（Confirmed） ----------
@@ -250,6 +250,8 @@ object Mowan {
      * @param still 關閉動畫時的靜止畫面（雪花不放在頭和臉上）
      * @param bundleOn 包袱是否背著（裝備狀態，見 [MowanSettings.bundleOn]；第 14 頁前不管這個值都不畫）
      * @param detail 小尺寸的簡化畫法（P5-2），預設是完整版
+     * @param festival 今天的節日（P6-2）：節日站姿、服裝與道具，見 [FestivalScene]；null 表示沒有節日
+     * @param art 還沒定案的美術候選（頭飾、耳朵、雨傘大小、小尺寸的背景），見 [ArtConfig]
      */
     fun frame(
         parts: Set<String>,
@@ -263,7 +265,13 @@ object Mowan {
         still: Boolean = false,
         bundleOn: Boolean = true,
         detail: Detail = Detail.FULL,
+        festival: Festival? = null,
+        art: ArtConfig = ArtConfig.DEFAULT,
     ): Frame {
+        if (festival != null) {
+            val scene = FestivalScene.resolve(parts, festival, weather, hatOn, bundleOn, art)
+            return render(parts, variant, hatOn, Poses.festival(scene, clockMs), weather, rainStep, art.umbrellaScale, clockMs, still, bundleOn, detail, scene, art)
+        }
         val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
         // 雨傘是功能道具，要有右手才拿得了（Confirmed）
@@ -298,6 +306,8 @@ object Mowan {
         still: Boolean = false,
         bundleOn: Boolean = true,
         detail: Detail = Detail.FULL,
+        fest: FestivalScene.Result? = null,
+        art: ArtConfig = ArtConfig.DEFAULT,
     ): Frame {
         val ops = ArrayList<Op>()
         // 簡化版（P5-2）：拿掉細節、把留下來的線加粗到下限；完整版下面的 floor 都不會改變任何寬度
@@ -315,6 +325,23 @@ object Mowan {
         // 成長焦點期（還沒有手）：天空降到 55%
         val skyOp = if (caps.growthFocus) 0.55f else 1f
 
+        // ---- 節日（P6-2）：節日環境照 FestivalScene 的插槽畫 ----
+        // 成長焦點期的節日線索降到 40%
+        val envOp = if (fest != null && fest.low) Props.LOW_ENV else 1f
+        // 小尺寸最多一個主要背景裝飾（D-16 方向）：每個節日只留一個背景元素；跟天氣環境怎麼取捨是候選（ArtConfig.smallEnv）
+        val festSmall = simple && fest?.festival != null
+        val smallKeep = fest?.festival?.let { Props.SMALL_KEEP[it] }
+        fun festEnv(item: FestivalScene.Item): Boolean {
+            if (fest == null || fest[item.slot!!] != item) return false
+            if (!festSmall) return true
+            return art.smallEnv != ArtConfig.SmallEnv.WEATHER && item == smallKeep
+        }
+        val festBackdropSmall = festSmall && smallKeep != null && festEnv(smallKeep)
+        // 天氣環境（太陽、雲、雨、雪、霧、熱氣）；雨傘是功能道具，不受影響
+        val weatherEnv = !(festBackdropSmall && art.smallEnv == ArtConfig.SmallEnv.FESTIVAL)
+        // 太陽：天空有月亮時不畫（D-32）
+        val sunOn = weatherEnv && (fest == null || fest.shown(FestivalScene.Item.SUN))
+
         // 接下來畫的筆畫屬於哪個部位
         var owner = ""
         fun add(layer: Layer, path: PathData, fill: Int?, alpha: Float = 1f, evenOdd: Boolean = false, gradient: Gradient? = null) {
@@ -327,9 +354,9 @@ object Mowan {
             add(layer, r.stroke, INK, alpha, evenOdd = true)
             return r
         }
-        fun strokePath(layer: Layer, pts: List<Pt>, w0: Double, w1: Double, part: String, amp: Double, color: Int = INK, per: Int = 6, alpha: Float = 1f, tip: Boolean = false) {
+        fun strokePath(layer: Layer, pts: List<Pt>, w0: Double, w1: Double, part: String, amp: Double, color: Int = INK, per: Int = 6, alpha: Float = 1f, tip: Boolean = false, floor: Double = 0.0) {
             val ph = Rng.phases(part, v)
-            add(layer, Geometry.brush(Geometry.catmull(pts, per), { t -> lerp(w0, w1, t) * Geometry.widthVar(ph, t, 0.1) }, { t -> Geometry.openNoise(ph, t, amp, tip) }), color, alpha)
+            add(layer, Geometry.brush(Geometry.catmull(pts, per), { t -> max(lerp(w0, w1, t) * Geometry.widthVar(ph, t, 0.1), floor) }, { t -> Geometry.openNoise(ph, t, amp, tip) }), color, alpha)
         }
         /** Paint 描邊的寬度加到下限 */
         fun sw(w: Double, floor: Double) = max(w, floor)
@@ -344,13 +371,13 @@ object Mowan {
         }
 
         // ---- 天空 ----
-        if (weather == Weather.HOT) {
+        if (weather == Weather.HOT && sunOn) {
             // 熱：太陽比晴天大一圈
             owner = "sun"
             add(Layer.SKY, PathData.ellipse(99.0, 4.0, 10.5, 10.5), PINK, 0.85f * skyOp)
             ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 14.5, 14.5), null, skyOp, stroke = PINK, strokeWidth = sw(1.2, accent), part = owner)
         }
-        if (weather == Weather.CLOUDY || weather == Weather.THUNDER) {
+        if ((weather == Weather.CLOUDY || weather == Weather.THUNDER) && weatherEnv) {
             // 陰天的雲慢慢往右飄；雷雨的雲比較深、不動、高一點
             val storm = weather == Weather.THUNDER
             owner = "clouds"
@@ -362,17 +389,25 @@ object Mowan {
                 ringPath(Layer.CLOUDS, loop, if (storm) STORM else CLOUD, "cloud$i", 1.5, 0.5, if (caps.growthFocus) 0.7f else 1f, floor = accent)
             }
         }
-        if (weather == Weather.THUNDER && p.effects.bolt > 0 && !simple) {
+        if (weather == Weather.THUNDER && p.effects.bolt > 0 && !simple && weatherEnv) {
             owner = "bolt"
             ringPath(Layer.CLOUDS, Geometry.resample(Geometry.place(BOLT, Geometry.Placement(96.0, 14.0)), 40), PINK, "bolt", 1.1, 0.15, p.effects.bolt.toFloat())
         }
-        if (weather == Weather.SUNNY) {
+        if (weather == Weather.SUNNY && sunOn) {
             owner = "sun"
             add(Layer.SKY, PathData.ellipse(99.0, 4.0, 8.5, 8.5), PINK, 0.75f * skyOp)
             ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 12.0, 12.0), null, skyOp, stroke = PINK, strokeWidth = sw(1.1, accent), part = owner)
         }
+        // ---- 月亮（中秋）：不畫外圈光環（那是太陽的語彙）；陰天、霧降低對比 ----
+        if (festEnv(FestivalScene.Item.MOON)) {
+            owner = "moon"
+            val dim = if (weather == Weather.CLOUDY || weather == Weather.FOG) Props.DIM_MOON else 1f
+            ringPath(Layer.SKY, Props.circlePts(Props.MOON_C.x, Props.MOON_C.y, Props.MOON_R), Props.MOON, "moon", 1.2, 0.3, envOp * dim, floor = accent)
+            // 月面的淡影，讓它一看就是月亮
+            if (!simple && envOp > 0.5f) for (c in Props.CRATERS) add(Layer.SKY, PathData.ellipse(c[0], c[1], c[2], c[3]), Props.CRATER, c[4].toFloat() * dim)
+        }
         // ---- 雨（8 FPS） ----
-        if (rainy) for ((i, d) in DROPS.withIndex()) {
+        if (rainy && weatherEnv) for ((i, d) in DROPS.withIndex()) {
             // 簡化：只留兩邊各兩條
             if (simple && i !in MAIN_DROPS) continue
             val y = ((d.y + rainStep * 7) % 150) - 20
@@ -381,12 +416,12 @@ object Mowan {
         }
 
         // 雷雨：簡化時環境只留烏雲
-        if (weather == Weather.THUNDER && !simple) for (d in HEAVY_DROPS) {
+        if (weather == Weather.THUNDER && !simple && weatherEnv) for (d in HEAVY_DROPS) {
             val y = ((d.y + rainStep * 9) % 150) - 20
             val path = PathData.Builder().move(Pt(d.x, y)).line(Pt(d.x - 2.6, y + 8)).build()
             ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = 1.6, roundCap = true, part = "rain")
         }
-        if (weather == Weather.SNOW) FLAKES.forEachIndexed { i, (x0, y0, r0) ->
+        if (weather == Weather.SNOW && weatherEnv) FLAKES.forEachIndexed { i, (x0, y0, r0) ->
             // 簡化：只留四片大的，半徑至少 1.2 px
             if (simple && i !in MAIN_FLAKES) return@forEachIndexed
             val r = max(r0, 0.6 * accent * 2)
@@ -398,7 +433,7 @@ object Mowan {
             ops += Op(Layer.RAIN, PathData.ellipse(x, y, r, r), SNOW, stroke = INK, strokeWidth = sw(0.6, 0.6 * accent), part = "snow")
         }
         // ---- 霧（後面兩層） ----
-        if (weather == Weather.FOG) {
+        if (weather == Weather.FOG && weatherEnv) {
             owner = "mist"
             // 簡化：只留腳邊那條最長的
             if (!simple) mistBand(Layer.BACKDROP, 22.0, 70.0, 7.0, 18 * sin(clockMs / 4200), "mist0", 0.8f)
@@ -415,7 +450,52 @@ object Mowan {
             Weather.COLD -> add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 18.0, 2.4), INK, 0.07f)
             else -> add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 16.0, 2.2), INK, 0.07f)
         }
-        if (weather == Weather.HOT && !simple) {
+        // ---- 節日背景：斗方春聯、襪子用細繩掛在頁面上緣的日曆裝訂環上 ----
+        fun hangFrom(x: Double, yTop: Double, part: String) {
+            val a = maxOf(envOp, 0.35f)
+            ops += Op(Layer.BACKDROP, PathData.ellipse(x, -17.2, 1.5, 1.5), null, a, stroke = INK, strokeWidth = sw(0.9, accent), part = owner)
+            strokePath(Layer.BACKDROP, pts(x, -15.7, x + 0.3, (yTop - 15.7) / 2, x, yTop), 0.7, 0.7, part, 0.08, alpha = a, floor = accent)
+        }
+        if (festEnv(FestivalScene.Item.COUPLET)) {
+            owner = "couplet"
+            hangFrom(Props.COUPLET_C.x, 14.5, "cplString")
+            ringPath(Layer.BACKDROP, Props.COUPLET, Props.RED, "couplet", Props.OW, 0.35, 0.85f * envOp, floor = accent)
+            // 「春」字：小尺寸時拿掉（原型 48 px 也不寫字）
+            if (!simple) Props.CHUN.forEachIndexed { i, (kind, stroke) ->
+                val ph = Rng.phases("chun$i", v)
+                val world = stroke.map { Pt(Props.COUPLET_C.x + it.x, Props.COUPLET_C.y + it.y) }
+                add(Layer.BACKDROP, Geometry.brush(
+                    Geometry.catmull(world, 7),
+                    { t -> Props.chunWidth(kind, t) * Geometry.widthVar(ph, t, 0.08) },
+                    { t -> Geometry.openNoise(ph, t, 0.12, false) },
+                ), INK, maxOf(envOp, 0.3f))
+            }
+        }
+        if (festEnv(FestivalScene.Item.SOCK)) {
+            owner = "sock"
+            val pl = Geometry.Placement(Props.SOCK_TOP.x, Props.SOCK_TOP.y)
+            hangFrom(Props.SOCK_TOP.x, Props.SOCK_TOP.y, "string")
+            ringPath(Layer.BACKDROP, Geometry.place(Props.SOCK_LEG, pl), Props.RED, "sock", Props.OW, 0.3, envOp, floor = accent)
+            ringPath(Layer.BACKDROP, Geometry.place(Props.SOCK_CUFF, pl), IVORY, "cuff", Props.OW, 0.25, envOp, floor = accent)
+            if (!simple) strokePath(Layer.BACKDROP, Geometry.place(Props.SOCK_TOE, pl), 0.6, 0.45, "sockToe", 0.06, alpha = 0.55f * envOp)
+        }
+        // ---- 節日的地面：禮物（有影子） ----
+        if (festEnv(FestivalScene.Item.GIFT)) {
+            owner = "gift"
+            val g = Props.GIFT_AT
+            fun at(pts: List<Pt>) = pts.map { Pt(g.x + it.x, g.y + it.y) }
+            if (!simple) add(Layer.GROUND, PathData.ellipse(g.x, g.y + 0.6, 9.0, 1.6), INK, 0.08f)
+            ringPath(Layer.GROUND, at(Props.GIFT), SAGE, "gift", Props.OW, 0.3, floor = accent)
+            if (!simple) {
+                // 細一點的緞帶、像手綁的蝴蝶結（兩個線圈＋小結），蓋子有一道淡淡的接縫
+                strokePath(Layer.GROUND, at(Props.GIFT_LID), 0.55, 0.55, "lid", 0.06, alpha = 0.5f)
+                strokePath(Layer.GROUND, at(Props.GIFT_RIB), 0.95, 0.95, "rib1", 0.08, Props.RED)
+                strokePath(Layer.GROUND, at(Props.GIFT_LOOP_L), 0.85, 0.7, "loopL", 0.08, Props.RED, per = 5)
+                strokePath(Layer.GROUND, at(Props.GIFT_LOOP_R), 0.85, 0.7, "loopR", 0.08, Props.RED, per = 5)
+                strokePath(Layer.GROUND, at(Props.GIFT_TAIL), 0.8, 0.35, "tailL", 0.08, Props.RED, per = 5, tip = true)
+            }
+        }
+        if (weather == Weather.HOT && !simple && weatherEnv) {
             // 地面上的熱氣：三條往上飄的波浪線
             owner = "heat"
             listOf(30.0 to 0.0, 92.0 to 0.4, 102.0 to 0.75).forEachIndexed { i, (x, phase) ->
@@ -615,8 +695,31 @@ object Mowan {
                 }
             }
 
-            // 紙帽：拿到（第 11 頁）而且戴著才畫
-            if (caps.paperHat && hatOn) {
+            // 節日頭飾（P6-2）：頭頂今天給節日頭飾時，紙帽暫時不畫（D-05）
+            val top = fest?.get(FestivalScene.Slot.HEAD_TOP)
+            if (top != null && top != FestivalScene.Item.PAPER_HAT) {
+                val hw = Props.headwear(top, art)
+                owner = top.name.lowercase()
+                var i = 0
+                for (spot in hw.spots) {
+                    val fit = { pts: List<Pt> ->
+                        if (hw.multi) Geometry.place(Geometry.bend(pts, hw.bendR), Geometry.headPlace(spot.theta, hw.sink, head.points, spot.tilt))
+                        else Geometry.conform(pts, spot.theta, hw.sink, head.points, spot.tilt, hw.bendR)
+                    }
+                    for (shape in hw.shapes) {
+                        // 耳翼這類細節，簡化時不畫
+                        if (!shape.detail || !simple) ringPath(Layer.HEAD, fit(shape.pts), shape.fill, "${hw.id}$i", 1.35, 0.4, floor = accent)
+                        i++
+                    }
+                    for (line in hw.lines) {
+                        if (!simple) strokePath(Layer.HEAD, fit(line), 1.0, 0.8, "${hw.id}l$i", 0.12, hw.lineColor)
+                        i++
+                    }
+                }
+            }
+            // 紙帽：拿到（第 11 頁）而且戴著才畫；有節日時照 FestivalScene（節日頭飾優先）
+            val paperHat = if (fest != null) top == FestivalScene.Item.PAPER_HAT else caps.paperHat && hatOn
+            if (paperHat) {
                 owner = "paperHat"
                 val fit = { pts: List<Pt> -> Geometry.conform(pts, PaperHat.THETA, PaperHat.SINK, head.points, 0.0, PaperHat.BEND_R) }
                 ringPath(Layer.HEAD, fit(PaperHat.shape), IVORY, "paperHat0", 1.35, 0.4, floor = accent)
@@ -641,6 +744,30 @@ object Mowan {
                 owner = "sweat"
                 val alpha = minOf(1.0, 1.6 * sin(PI * Geometry.clamp01(sweat * 1.1)))
                 ringPath(Layer.HEAD, sweatDrop(sweat), SAGE, "sweat", 0.9, 0.08, alpha.toFloat())
+            }
+        }
+
+        // ---- 手上的節日道具（錨點是手臂末端，左手的角度相反） ----
+        if (fest != null) for ((slot, arm) in listOf(FestivalScene.Slot.HAND_R to "armR", FestivalScene.Slot.HAND_L to "armL")) {
+            val item = fest[slot] ?: continue
+            if (item == FestivalScene.Item.UMBRELLA || arm !in parts) continue
+            val h = (if (arm == "armR") p.armR else p.armL).last()
+            val sign = if (slot == FestivalScene.Slot.HAND_L) -1 else 1
+            if (item == FestivalScene.Item.ENVELOPE) {
+                owner = "envelope"
+                val pl = Geometry.Placement(h.x, h.y, Props.ENVELOPE_ROT * sign)
+                ringPath(Layer.HAND, Geometry.place(Props.ENVELOPE, pl), Props.RED, "env", Props.OW, 0.22, floor = accent)
+                if (!simple) {
+                    strokePath(Layer.HAND, Geometry.place(Props.ENVELOPE_FLAP, pl), 0.6, 0.55, "envFlap", 0.06, alpha = 0.7f)
+                    val seal = Geometry.place(listOf(Props.ENVELOPE_SEAL), pl)[0]
+                    add(Layer.HAND, PathData.ellipse(seal.x, seal.y, 0.5, 0.5), IVORY, 0.75f)
+                }
+            } else if (item == FestivalScene.Item.MOONCAKE) {
+                owner = "mooncake"
+                val pl = Geometry.Placement(h.x, h.y)
+                ringPath(Layer.HAND, Geometry.place(Props.MOONCAKE, pl), Props.CAKE, "cake", Props.OW, 0.2, floor = accent)
+                // 只留內圈，避免像鈕扣
+                if (!simple) add(Layer.HAND, Geometry.ring(Geometry.place(Props.MOONCAKE_INNER, pl), { 0.55 }, { 0.0 }).stroke, INK, 0.55f, evenOdd = true)
             }
         }
 

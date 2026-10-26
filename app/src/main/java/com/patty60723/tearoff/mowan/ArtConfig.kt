@@ -9,11 +9,21 @@ data class ArtConfig(
     val hat: HatStyle = HatStyle.C,
     /** D-02：玉兔耳朵（沒有傾向，先用原型目前的 A） */
     val ears: EarStyle = EarStyle.A,
-    /** D-03：雨傘大小（傾向原尺寸 1.0，未批准） */
+    /** D-03：雨傘大小（傾向原尺寸 1.0，未批准；縮小候選是 [UMBRELLA_SMALL]） */
     val umbrellaScale: Double = 1.0,
     /** 節日頭飾開關（只在除錯選單，D-05）：關掉時紙帽照裝備狀態顯示 */
     val festivalHeadwear: Boolean = true,
+    /** D-16：小尺寸（簡化版）節日背景與天氣環境的取捨（候選，等審核） */
+    val smallEnv: SmallEnv = SmallEnv.FESTIVAL,
 ) {
+    /**
+     * 小尺寸最多一個主要背景裝飾。雨傘是功能道具，三種都會畫。
+     * - FESTIVAL：有節日背景（春聯／禮物／月亮）時，天氣環境不畫
+     * - WEATHER：天氣環境照畫，節日背景不畫
+     * - BOTH：兩個都畫（超過一個，只當對照）
+     */
+    enum class SmallEnv { FESTIVAL, WEATHER, BOTH }
+
     /** A：右斜戴（原型最早的戴法）；B：上一輪的第二種戴法；C：往頭頂、放正、壓低 */
     enum class HatStyle { A, B, C }
 
@@ -22,5 +32,8 @@ data class ArtConfig(
 
     companion object {
         val DEFAULT = ArtConfig()
+
+        /** 雨傘縮小的候選（原型 −5%） */
+        const val UMBRELLA_SMALL = 0.95
     }
 }
