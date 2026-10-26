@@ -133,6 +133,10 @@ object Mowan {
         Triple(98.0, 96.0, 2.1), Triple(30.0, 104.0, 1.5), Triple(118.0, 120.0, 1.9), Triple(44.0, 20.0, 1.5), Triple(84.0, 30.0, 1.7),
         Triple(20.0, 128.0, 1.7), Triple(92.0, 62.0, 1.4), Triple(36.0, 70.0, 1.8), Triple(110.0, 88.0, 1.5), Triple(70.0, 6.0, 1.6), Triple(4.0, 40.0, 1.4),
     )
+    /** 簡化版留下來的環境（P5-2、D-26）：最大的雲、兩邊各兩條雨絲、四片大雪花 */
+    private const val MAIN_CLOUD = 1
+    private val MAIN_DROPS = setOf(1, 2, 5, 6)
+    private val MAIN_FLAKES = setOf(0, 2, 3, 5)
     private val SNOW_MOUND = Geometry.resample(pts(38.0, 129.5, 50.0, 126.4, 62.0, 125.8, 76.0, 126.4, 86.0, 129.5), 48)
 
     /** 霧帶：兩頭尖的長條 */
@@ -244,6 +248,7 @@ object Mowan {
      * @param sinceStrikeMs 雷雨：打雷後經過的毫秒數，null 表示沒有打雷
      * @param still 關閉動畫時的靜止畫面（雪花不放在頭和臉上）
      * @param bundleOn 包袱是否背著（裝備狀態，見 [MowanSettings.bundleOn]；第 14 頁前不管這個值都不畫）
+     * @param detail 小尺寸的簡化畫法（P5-2），預設是完整版
      */
     fun frame(
         parts: Set<String>,
@@ -256,6 +261,7 @@ object Mowan {
         sinceStrikeMs: Double? = null,
         still: Boolean = false,
         bundleOn: Boolean = true,
+        detail: Detail = Detail.FULL,
     ): Frame {
         val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
@@ -272,7 +278,7 @@ object Mowan {
             else -> if (umbrella) Poses.rainy(clockMs) else Poses.NORMAL
         }
         if (rainy && !umbrella) p = p.copy(face = Face.RAINY, flick = Flick.DROOPED)
-        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still, bundleOn)
+        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still, bundleOn, detail)
     }
 
     /**
@@ -290,8 +296,13 @@ object Mowan {
         clockMs: Double = 0.0,
         still: Boolean = false,
         bundleOn: Boolean = true,
+        detail: Detail = Detail.FULL,
     ): Frame {
         val ops = ArrayList<Op>()
+        // 簡化版（P5-2）：拿掉細節、把留下來的線加粗到下限；完整版下面的 floor 都不會改變任何寬度
+        val simple = detail.simplified
+        val main = detail.mainInk
+        val accent = detail.accentInk
         val v = variant
         val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
@@ -308,9 +319,9 @@ object Mowan {
         fun add(layer: Layer, path: PathData, fill: Int?, alpha: Float = 1f, evenOdd: Boolean = false, gradient: Gradient? = null) {
             ops += Op(layer, path, fill, alpha, evenOdd, gradient, part = owner)
         }
-        fun ringPath(layer: Layer, pts: List<Pt>, fill: Int, part: String, w: Double, amp: Double, alpha: Float = 1f): Geometry.Ring {
+        fun ringPath(layer: Layer, pts: List<Pt>, fill: Int, part: String, w: Double, amp: Double, alpha: Float = 1f, floor: Double = 0.0): Geometry.Ring {
             val ph = Rng.phases(part, v)
-            val r = Geometry.ring(pts, { a -> w * (1 + 0.12 * sin(2 * a + ph[3])) }, { a -> Geometry.loopNoise(ph, a, amp) })
+            val r = Geometry.ring(pts, { a -> max(w * (1 + 0.12 * sin(2 * a + ph[3])), floor) }, { a -> Geometry.loopNoise(ph, a, amp) })
             add(layer, r.fill, fill, alpha)
             add(layer, r.stroke, INK, alpha, evenOdd = true)
             return r
@@ -319,6 +330,8 @@ object Mowan {
             val ph = Rng.phases(part, v)
             add(layer, Geometry.brush(Geometry.catmull(pts, per), { t -> lerp(w0, w1, t) * Geometry.widthVar(ph, t, 0.1) }, { t -> Geometry.openNoise(ph, t, amp, tip) }), color, alpha)
         }
+        /** Paint 描邊的寬度加到下限 */
+        fun sw(w: Double, floor: Double) = max(w, floor)
         fun mistBand(layer: Layer, y: Double, w: Double, h: Double, dx: Double, part: String, alpha: Float) {
             val ph = Rng.phases(part, v)
             val r = Geometry.ring(Geometry.place(mistShape(w, h), Geometry.Placement(60 + dx, y)), { 0.01 }, { a -> Geometry.loopNoise(ph, a, 0.6) })
@@ -326,7 +339,7 @@ object Mowan {
         }
         fun limb(part: String, pts: List<Pt>, w0: Double, w1: Double, amp: Double): Geometry.Stroke {
             val ph = Rng.phases(part, v)
-            return Geometry.stroke(Geometry.catmull(pts, 9), { t -> (w0 + (w1 - w0) * t) * Geometry.widthVar(ph, t, 0.13) }, { t -> Geometry.openNoise(ph, t, amp, false) })
+            return Geometry.stroke(Geometry.catmull(pts, 9), { t -> max((w0 + (w1 - w0) * t) * Geometry.widthVar(ph, t, 0.13), main) }, { t -> Geometry.openNoise(ph, t, amp, false) })
         }
 
         // ---- 天空 ----
@@ -334,64 +347,74 @@ object Mowan {
             // 熱：太陽比晴天大一圈
             owner = "sun"
             add(Layer.SKY, PathData.ellipse(99.0, 4.0, 10.5, 10.5), PINK, 0.85f * skyOp)
-            ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 14.5, 14.5), null, skyOp, stroke = PINK, strokeWidth = 1.2, part = owner)
+            ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 14.5, 14.5), null, skyOp, stroke = PINK, strokeWidth = sw(1.2, accent), part = owner)
         }
         if (weather == Weather.CLOUDY || weather == Weather.THUNDER) {
             // 陰天的雲慢慢往右飄；雷雨的雲比較深、不動、高一點
             val storm = weather == Weather.THUNDER
             owner = "clouds"
             CLOUDS.forEachIndexed { i, c ->
+                // 簡化：只留最大的那朵（右邊、不擋頭）
+                if (simple && i != MAIN_CLOUD) return@forEachIndexed
                 val x = if (storm) c.x else ((c.x + clockMs / 1000 * c.speed + 30) % 170) - 30
                 val loop = Geometry.place(c.loop, Geometry.Placement(x, c.y - if (storm) 2 else 0))
-                ringPath(Layer.CLOUDS, loop, if (storm) STORM else CLOUD, "cloud$i", 1.5, 0.5, if (caps.growthFocus) 0.7f else 1f)
+                ringPath(Layer.CLOUDS, loop, if (storm) STORM else CLOUD, "cloud$i", 1.5, 0.5, if (caps.growthFocus) 0.7f else 1f, floor = accent)
             }
         }
-        if (weather == Weather.THUNDER && p.effects.bolt > 0) {
+        if (weather == Weather.THUNDER && p.effects.bolt > 0 && !simple) {
             owner = "bolt"
             ringPath(Layer.CLOUDS, Geometry.resample(Geometry.place(BOLT, Geometry.Placement(96.0, 14.0)), 40), PINK, "bolt", 1.1, 0.15, p.effects.bolt.toFloat())
         }
         if (weather == Weather.SUNNY) {
             owner = "sun"
             add(Layer.SKY, PathData.ellipse(99.0, 4.0, 8.5, 8.5), PINK, 0.75f * skyOp)
-            ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 12.0, 12.0), null, skyOp, stroke = PINK, strokeWidth = 1.1, part = owner)
+            ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 12.0, 12.0), null, skyOp, stroke = PINK, strokeWidth = sw(1.1, accent), part = owner)
         }
         // ---- 雨（8 FPS） ----
-        if (rainy) for (d in DROPS) {
+        if (rainy) for ((i, d) in DROPS.withIndex()) {
+            // 簡化：只留兩邊各兩條
+            if (simple && i !in MAIN_DROPS) continue
             val y = ((d.y + rainStep * 7) % 150) - 20
             val path = PathData.Builder().move(Pt(d.x, y)).line(Pt(d.x - 1.6, y + 7)).build()
-            ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = 1.5, roundCap = true, part = "rain")
+            ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = sw(1.5, accent), roundCap = true, part = "rain")
         }
 
-        if (weather == Weather.THUNDER) for (d in HEAVY_DROPS) {
+        // 雷雨：簡化時環境只留烏雲
+        if (weather == Weather.THUNDER && !simple) for (d in HEAVY_DROPS) {
             val y = ((d.y + rainStep * 9) % 150) - 20
             val path = PathData.Builder().move(Pt(d.x, y)).line(Pt(d.x - 2.6, y + 8)).build()
             ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = 1.6, roundCap = true, part = "rain")
         }
-        if (weather == Weather.SNOW) FLAKES.forEachIndexed { i, (x0, y0, r) ->
+        if (weather == Weather.SNOW) FLAKES.forEachIndexed { i, (x0, y0, r0) ->
+            // 簡化：只留四片大的，半徑至少 1.2 px
+            if (simple && i !in MAIN_FLAKES) return@forEachIndexed
+            val r = max(r0, 0.6 * accent * 2)
             val y = ((y0 + clockMs / 1000 * 7) % 150) - 20
             val x = x0 + 2.6 * sin(clockMs / 1100 + i)
             // 靜止畫面的雪花會一直停在那裡，所以不放在頭和臉的範圍裡
             val dy = if (caps.stand) 0.0 else GROUND_DY
             if (still && x > 32 && x < 90 && y > 18 + dy && y < 72 + dy) return@forEachIndexed
-            ops += Op(Layer.RAIN, PathData.ellipse(x, y, r, r), SNOW, stroke = INK, strokeWidth = 0.6, part = "snow")
+            ops += Op(Layer.RAIN, PathData.ellipse(x, y, r, r), SNOW, stroke = INK, strokeWidth = sw(0.6, 0.6 * accent), part = "snow")
         }
         // ---- 霧（後面兩層） ----
         if (weather == Weather.FOG) {
             owner = "mist"
-            mistBand(Layer.BACKDROP, 22.0, 70.0, 7.0, 18 * sin(clockMs / 4200), "mist0", 0.8f)
+            // 簡化：只留腳邊那條最長的
+            if (!simple) mistBand(Layer.BACKDROP, 22.0, 70.0, 7.0, 18 * sin(clockMs / 4200), "mist0", 0.8f)
             mistBand(Layer.BACKDROP, 112.0, 120.0, 9.0, 14 * sin(clockMs / 3600 + 1), "mist1", 0.85f)
         }
 
         // ---- 地面的影子（雨天是一灘水、雪天是積雪） ----
         owner = "ground"
-        when (weather) {
+        // 簡化：地面影子、水窪、積雪都不畫
+        if (!simple) when (weather) {
             Weather.RAINY -> add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 20.0, 2.6), SAGE, 0.28f)
             Weather.THUNDER -> add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 22.0, 2.8), SAGE, 0.3f)
             Weather.SNOW -> ringPath(Layer.GROUND, SNOW_MOUND, SNOW, "snowMound", 0.9, 0.2)
             Weather.COLD -> add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 18.0, 2.4), INK, 0.07f)
             else -> add(Layer.GROUND, PathData.ellipse(62.0, 128.6, 16.0, 2.2), INK, 0.07f)
         }
-        if (weather == Weather.HOT) {
+        if (weather == Weather.HOT && !simple) {
             // 地面上的熱氣：三條往上飄的波浪線
             owner = "heat"
             listOf(30.0 to 0.0, 92.0 to 0.4, 102.0 to 0.75).forEachIndexed { i, (x, phase) ->
@@ -417,14 +440,17 @@ object Mowan {
                 val dy = q.y - Bundle.PIVOT.y
                 Pt(Bundle.PIVOT.x + dx * cos(tilt) - dy * sin(tilt) + bx, Bundle.PIVOT.y + dx * sin(tilt) + dy * cos(tilt) + groundDy + lift)
             }
-            strokePath(Layer.BUNDLE, at(Bundle.STRAP), 1.3, 1.1, "strap", 0.06)
-            ringPath(Layer.BUNDLE, at(Bundle.SACK), SAGE, "bundle", 1.3, 0.3)
-            strokePath(Layer.BUNDLE, at(Bundle.FOLD1), 0.7, 0.4, "fold1", 0.05, per = 5, alpha = 0.4f, tip = true)
-            strokePath(Layer.BUNDLE, at(Bundle.FOLD2), 0.7, 0.4, "fold2", 0.05, per = 5, alpha = 0.4f, tip = true)
-            ringPath(Layer.BUNDLE, Geometry.resample(at(Bundle.EAR_L), 32), SAGE, "earL", 1.0, 0.12)
-            ringPath(Layer.BUNDLE, Geometry.resample(at(Bundle.EAR_R), 32), SAGE, "earR", 1.0, 0.12)
-            ringPath(Layer.BUNDLE, at(Bundle.KNOT), SAGE, "knot", 1.1, 0.1)
-            for (d in at(Bundle.DOTS)) add(Layer.BUNDLE, PathData.ellipse(d.x, d.y, 0.55, 0.55), IVORY, 0.55f)
+            // 簡化：只留布包、兩個布角和結（背帶、皺褶、碎花拿掉）
+            if (!simple) strokePath(Layer.BUNDLE, at(Bundle.STRAP), 1.3, 1.1, "strap", 0.06)
+            ringPath(Layer.BUNDLE, at(Bundle.SACK), SAGE, "bundle", 1.3, 0.3, floor = accent)
+            if (!simple) {
+                strokePath(Layer.BUNDLE, at(Bundle.FOLD1), 0.7, 0.4, "fold1", 0.05, per = 5, alpha = 0.4f, tip = true)
+                strokePath(Layer.BUNDLE, at(Bundle.FOLD2), 0.7, 0.4, "fold2", 0.05, per = 5, alpha = 0.4f, tip = true)
+            }
+            ringPath(Layer.BUNDLE, Geometry.resample(at(Bundle.EAR_L), 32), SAGE, "earL", 1.0, 0.12, floor = accent)
+            ringPath(Layer.BUNDLE, Geometry.resample(at(Bundle.EAR_R), 32), SAGE, "earR", 1.0, 0.12, floor = accent)
+            ringPath(Layer.BUNDLE, at(Bundle.KNOT), SAGE, "knot", 1.1, 0.1, floor = accent)
+            if (!simple) for (d in at(Bundle.DOTS)) add(Layer.BUNDLE, PathData.ellipse(d.x, d.y, 0.55, 0.55), IVORY, 0.55f)
         }
 
         // ---- 傘柄（在身體後面） ----
@@ -434,8 +460,8 @@ object Mowan {
             val shaft = Geometry.place(pts(0.0, -64.0, 0.0, -30.0, 0.0, 7.0), pl)
             val crook = Geometry.place(pts(0.0, 7.0, -1.5, 11.4, -5.0, 11.0), pl)
             val path = PathData.Builder()
-                .add(Geometry.brush(Geometry.catmull(shaft, 6), { 2.2 }, { 0.0 }))
-                .add(Geometry.brush(Geometry.catmull(crook, 6), { 2.2 }, { 0.0 }))
+                .add(Geometry.brush(Geometry.catmull(shaft, 6), { max(2.2, main) }, { 0.0 }))
+                .add(Geometry.brush(Geometry.catmull(crook, 6), { max(2.2, main) }, { 0.0 }))
                 .build()
             owner = "umbrella"
             add(Layer.SHAFT, path, INK)
@@ -475,17 +501,18 @@ object Mowan {
             val wide = if (p.effects.scarfUp) 1.12 else 1.0
             add(Layer.SCARF, Geometry.brush(
                 Geometry.catmull(pts(51.0 + jx, 68.6 + up, 55.5 + jx, 71.3 + up, 64.0 + jx, 71.4 + up, 70.0 + jx, 67.6 + up), 8),
-                { t -> (4.4 + 0.6 * sin(PI * t)) * wide * Geometry.widthVar(pb, t, 0.12) },
+                { t -> max((4.4 + 0.6 * sin(PI * t)) * wide * Geometry.widthVar(pb, t, 0.12), main) },
                 { t -> Geometry.openNoise(pb, t, 0.4, false) },
             ), TERRA)
             add(Layer.SCARF, Geometry.brush(
                 Geometry.catmull(p.tail, 9),
-                { t -> (3.9 - 1.9 * t) * Geometry.widthVar(pt, t, 0.14) },
+                { t -> max((3.9 - 1.9 * t) * Geometry.widthVar(pt, t, 0.14), main) },
                 { t -> Geometry.openNoise(pt, t, 0.7, true) },
             ), TERRA)
             val end = p.tail.last()
             val mid = p.tail[2]
-            add(Layer.SCARF, Geometry.brush(
+            // 尾端分岔是細節，簡化時不畫
+            if (!simple) add(Layer.SCARF, Geometry.brush(
                 Geometry.catmull(listOf(mid, Pt((mid.x + end.x) / 2 + 1.8, (mid.y + end.y) / 2 + 0.6), Pt(end.x + 4, end.y + 1.2)), 6),
                 { t -> (1.6 - 1.1 * t) * Geometry.widthVar(ps, t, 0.15) },
                 { t -> Geometry.openNoise(ps, t, 0.35, true) },
@@ -498,7 +525,7 @@ object Mowan {
             val heavy = 2.35 + 0.3 * sin(phd[5])
             val head = Geometry.ring(
                 HEAD_LOOP,
-                { a -> 2.4 * (1 + 0.13 * (0.7 * sin(2 * a + phd[3]) + 0.3 * sin(3 * a + phd[4]))) + 1.1 * max(0.0, cos(a - heavy)).pow(3) },
+                { a -> max(2.4 * (1 + 0.13 * (0.7 * sin(2 * a + phd[3]) + 0.3 * sin(3 * a + phd[4]))) + 1.1 * max(0.0, cos(a - heavy)).pow(3), main) },
                 { a -> Geometry.loopNoise(phd, a, 0.75) },
             )
             owner = "head"
@@ -511,11 +538,11 @@ object Mowan {
                 val ph = Rng.phases(part, v)
                 add(Layer.HEAD, Geometry.brush(
                     Geometry.catmull(pts.map { Pt(it.x + gz.x * 0.5, it.y + gz.y * 0.5) }, 6),
-                    { t -> w * (0.85 + 0.15 * sin(PI * t)) * Geometry.widthVar(ph, t, 0.08) },
+                    { t -> max(w * (0.85 + 0.15 * sin(PI * t)) * Geometry.widthVar(ph, t, 0.08), main) },
                     { t -> Geometry.openNoise(ph, t, 0.12, false) },
                 ), INK)
             }
-            if ("blush" in parts) {
+            if ("blush" in parts && !simple) {
                 val op = when (p.face) {
                     Face.SUNNY -> 1f
                     Face.RAINY -> 0.55f
@@ -530,7 +557,8 @@ object Mowan {
             if ("eyes" in parts) {
                 owner = "eyes"
                 val pe = Rng.phases("eyes", v)
-                val r = 1.95 * (1 + 0.05 * sin(pe[0]))
+                // 簡化：眼睛至少跟主要墨線一樣寬
+                val r = max(1.95 * (1 + 0.05 * sin(pe[0])), main / 2)
                 val eyes = pts(52.0, 46.8, 67.0, 46.3)
                 when (p.face) {
                     Face.SUNNY -> {
@@ -549,7 +577,7 @@ object Mowan {
                     }
                     Face.FOG -> eyes.forEachIndexed { i, e ->
                         // 瞇眼：扁的橢圓
-                        add(Layer.HEAD, PathData.ellipse(e.x + gz.x + 0.1 * sin(pe[1 + i]), e.y + gz.y + 0.4, 2.3, 1.0), INK)
+                        add(Layer.HEAD, PathData.ellipse(e.x + gz.x + 0.1 * sin(pe[1 + i]), e.y + gz.y + 0.4, max(2.3, main / 2), max(1.0, main / 2)), INK)
                     }
                     Face.STARTLE -> eyes.forEachIndexed { i, e ->
                         // 嚇一跳：眼睛變大、往上一點
@@ -560,18 +588,18 @@ object Mowan {
                         at.forEachIndexed { i, e -> add(Layer.HEAD, PathData.ellipse(e.x + gz.x + 0.1 * sin(pe[1 + i]), e.y + gz.y, r, r), INK) }
                     }
                 }
-                if (p.face == Face.RAINY || p.face == Face.COLD || p.face == Face.STARTLE) {
+                if ((p.face == Face.RAINY || p.face == Face.COLD || p.face == Face.STARTLE) && !simple) {
                     val bw = if (p.face == Face.COLD) 1.2 else 1.5
                     faceBrush("browL", pts(49.5, 43.6, 51.8, 42.9, 54.0, 42.1), bw)
                     faceBrush("browR", pts(69.8, 43.1, 67.6, 42.4, 65.4, 41.6), bw)
                 }
             }
-            if ("mouth" in parts) {
+            if ("mouth" in parts && detail.mouth) {
                 owner = "mouth"
                 if (p.face == Face.STARTLE) {
                     // 嚇一跳：張開的「o」嘴
                     val ph = Rng.phases("mouthO", v)
-                    val ring = Geometry.ring(Geometry.ellipsePts(60 + gz.x * 0.5, 55.6, 1.3, 1.5), { 1.3 }, { a -> Geometry.loopNoise(ph, a, 0.05) })
+                    val ring = Geometry.ring(Geometry.ellipsePts(60 + gz.x * 0.5, 55.6, 1.3, 1.5), { max(1.3, main) }, { a -> Geometry.loopNoise(ph, a, 0.05) })
                     add(Layer.HEAD, ring.stroke, INK, evenOdd = true)
                 } else {
                     val mouth = when (p.face) {
@@ -590,8 +618,9 @@ object Mowan {
             if (caps.paperHat && hatOn) {
                 owner = "paperHat"
                 val fit = { pts: List<Pt> -> Geometry.conform(pts, PaperHat.THETA, PaperHat.SINK, head.points, 0.0, PaperHat.BEND_R) }
-                ringPath(Layer.HEAD, fit(PaperHat.shape), IVORY, "paperHat0", 1.35, 0.4)
-                PaperHat.lines.forEachIndexed { i, line -> strokePath(Layer.HEAD, fit(line), 1.0, 0.8, "paperHatl${i + 1}", 0.12) }
+                ringPath(Layer.HEAD, fit(PaperHat.shape), IVORY, "paperHat0", 1.35, 0.4, floor = accent)
+                // 摺線是細節，簡化時不畫
+                if (!simple) PaperHat.lines.forEachIndexed { i, line -> strokePath(Layer.HEAD, fit(line), 1.0, 0.8, "paperHatl${i + 1}", 0.12) }
             }
 
             // 一筆：永遠在最前面
@@ -601,13 +630,13 @@ object Mowan {
                 val pf = Rng.phases("flick", v)
                 add(Layer.HEAD, Geometry.brush(
                     Geometry.catmull(p.flick.shape.map { Pt(root.x + it.x, root.y + it.y + 1.2) }, 9),
-                    { t -> (0.35 + 3.6 * (1 - t).pow(0.85)) * Geometry.widthVar(pf, t, 0.18) },
+                    { t -> max((0.35 + 3.6 * (1 - t).pow(0.85)) * Geometry.widthVar(pf, t, 0.18), main) },
                     { t -> Geometry.openNoise(pf, t, 1.4, true) },
                 ), INK)
             }
             // 汗滴：要有眼睛（表情的一部分）
             val sweat = p.effects.sweat
-            if (sweat != null && "eyes" in parts) {
+            if (sweat != null && "eyes" in parts && !simple) {
                 owner = "sweat"
                 val alpha = minOf(1.0, 1.6 * sin(PI * Geometry.clamp01(sweat * 1.1)))
                 ringPath(Layer.HEAD, sweatDrop(sweat), SAGE, "sweat", 0.9, 0.08, alpha.toFloat())
@@ -620,23 +649,24 @@ object Mowan {
             canopy = Transform(hand.x, hand.y, p.umbrellaAngle, scale = umbrellaScale)
             owner = "umbrella"
             val pc = Rng.phases("canopy", v)
-            val c = Geometry.ring(CANOPY, { a -> (2.2 / umbrellaScale) * (1 + 0.12 * sin(2 * a + pc[3])) }, { a -> Geometry.loopNoise(pc, a, 0.45) })
+            val c = Geometry.ring(CANOPY, { a -> max((2.2 / umbrellaScale) * (1 + 0.12 * sin(2 * a + pc[3])), accent / umbrellaScale) }, { a -> Geometry.loopNoise(pc, a, 0.45) })
             add(Layer.CANOPY, c.fill, SAGE)
             add(Layer.CANOPY, c.stroke, INK, evenOdd = true)
-            ops += Op(Layer.CANOPY, RIBS, null, stroke = INK, strokeWidth = 1.5 / umbrellaScale, roundCap = true, part = owner)
-            ops += Op(Layer.FRONT, PathData.ellipse(hand.x, hand.y, 3.2, 3.2), PAPER, stroke = INK, strokeWidth = 2.2, part = owner)
+            // 傘骨是細節，簡化時不畫
+            if (!simple) ops += Op(Layer.CANOPY, RIBS, null, stroke = INK, strokeWidth = 1.5 / umbrellaScale, roundCap = true, part = owner)
+            ops += Op(Layer.FRONT, PathData.ellipse(hand.x, hand.y, 3.2, 3.2), PAPER, stroke = INK, strokeWidth = sw(2.2, accent), part = owner)
             // 雷雨：左手也握住傘柄
             if (p.effects.leftOnShaft && caps.holdL) {
                 val g = p.armL[3]
-                ops += Op(Layer.FRONT, PathData.ellipse(g.x, g.y, 3.0, 3.0), PAPER, stroke = INK, strokeWidth = 2.1, part = "umbrellaGrip")
+                ops += Op(Layer.FRONT, PathData.ellipse(g.x, g.y, 3.0, 3.0), PAPER, stroke = INK, strokeWidth = sw(2.1, accent), part = "umbrellaGrip")
             }
         }
         // ---- 前面那層霧、呼出的白氣 ----
-        if (weather == Weather.FOG) {
+        if (weather == Weather.FOG && !simple) {
             owner = "mist"
             mistBand(Layer.FRONT, 97.0, 92.0, 8.0, -16 * sin(clockMs / 3000), "mist2", 0.62f)
         }
-        if (p.effects.breath > 0 && "mouth" in parts) {
+        if (p.effects.breath > 0 && "mouth" in parts && !simple) {
             owner = "breath"
             val u = p.effects.breathU
             val loop = Geometry.place(BREATH, Geometry.Placement(73 + 8 * u + p.headDx, 58 + p.headDy - 3 * u, scale = 0.9 + 0.7 * u))
