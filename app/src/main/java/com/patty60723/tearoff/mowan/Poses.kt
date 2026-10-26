@@ -61,6 +61,8 @@ internal data class Pose(
     val hand: Pt? = null,
     val umbrellaAngle: Double = 0.0,
     val effects: Effects = Effects(),
+    /** 節日演出低頭時，脖子（身體上端、圍巾）跟著往下（原型 v2 的 neckDy） */
+    val neckDy: Double = 0.0,
 ) {
     /** 整個角色往下移（沒有腳時落到地面上） */
     fun shifted(dy: Double): Pose {
@@ -134,9 +136,15 @@ internal object Poses {
         var p = if (umbrella) rainy(time).copy(headAngle = 0.0, face = Face.NORMAL, flick = Flick.NORMAL) else NORMAL
         val r = scene.hand(FestivalScene.Hand.R)
         if (r != null && r != FestivalScene.Item.UMBRELLA) p = p.copy(armR = R_HOLD)
-        if (scene.hand(FestivalScene.Hand.L) != null) p = p.copy(armL = L_HOLD)
+        if (scene.hand(FestivalScene.Hand.L) != null) p = p.copy(armL = if (scene.shown(FestivalScene.Item.BUNDLE)) L_HOLD_BUNDLE else L_HOLD)
         return p
     }
+
+    /**
+     * 背著包袱時左手拿道具的握持姿勢（P6-2 審核後的局部修正）：原本的 [L_HOLD] 讓月餅貼在包袱下緣前面、
+     * 看起來像掛在包袱上。手垂到身體前方偏下（跟一般站姿的手臂一樣長），道具離開包袱。只在背著包袱時用。
+     */
+    val L_HOLD_BUNDLE = pts(60.5, 77.0, 57.2, 83.0, 55.2, 90.0, 54.0, 97.5)
 
     fun rainy(time: Double) = Pose(
         body = pts(60.5, 68.6, 59.1, 79.0, 59.6, 90.0, 61.0, 101.0),

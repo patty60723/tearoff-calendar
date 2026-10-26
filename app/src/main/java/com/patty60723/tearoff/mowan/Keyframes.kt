@@ -10,7 +10,7 @@ internal object Keyframes {
         return c * c * (3 - 2 * c)
     }
 
-    private fun seg(t: Double, a: Double, b: Double) = ease((t - a) / (b - a))
+    fun seg(t: Double, a: Double, b: Double) = ease((t - a) / (b - a))
 
     /** 0 → 1 → 0 的包絡：a 開始、b 到頂、c 開始回、d 回到 0 */
     fun env(t: Double, a: Double, b: Double, c: Double, d: Double): Double = when {

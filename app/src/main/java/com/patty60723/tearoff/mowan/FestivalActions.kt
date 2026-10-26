@@ -25,6 +25,11 @@ object FestivalActions {
         GAZE_MOON("抬頭望月", 2600, 1200),
     }
 
+    /** 一段演出：哪個動作、哪個層級（開始時鎖定，D-35）、演到第幾毫秒；[held] 是關閉動畫時停在代表姿勢（D-34） */
+    class Performance(val action: Action, val level: Level, val timeMs: Double, val held: Boolean = false) {
+        val t get() = if (held) action.keyMs.toDouble() else timeMs
+    }
+
     enum class Level(val label: String) {
         FULL("完整版"),
         RAIN("雨天版（撐傘拜年）"),

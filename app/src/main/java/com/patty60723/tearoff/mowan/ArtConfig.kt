@@ -1,19 +1,19 @@
 package com.patty60723.tearoff.mowan
 
 /**
- * 還沒定案的美術選擇（整合規格 §3.6）。全部是 **Proposed**：預設值先跟原型的「目前建議」一致，
- * 定案前不能寫死在畫的程式裡，一律從這裡讀。V3 本體（頭身、五官、一筆、筆觸）是 Confirmed，不放在這裡。
+ * 節日美術的候選（整合規格 §3.6）。預設值是 2026-10-26 P6-2 視覺審核確認的選擇（D-01、D-02、D-03）；
+ * 其他候選保留給除錯與回歸比較，不刪除。V3 本體（頭身、五官、一筆、筆觸）是 Confirmed，不放在這裡。
  */
 data class ArtConfig(
-    /** D-01：財神帽、聖誕帽的戴法（原型候選 C，未批准） */
+    /** D-01（Confirmed）：財神帽、聖誕帽都用 C；A、B 保留比較 */
     val hat: HatStyle = HatStyle.C,
-    /** D-02：玉兔耳朵（沒有傾向，先用原型目前的 A） */
-    val ears: EarStyle = EarStyle.A,
-    /** D-03：雨傘大小（傾向原尺寸 1.0，未批准；縮小候選是 [UMBRELLA_SMALL]） */
+    /** D-02（Confirmed）：玉兔耳朵用 B（一筆兩側各一）；A 保留比較 */
+    val ears: EarStyle = EarStyle.B,
+    /** D-03（Confirmed）：雨傘維持原尺寸 1.0；縮小候選 [UMBRELLA_SMALL] 不採用，只保留比較 */
     val umbrellaScale: Double = 1.0,
     /** 節日頭飾開關（只在除錯選單，D-05）：關掉時紙帽照裝備狀態顯示 */
     val festivalHeadwear: Boolean = true,
-    /** D-16：小尺寸（簡化版）節日背景與天氣環境的取捨（候選，等審核） */
+    /** D-16：小尺寸（簡化版）節日背景與天氣環境的取捨。方向已定（A 為基礎＋最多一個簡化天氣線索），實作在 P6-4 */
     val smallEnv: SmallEnv = SmallEnv.FESTIVAL,
 ) {
     /**
