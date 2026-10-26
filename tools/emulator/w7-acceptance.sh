@@ -191,13 +191,15 @@ CARD=$CARD14
 log ""
 log "== 4. 包袱入口：點擊、狀態保存、畫面更新 =="
 setup 14 SUNNY true
-dump_ui bundle-before
+# 位置要在點之前、同一次開 App 時量：重開 App 後捲動的位置可能不一樣（P5-1 遇過三下都沒點到）。
+# 量兩次，捲動停下來了位置才會一樣。dump_ui 會暫時關動畫，量完打開後墨丸會自己恢復（W7 修正）。
+dump_ui bundle-before; sleep 2; dump_ui bundle-before
 b=$(bounds_of "bundle-before" story_bundle)
 if [ -n "$b" ]; then
   set -- $b
   bx=$(( ($1 + $3) / 2 )); by=$(( ($2 + $4) / 2 ))
   log "  入口位置 $b（高 $(( $4 - $2 )) px = $(( ($4 - $2) * 160 / 420 )) dp）"
-  setup 14 SUNNY true   # 重開，讓墨丸重新動起來
+  sleep 1
   shot bundle-1-on
   # 錄影：3 秒時卸下、6 秒時背上、9 秒時再卸下；伸懶腰不應該重來
   adb shell screenrecord --time-limit 11 /sdcard/rec.mp4 &
