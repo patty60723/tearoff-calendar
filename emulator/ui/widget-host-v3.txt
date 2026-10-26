@@ -1,0 +1,10 @@
+10-26 07:31:00.344 12729 12729 I W7HOST  : bind layout=COMPACT id=2 bound=true
+10-26 07:31:00.462 12729 12729 I W7HOST  : bind layout=WIDE id=3 bound=true
+10-26 07:31:00.923 12729 12729 I W7HOST  : bind layout=MEDIUM id=4 bound=true
+10-26 07:31:01.068 12729 12729 I W7HOST  : bind layout=TALL id=5 bound=true
+10-26 07:31:01.119 12729 12729 I W7HOST  : bind layout=BETWEEN id=6 bound=true
+10-26 07:31:06.975 12729 12729 I W7HOST  : report layout=COMPACT ok=true size=301x301 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-26 07:31:06.976 12729 12729 I W7HOST  : report layout=WIDE ok=true size=761x328 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-26 07:31:06.976 12729 12729 I W7HOST  : report layout=MEDIUM ok=true size=393x511 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-26 07:31:06.976 12729 12729 I W7HOST  : report layout=TALL ok=true size=459x761 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-26 07:31:06.976 12729 12729 I W7HOST  : report layout=BETWEEN ok=true size=525x525 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
