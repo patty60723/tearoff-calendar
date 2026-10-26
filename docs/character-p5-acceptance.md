@@ -1,7 +1,7 @@
 # 墨丸 V3 — P5 Widget V3 驗收報告
 
 > 日期：2026-10-26　分支：`feature/mowan-weather-poses`
-> **狀態：等待 P5 最終審核**（V3 仍在除錯開關後面；改成預設是 P7）
+> **狀態：P5 結案**（2026-10-26 最終審核通過，Blocker 0）（V3 仍在除錯開關後面；改成預設是 P7）
 > 驗收素材：[`acceptance/mowan-p5-4` 分支](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p5-4)
 > 相關文件：[實作計畫 P5](character-implementation-plan.md#p5--widget-v3)・[未定案事項](character-open-decisions.md)・[W7 驗收報告](character-w7-acceptance.md)
 

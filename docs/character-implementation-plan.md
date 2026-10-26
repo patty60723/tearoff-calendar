@@ -1,6 +1,6 @@
 # 墨丸 V3 — 實作計畫（Phase 2B）
 
-> 狀態：階段順序已確認（2026-10-24）。P0–P3 已完成。P4：W1–W7 與 D-22 已完成（故事卡用 V3 時，8 種天氣與包袱都已接上；V3 改成預設在 P7）。W7 驗收見 [W7 驗收報告](character-w7-acceptance.md)。
+> 狀態：階段順序已確認（2026-10-24）。P0–P3 已完成。P4：W1–W7 與 D-22 已完成（故事卡用 V3 時，8 種天氣與包袱都已接上；V3 改成預設在 P7）。P5（Widget V3）已結案（2026-10-26）。W7 驗收見 [W7 驗收報告](character-w7-acceptance.md)。
 > 相關文件：[整合規格](character-integration-spec.md)・[未定案事項](character-open-decisions.md)
 
 ## 排序原則
@@ -243,7 +243,7 @@ W7 的實際結果（[驗收報告](character-w7-acceptance.md)）：
 
 ## P5 — Widget V3
 
-> 狀態：決策已確認（2026-10-26：D-04 靜態、D-07 簡化的完整角色、D-23 共用開關、D-24 日曆頁一起換、D-25 暫定 120 px、D-26 一個天氣元素、D-27 不播故事動作）。P5-1、P5-2（D-25 = 72 dp）、P5-3 完成；**P5-4 完成，等待 P5 最終審核**（[P5 驗收報告](character-p5-acceptance.md)）。
+> 狀態：決策已確認（2026-10-26：D-04 靜態、D-07 簡化的完整角色、D-23 共用開關、D-24 日曆頁一起換、D-25 暫定 120 px、D-26 一個天氣元素、D-27 不播故事動作）。P5-1、P5-2（D-25 = 72 dp）、P5-3、P5-4 完成。**P5 結案**（2026-10-26 最終審核通過，Blocker 0；[P5 驗收報告](character-p5-acceptance.md)）。Minor 與 Not tested 保留；ViewFlipper 的 m5 留到 P7 決定舊火柴人去留時處理。V3 仍在除錯開關後面（P7 才改預設）。
 
 ### 現況（讀過程式碼）
 
@@ -408,7 +408,7 @@ D-07 已確認用簡化的完整角色（不只畫頭）。D-26：只保留一�
 
 **注意**：App 日曆頁最上面那張如果是昨天那頁（今天還沒撕），日曆頁上的墨丸不畫天氣，故事卡則照樣演今天的天氣（故事卡規則不變）。
 
-### P5-4 的實際結果（2026-10-26，等待 P5 最終審核）
+### P5-4 的實際結果（2026-10-26，完成）
 
 - **ViewFlipper 真的靜止**：RemoteViews 不能呼叫 `stopFlipping`／`setAutoStart`，而且 GONE 不會讓 ViewFlipper 停。改成 4 個版面檔各加一個同位置、預設 GONE 的 `mowan_still` ImageView；V3 時它顯示靜態圖，ViewFlipper 隱藏、6 格清空、間隔一天。舊火柴人反過來，行為不變。上一版「6 格同一張圖」的做法拿掉。
 - **Bitmap**：RemoteViews 裡只有 4 張 V3 圖，xxhdpi 342 KB（舊火柴人 2053 KB）；`bitmapBudget` 確認估算剛好等於這 4 張。
