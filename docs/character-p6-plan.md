@@ -392,5 +392,5 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 最終視覺審核通過；D-39 方案 A 維持 22° 歪斜與扶正動畫；其他動作維持現狀，不再修改已驗收的造型與動作。
 - Accepted Minor：聖誕襪歪著時腳尖靠近包袱布角（500–1500 ms）、月餅舉起放下時經過包袱前方、看月餅低頭幅度偏小。
 - Not tested：實機動畫流暢度、效能、耗電、舊 Android、模擬器上的節日畫面（還沒接畫面）。
-- 最終 commit `87ab431`；CI Build APK #81 通過（255 個 JVM／Robolectric 測試）；模擬器回歸 #38 PASS 41／FAIL 0／WARN 0。
+- 最終 commit `87ab431`；CI Build APK #81 通過（259 個 JVM／Robolectric 測試）；模擬器回歸 #38 PASS 41／FAIL 0／WARN 0。
 - 驗收報告：[character-p6-3-acceptance.md](character-p6-3-acceptance.md)。

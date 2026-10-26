@@ -15,7 +15,7 @@
 | 項目 | 結果 |
 |---|---|
 | 最終 commit | `87ab431`（P6-3 主體 `c9b0fcf`、`4a1aa20`；關鍵影格 `1431fb5`） |
-| CI（Build APK #81） | 通過：https://github.com/patty60723/tearoff-calendar/actions/runs/40339812451 ，JVM／Robolectric 測試 255 個 |
+| CI（Build APK #81） | 通過：https://github.com/patty60723/tearoff-calendar/actions/runs/40339812451 ，JVM／Robolectric 測試 259 個（含 4 個關鍵影格素材） |
 | 模擬器回歸（Emulator acceptance #38） | PASS 41、FAIL 0、WARN 0：https://github.com/patty60723/tearoff-calendar/actions/runs/40339812400 （節日還沒接畫面，這是既有功能的回歸，不是節日驗收） |
 
 ## Pass（有證據）
