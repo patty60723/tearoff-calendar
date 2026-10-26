@@ -424,7 +424,13 @@ screen_diff() { # screen_diff <a> <b>：兩張全螢幕截圖（扣掉狀態列�
   convert "$OUT/shots/$2.png" -crop "${W}x$h+0+$y0" +repage /tmp/b.png
   compare -metric AE -fuzz 3% /tmp/a.png /tmp/b.png null: 2>&1 | awk '{print $1}'
 }
-home_shot() { adb shell input keyevent KEYCODE_HOME; sleep 3; adb exec-out screencap -p > "$OUT/shots/$1.png"; }
+# Launcher3 把小工具放在第一頁右邊那一頁（第一頁有日期與 App），按 HOME 會回第一頁，所以再往左滑一頁
+home_shot() {
+  adb shell input keyevent KEYCODE_HOME; sleep 2
+  adb shell input keyevent KEYCODE_HOME; sleep 2
+  adb shell input swipe $((W * 85 / 100)) $((H / 2)) $((W * 15 / 100)) $((H / 2)) 300; sleep 2
+  adb exec-out screencap -p > "$OUT/shots/$1.png"
+}
 pinned() { adb shell dumpsys appwidget | python3 -c "
 import sys, re
 t = sys.stdin.read()
