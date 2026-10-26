@@ -379,6 +379,35 @@ D-07 已確認用簡化的完整角色（不只畫頭）。D-26：只保留一�
 
 **保留待正式小工具截圖後再看**（2026-10-26 決定先不調整）：48 px 的雨天，紙帽在傘下只剩白色三角加 1 px 輪廓；48 px 的頭輪廓相對比較粗。
 
+### P5-3 的實際結果（2026-10-26，等待審核）
+
+**最小修改清單**（實際改的檔案）：
+
+| 項目 | 做法 | 位置 |
+|---|---|---|
+| 共用 V3 開關（D-23、D-24） | `MowanSettings.storyCard` 打開時，小工具 4 種版面與 App 日曆頁都走 V3；關閉時完全走原本的 `setStickman` | `CalendarWidget.build` |
+| 一張靜態代表姿勢（D-04、D-27） | `MowanBitmap.still`：`Mowan.frame(…, stillClock(天氣), still = true)`，筆觸固定第一張，不播撕頁動作 | `mowan/MowanBitmap.kt` |
+| ViewFlipper | 版面檔不改；6 格放同一張圖（RemoteViews 只存一份）、`setDisplayedChild(0)`、輪播間隔一天。App 日曆頁的 V3 直接停止輪播 | `CalendarWidget.setMowan`、`MainActivity.updatePageMotion` |
+| 72 dp 簡化（D-25） | `Detail.of(實際繪製高度 px, 密度)`；小工具 48–64 dp 高 → 簡化，日曆頁約 80 dp → 完整 | `MowanBitmap.still` |
+| 狀態來源 | 部位：`StoryBook.parts`；紙帽、包袱：`MowanSettings`；天氣：`WeatherService.current` + `weatherOf`（只畫今天那頁，跟天氣文字一樣） | `CalendarWidget.setMowan` |
+| 切換時更新 | 故事卡「卸下／背上包袱」後重建日曆頁並 `CalendarWidget.refreshAll`；除錯選單的紙帽、包袱、V3 開關原本就會更新 | `MainActivity.showBundleToggle` |
+| 文字與版面 | 不動任何版面檔與文字欄位 | — |
+
+**驗證**（`WidgetV3Test` 9 項、`PageMotionTest` +1）：
+
+- 4 種版面都是 6 格同一張圖，而且跟用 App 狀態直接畫出來的一模一樣（像素比對）。
+- 小工具用簡化版、不是完整版；App 日曆頁（60 dp 寬）用完整版。
+- 紙帽、包袱、天氣、頁數改了，圖跟著改；不是今天那頁不畫天氣。
+- 關閉 V3：6 張圖跟舊的 `StickmanRenderer` 逐張一樣。
+- 所有 TextView 的文字與可見度，V3 開或關都一樣（今天、明天、2027-02-06 × 4 種版面）。
+- Bitmap 預算：4 種版面合計 xxhdpi **342 KB**（舊火柴人 2053 KB），mdpi 38 KB；都在 1 MB 以內。
+- 故事卡點「卸下包袱」後，桌面小工具（`ShadowAppWidgetManager`）與 App 日曆頁的圖都換了。
+- V3 的日曆頁就算動畫打開也不輪播。
+
+**截圖**：CI 截圖分支 `p5/widgets-v3.png`（舊火柴人／V3 並排）、`widgets-v3-weathers.png`、`widgets-v3-densities.png`、`app-page-v3.png`、`bitmap-v3.md`。
+
+**注意**：App 日曆頁最上面那張如果是昨天那頁（今天還沒撕），日曆頁上的墨丸不畫天氣，故事卡則照樣演今天的天氣（故事卡規則不變）。
+
 - **風險**：`ViewFlipper` 在不同 launcher 行為不一；低階機一次建 4 個版面的時間（目標 < 50 ms，用測試量）；簡化版的美術需要另外審。
 - **複雜度**：中。
 
