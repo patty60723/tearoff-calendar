@@ -133,8 +133,9 @@ object Mowan {
         Triple(98.0, 96.0, 2.1), Triple(30.0, 104.0, 1.5), Triple(118.0, 120.0, 1.9), Triple(44.0, 20.0, 1.5), Triple(84.0, 30.0, 1.7),
         Triple(20.0, 128.0, 1.7), Triple(92.0, 62.0, 1.4), Triple(36.0, 70.0, 1.8), Triple(110.0, 88.0, 1.5), Triple(70.0, 6.0, 1.6), Triple(4.0, 40.0, 1.4),
     )
-    /** 簡化版留下來的環境（P5-2、D-26）：最大的雲、兩邊各兩條雨絲、四片大雪花 */
+    /** 簡化版留下來的環境（P5-2、D-26）：一朵雲（陰天最大的、雷雨左邊那朵）、兩邊各兩條雨絲、四片大雪花 */
     private const val MAIN_CLOUD = 1
+    private const val STORM_CLOUD = 0
     private val MAIN_DROPS = setOf(1, 2, 5, 6)
     private val MAIN_FLAKES = setOf(0, 2, 3, 5)
     private val SNOW_MOUND = Geometry.resample(pts(38.0, 129.5, 50.0, 126.4, 62.0, 125.8, 76.0, 126.4, 86.0, 129.5), 48)
@@ -354,8 +355,8 @@ object Mowan {
             val storm = weather == Weather.THUNDER
             owner = "clouds"
             CLOUDS.forEachIndexed { i, c ->
-                // 簡化：只留最大的那朵（右邊、不擋頭）
-                if (simple && i != MAIN_CLOUD) return@forEachIndexed
+                // 簡化：只留一朵。陰天留最大的（右邊）；雷雨右邊那朵會被傘擋住，留左邊露在傘外面的
+                if (simple && i != (if (storm) STORM_CLOUD else MAIN_CLOUD)) return@forEachIndexed
                 val x = if (storm) c.x else ((c.x + clockMs / 1000 * c.speed + 30) % 170) - 30
                 val loop = Geometry.place(c.loop, Geometry.Placement(x, c.y - if (storm) 2 else 0))
                 ringPath(Layer.CLOUDS, loop, if (storm) STORM else CLOUD, "cloud$i", 1.5, 0.5, if (caps.growthFocus) 0.7f else 1f, floor = accent)
