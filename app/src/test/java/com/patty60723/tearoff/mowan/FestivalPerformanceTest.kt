@@ -63,12 +63,23 @@ class FestivalPerformanceTest {
         return c
     }
 
-    /** 包袱布袋（第一個 Sage 填色）跟道具（第一個填色）的外形有沒有交疊 */
-    private fun propOnSack(frame: Mowan.Frame, part: String): Boolean {
-        val sack = polygon(frame.ops.first { it.part == "bundle" && it.fill == Mowan.SAGE })
+    /**
+     * 包袱（布袋、兩個布角、布結：每個 Sage 填色）跟道具（第一個填色）有沒有壓在一起：填色交疊，
+     * 或兩個填色之間不到 [CLEARANCE]（兩條墨線各約 0.5–0.7 寬，再留一點空隙，看起來才是分開的）。
+     */
+    private fun propOnSack(frame: Mowan.Frame, part: String): Boolean = clearance(frame, part) < CLEARANCE
+
+    private fun clearance(frame: Mowan.Frame, part: String): Double {
         val prop = polygon(frame.ops.first { it.part == part && it.fill != null })
-        return prop.any { inside(it, sack) } || sack.any { inside(it, prop) }
+        var best = Double.MAX_VALUE
+        for (sack in frame.ops.filter { it.part == "bundle" && it.fill == Mowan.SAGE }.map { polygon(it) }) {
+            if (prop.any { inside(it, sack) } || sack.any { inside(it, prop) }) return 0.0
+            for (a in prop) for (b in sack) best = minOf(best, hypot(a.x - b.x, a.y - b.y))
+        }
+        return best
     }
+
+    private val CLEARANCE = 1.6
 
     /** T15：撐傘拜年時握傘點全程不動、撐傘的手臂跟雨天姿勢一樣、傘角在 −17°～−5°、拿紅包的手真的有動 */
     @Test
@@ -204,7 +215,9 @@ class FestivalPerformanceTest {
             val part = if (left == Item.ENVELOPE) "envelope" else "mooncake"
             for (a in actions(c.festival!!)) {
                 val lv = FestivalActions.levelFor(a, s)
-                val still = listOf(Performance(a, lv, 0.0), Performance(a, lv, a.durMs.toDouble()), Performance(a, lv, 0.0, held = true))
+                // 靜止與停留的姿勢：開始、結束、代表姿勢、原型 KEYPOSES 的停留時間（拜年 2300、確認掛好 2300、望月 2900）
+                val still = listOf(0.0, a.durMs.toDouble(), a.keyMs.toDouble(), 3300.0.coerceAtMost(a.durMs.toDouble())).map { Performance(a, lv, it) } +
+                    Performance(a, lv, 0.0, held = true)
                 for (perf in still) {
                     val frame = Mowan.frame(c.parts, 0, true, c.weather, perf.t, 0, bundleOn = true, festival = c.festival, performance = perf)
                     assertFalse("$c $a=$lv ${perf.t}ms${if (perf.held) "（代表姿勢）" else ""} $left 壓在包袱上", propOnSack(frame, part))

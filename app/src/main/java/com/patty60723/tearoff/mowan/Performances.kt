@@ -47,6 +47,8 @@ internal object Performances {
      */
     val L_CRADLE_BUNDLE = pts(60.5, 77.0, 58.2, 82.4, 57.4, 88.0, 58.0, 93.5)
     val L_LIFT_BUNDLE = pts(60.5, 77.0, 56.2, 80.6, 54.4, 85.6, 54.8, 90.8)
+    /** 背著包袱時把月餅舉高：比 [L_TOAST] 再往外一點，月餅不碰到包袱的布角，也不碰到頭 */
+    val L_TOAST_BUNDLE = pts(60.5, 77.0, 52.8, 73.4, 44.8, 68.9, 37.0, 64.5)
 
     private class Out {
         var armL: List<Pt>? = null
@@ -245,7 +247,7 @@ internal object Performances {
                 if (lv == Level.FULL) {
                     val h = s.handOf(Item.MOONCAKE)!!
                     val side = if (h == Hand.L) -1.0 else 1.0
-                    val up = if (h == Hand.L) L_TOAST else R_TOAST
+                    val up = if (h == Hand.R) R_TOAST else if (bundle) L_TOAST_BUNDLE else L_TOAST
                     val p0 = armOf(base, h)
                     o.arm(h, trackPts(t, listOf(0.0 to p0, 700.0 to cradle(h), 1100.0 to cradle(h), 2300.0 to up, 3300.0 to up, 4300.0 to p0)))
                     o.headAngle = track(t, listOf(0.0 to 0.0, 700.0 to 4 * side, 1100.0 to 4 * side, 2300.0 to 2.0, 2700.0 to 5.0, 3300.0 to 5.0, 4300.0 to 0.0))
