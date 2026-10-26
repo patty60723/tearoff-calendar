@@ -167,7 +167,12 @@ class FestivalSession(
     }
 
     /** 動畫設定改變：關掉時停掉待機排程；打開時重新排 */
-    fun reducedChanged(reduced: Boolean, nowMs: Long) {
+    fun reducedChanged(reduced: Boolean, nowMs: Long) = rearmIdle(nowMs, reduced)
+
+    /** 重新看得到（從背景回來、滑回畫面）：看不到的時間不算進待機間隔，從現在重新排（D-46，不補播） */
+    fun resumed(nowMs: Long, reduced: Boolean) = rearmIdle(nowMs, reduced)
+
+    private fun rearmIdle(nowMs: Long, reduced: Boolean) {
         if (mode == Mode.BASE) nextIdleMs = if (festival != null && !reduced) nowMs + wait() else Long.MAX_VALUE
     }
 

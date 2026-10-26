@@ -196,6 +196,25 @@ class FestivalSessionTest {
         assertTrue(m.idles() > 0)
     }
 
+    @Test
+    fun resumedRestartsTheIdleCountdown() {
+        val m = Sim(); m.enter()
+        m.step(springMain + 100)
+        val due = m.session.nextIdleMs
+        // 看不到的期間沒有 update；回來時已經超過原本排定的時間
+        m.now = due + 60_000
+        m.session.resumed(m.now, reduced = false)
+        assertTrue("從回來的時間重新倒數 20–40 秒", m.session.nextIdleMs - m.now in FestivalSession.IDLE_MIN_MS..FestivalSession.IDLE_MAX_MS)
+        m.session.update(m.now, m.scene, false)
+        assertEquals("回來時不補播待機", 0, m.idles())
+        // 演出中回來：不動演出、也不動待機排程
+        m.session.replay(m.now, m.scene, false)
+        val start = m.session.startMs
+        m.session.resumed(m.now + 500, reduced = false)
+        assertEquals(Mode.MAIN, m.session.mode)
+        assertEquals(start, m.session.startMs)
+    }
+
     // ---------- D-35：層級鎖定 ----------
 
     @Test

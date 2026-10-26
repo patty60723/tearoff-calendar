@@ -26,7 +26,7 @@ import kotlin.random.Random
  * - 墨丸至少一半在螢幕上、App 在前景且視窗有焦點時（D-40），第一次演今天的主演出；開始就記錄（D-33），
  *   之後滑出滑回、切背景、重建畫面、重開 App 都不重播。可見性只在事件（捲動、版面、可見度、視窗焦點）時重新判斷，不輪詢。
  * - 演出與待機中每 33 毫秒重畫；完全滑出畫面時停止重畫，滑回來接著演（不重來）。
- * - 待機每 20–40 秒一次，只有看得到時才會跑（D-46）。
+ * - 待機每 20–40 秒一次，只有看得到時才會跑、也只算看得到的時間；從背景或畫面外回來時重新倒數，不補播（D-46）。
  * - 節日當天整天不打雷（D-31）。
  * - 關閉動畫時主演出停在代表姿勢，演出時間到了再重畫一次回到站姿（D-34）。
  * - 沒有節日（或 [today] 是 null）時，畫法與重畫排程跟以前完全一樣。
@@ -130,6 +130,14 @@ class MowanView @JvmOverloads constructor(
         isTicking = false
     }
 
+    /** 看不到而停過重畫：下次畫的時候節日待機從那時重新倒數 */
+    private var paused = false
+
+    private fun pause() {
+        stop()
+        paused = true
+    }
+
     private fun schedule(delay: Long) {
         lastDelayMs = delay
         isTicking = postDelayed(tick, delay)
@@ -163,7 +171,7 @@ class MowanView @JvmOverloads constructor(
         if (festival != null) {
             // 完全滑出畫面：停止重畫；滑回來一點點：接著畫（演出照實際經過的時間，不重來）
             if (visibleFraction() <= 0f) {
-                stop()
+                pause()
                 return
             }
             if (!isTicking) invalidate()
@@ -221,6 +229,8 @@ class MowanView @JvmOverloads constructor(
             val s = session
             if (lastReduced != null && lastReduced != reduced) s.reducedChanged(reduced, now)
             lastReduced = reduced
+            if (paused) s.resumed(now, reduced)
+            paused = false
             s.update(now, scene, reduced)
             syncDirector()
             val action = s.action
@@ -240,9 +250,11 @@ class MowanView @JvmOverloads constructor(
             canvas, paddingLeft.toFloat(), paddingTop.toFloat(),
             (width - paddingLeft - paddingRight).toFloat(), (height - paddingTop - paddingBottom).toFloat(),
         )
-        if (!isShown || windowVisibility != VISIBLE) return
-        // 節日：完全滑出畫面就不重畫，滑回來（捲動事件）再接著演
-        if (f != null && visibleFraction() <= 0f) return
+        if (!isShown || windowVisibility != VISIBLE || f != null && visibleFraction() <= 0f) {
+            // 看不到就不重畫（節日：完全滑出畫面也是），滑回來（捲動事件）再接著演
+            paused = true
+            return
+        }
         if (sample.still) {
             // 關閉動畫：主演出停在代表姿勢，演出時間到了再畫一次回到站姿
             heldUntil?.let { schedule((it - now).coerceAtLeast(1)) }
@@ -263,7 +275,7 @@ class MowanView @JvmOverloads constructor(
             invalidate()
             checkVisible()
         } else {
-            stop()
+            pause()
         }
     }
 
@@ -292,7 +304,7 @@ class MowanView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
-        stop()
+        pause()
         viewTreeObserver.removeOnScrollChangedListener(scrollListener)
         viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.unregisterDurationScaleChangeListener(scaleListener)

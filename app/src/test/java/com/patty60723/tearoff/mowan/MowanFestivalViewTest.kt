@@ -285,7 +285,34 @@ class MowanFestivalViewTest {
         assertEquals("關閉動畫時不排待機", 0, view.session.starts.getValue(Mode.IDLE))
     }
 
-    // ---------- 待機只在看得到時 ----------
+    // ---------- 待機只在看得到時（D-46），重畫排程 ----------
+
+    private val canvas = Canvas(Bitmap.createBitmap(240, 320, Bitmap.Config.ARGB_8888))
+
+    /** 照 View 自己排的下一次重畫往前走 [ms] 毫秒，每次記下（重畫的時間, 模式, 下一次間隔） */
+    private fun runFor(ms: Long, v: MowanView = view): List<Triple<Long, Mode, Long>> {
+        val end = now + ms
+        val out = ArrayList<Triple<Long, Mode, Long>>()
+        while (now < end) {
+            assertTrue("一直排著下一次重畫", v.isTicking)
+            now += v.lastDelayMs
+            v.draw(canvas)
+            out += Triple(now, v.session.mode, v.lastDelayMs)
+        }
+        return out
+    }
+
+    private val boilMs = kotlin.math.ceil(Mowan.BOIL_MS).toLong()
+
+    /**
+     * 筆觸影格的重畫間隔：到下一張筆觸（約 166 ms）。既有排程把間隔捨去成整數毫秒，會落在影格邊界前一點點，
+     * 所以接著補一次 1 ms（P5 以來就是這樣，沒有節日時也一樣；這裡只確認回到這個排程，不是 33 ms）。
+     */
+    private fun boilDelay(r: Triple<Long, Mode, Long>) = r.third <= 1 || r.third >= boilMs - 2
+
+    /** 每秒換幾張筆觸（間隔約 166 ms 的那些重畫） */
+    private fun boilsPerSecond(rs: List<Triple<Long, Mode, Long>>) =
+        rs.count { it.third >= boilMs - 2 } * 1000.0 / (rs.last().first - rs.first().first)
 
     @Test
     fun idleRunsOnlyWhileVisible() {
@@ -294,12 +321,112 @@ class MowanFestivalViewTest {
         draw()
         fraction = 0f
         scroll()
+        assertFalse("滑出：不重畫", view.isTicking)
         now += 60_000
         // 看不到時沒有任何重畫，所以沒有待機
         assertEquals(0, view.session.starts.getValue(Mode.IDLE))
         fraction = 1f
         scroll()
+        val back = now
         draw()
-        assertEquals("看得到以後才演待機", 1, view.session.starts.getValue(Mode.IDLE))
+        assertEquals("回來時不補播錯過的待機", Mode.BASE, view.session.mode)
+        val idleAt = runFor(FestivalSession.IDLE_MAX_MS + 1000).first { it.second == Mode.IDLE }.first
+        assertTrue("看得到以後重新倒數 20–40 秒才演待機", idleAt - back in FestivalSession.IDLE_MIN_MS..FestivalSession.IDLE_MAX_MS + boilMs)
+        assertEquals(1, view.session.starts.getValue(Mode.IDLE))
+    }
+
+    @Test
+    fun backgroundDoesNotCountTowardsTheIdle() {
+        view.today = spring
+        now += FestivalActions.Action.BOW.durMs + 100
+        draw()
+        view.visibility = View.INVISIBLE
+        assertFalse("背景：不重畫", view.isTicking)
+        now += 60_000
+        view.visibility = View.VISIBLE
+        val back = now
+        draw()
+        assertEquals("回來時不補播", Mode.BASE, view.session.mode)
+        assertTrue(view.session.nextIdleMs - back >= FestivalSession.IDLE_MIN_MS)
+    }
+
+    @Test
+    fun boilAfterTheMainThenIdleOnTimeAtThePoseRateThenBoilAgain() {
+        view.today = spring
+        draw()
+        // 主演出：每 33 ms
+        val main = runFor(FestivalActions.Action.BOW.durMs - 100)
+        assertTrue(main.all { it.second == Mode.MAIN && it.third == MowanView.POSE_FRAME_MS })
+        val toBase = runFor(500).first { it.second == Mode.BASE }
+        val due = view.session.nextIdleMs
+        assertTrue("演完排 20–40 秒後的待機", due - toBase.first in FestivalSession.IDLE_MIN_MS..FestivalSession.IDLE_MAX_MS)
+        // 1. 演完：一般站姿的 6 FPS 筆觸，只在換筆觸影格時重畫
+        val untilIdle = runFor(due - now + boilMs)
+        val base = untilIdle.takeWhile { it.second == Mode.BASE }
+        assertTrue("排定時間以前都是站姿", base.all { it.first < due })
+        assertTrue("不再 33 ms 重畫", base.drop(1).all(::boilDelay))
+        val perSecond = boilsPerSecond(base)
+        assertTrue("筆觸約每秒 6 張（$perSecond）", perSecond in 5.0..7.0)
+        // 2. 待機準時：在排定時間後的第一次筆觸重畫開始（最多晚一張筆觸影格）
+        val idle = untilIdle[base.size]
+        assertEquals(Mode.IDLE, idle.second)
+        assertTrue("待機開始時間 ${idle.first - due} ms", idle.first - due in 0..boilMs)
+        assertEquals(1, view.session.starts.getValue(Mode.IDLE))
+        // 3. 待機中：每 33 ms
+        val idleDur = view.session.action!!.durMs
+        val during = runFor(idleDur - (now - view.session.startMs) - 100)
+        assertTrue(during.all { it.second == Mode.IDLE && it.third == MowanView.POSE_FRAME_MS })
+        // 4. 待機結束：回到筆觸排程，重新排下一次待機
+        val after = runFor(3000)
+        val back = after.indexOfFirst { it.second == Mode.BASE }
+        assertTrue(back >= 0)
+        val rest = after.drop(back + 1)
+        assertTrue("回到站姿後不再 33 ms 重畫", rest.all { it.second == Mode.BASE && boilDelay(it) })
+        assertTrue("筆觸約每秒 6 張", boilsPerSecond(rest) in 5.0..7.0)
+        assertTrue(view.session.nextIdleMs - after[back].first in FestivalSession.IDLE_MIN_MS..FestivalSession.IDLE_MAX_MS)
+        assertEquals("主演出沒有重播", 1, mains())
+    }
+
+    @Test
+    fun weatherAndIdleRunTogetherWithoutReplayingTheMain() {
+        view.weather = Mowan.Weather.RAINY
+        view.today = spring
+        draw()
+        runFor(FestivalActions.Action.BOW.durMs + 100)
+        assertEquals(Mode.BASE, view.session.mode)
+        // 有天氣動畫：站姿也每 33 ms（雨在動），待機照樣準時
+        val due = view.session.nextIdleMs
+        val untilIdle = runFor(due - now + MowanView.POSE_FRAME_MS)
+        val base = untilIdle.takeWhile { it.second == Mode.BASE }
+        assertTrue(base.all { it.first < due && it.third == MowanView.POSE_FRAME_MS })
+        val idle = untilIdle[base.size]
+        assertEquals(Mode.IDLE, idle.second)
+        assertTrue(idle.first - due in 0..MowanView.POSE_FRAME_MS)
+        val start = view.session.startMs
+        // 待機中換天氣：待機繼續、不重播主演出
+        view.weather = Mowan.Weather.SUNNY
+        val during = runFor(300)
+        assertTrue(during.all { it.second == Mode.IDLE && it.third == MowanView.POSE_FRAME_MS })
+        assertEquals(start, view.session.startMs)
+        view.weather = Mowan.Weather.SNOW
+        runFor(view.session.action!!.durMs)
+        assertEquals(Mode.BASE, view.session.mode)
+        assertEquals("主演出沒有重播", 1, mains())
+        assertEquals(1, view.session.starts.getValue(Mode.IDLE))
+        assertTrue("雪還在下：33 ms", view.lastDelayMs == MowanView.POSE_FRAME_MS)
+    }
+
+    @Test
+    fun reducedMotionSchedulesNothingAfterTheHold() {
+        reduced = true
+        view.weather = Mowan.Weather.RAINY
+        view.today = spring
+        draw()
+        assertEquals(FestivalActions.Action.BOW.durMs, view.lastDelayMs)
+        now += view.lastDelayMs
+        draw()
+        assertEquals(Mode.BASE, view.session.mode)
+        assertFalse("有天氣也不排重畫", view.isTicking)
+        assertEquals(Long.MAX_VALUE, view.session.nextIdleMs)
     }
 }
