@@ -79,6 +79,7 @@ class FestivalSceneTest {
                     Level.RAIN -> caps.twoHands
                     Level.ONE_HAND -> caps.holdL != caps.holdR
                     Level.POINT -> caps.holdL || caps.holdR
+                    Level.CAKE -> (caps.holdL || caps.holdR) && !s.shown(Item.MOON)
                     Level.HEAD -> caps.head
                     Level.LINE -> true
                 }

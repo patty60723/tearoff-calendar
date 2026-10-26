@@ -30,6 +30,8 @@ object FestivalActions {
         RAIN("雨天版（撐傘拜年）"),
         ONE_HAND("單手版（成長階段只有一隻手）"),
         POINT("指向版（沒有腳，構不到）"),
+        /** D-37：看不到月亮（雨、雷雨、雪）時，中秋演出改成低頭看手上的月餅，不抬頭看空的天空 */
+        CAKE("看月餅版（看不到月亮）"),
         HEAD("頭部版"),
         LINE("線條版"),
     }
@@ -40,8 +42,8 @@ object FestivalActions {
         Action.LOOK_ENVELOPE to listOf(Level.FULL, Level.HEAD, Level.LINE),
         Action.SOCK to listOf(Level.FULL, Level.POINT, Level.HEAD, Level.LINE),
         Action.PEEK_GIFT to listOf(Level.FULL, Level.HEAD, Level.LINE),
-        Action.TOAST to listOf(Level.FULL, Level.HEAD, Level.LINE),
-        Action.GAZE_MOON to listOf(Level.FULL, Level.LINE),
+        Action.TOAST to listOf(Level.FULL, Level.CAKE, Level.HEAD, Level.LINE),
+        Action.GAZE_MOON to listOf(Level.FULL, Level.CAKE, Level.LINE),
     )
 
     private fun Capabilities.hold(h: Hand) = if (h == Hand.R) holdR else holdL
@@ -64,10 +66,23 @@ object FestivalActions {
             Action.LOOK_ENVELOPE -> if (scene.handOf(Item.ENVELOPE) != null) Level.FULL else headOrLine
             Action.SOCK -> if (freeHands(scene).isNotEmpty()) (if (c.stand) Level.FULL else Level.POINT) else headOrLine
             Action.PEEK_GIFT -> if (!c.head) Level.LINE else if (scene[Slot.GROUND_R] == Item.GIFT) Level.FULL else Level.HEAD
-            Action.TOAST -> if (scene.handOf(Item.MOONCAKE) != null) Level.FULL else headOrLine
-            Action.GAZE_MOON -> if (c.head) Level.FULL else Level.LINE
+            // D-37：看不到月亮就不抬頭。拿著月餅 → 看月餅；沒有月餅 → 線條版（只扭一下，沒有月光）
+            Action.TOAST -> when {
+                !scene.shown(Item.MOON) -> if (scene.handOf(Item.MOONCAKE) != null) Level.CAKE else Level.LINE
+                scene.handOf(Item.MOONCAKE) != null -> Level.FULL
+                else -> headOrLine
+            }
+            Action.GAZE_MOON -> when {
+                !scene.shown(Item.MOON) -> if (scene.handOf(Item.MOONCAKE) != null) Level.CAKE else Level.LINE
+                c.head -> Level.FULL
+                else -> Level.LINE
+            }
         }
     }
+
+    /** 這個層級會不會抬頭看天空（看月亮、看襪子以外的天空）；看不到月亮時一定是 false（D-37） */
+    fun looksAtSky(action: Action, level: Level): Boolean =
+        (action == Action.TOAST || action == Action.GAZE_MOON) && (level == Level.FULL || level == Level.HEAD)
 
     /** 這個層級會動到的部位（P6-3 的姿勢只能動這些） */
     data class Uses(
@@ -96,7 +111,8 @@ object FestivalActions {
             Action.LOOK_ENVELOPE -> Uses(setOf(scene.handOf(Item.ENVELOPE)!!), head = true)
             Action.SOCK -> Uses(setOf(freeHands(scene).first()), head = true, stand = level == Level.FULL)
             Action.TOAST -> Uses(setOf(scene.handOf(Item.MOONCAKE)!!), head = true)
-            Action.PEEK_GIFT, Action.GAZE_MOON -> Uses(emptySet(), head = true)
+            Action.GAZE_MOON -> if (level == Level.CAKE) Uses(setOf(scene.handOf(Item.MOONCAKE)!!), head = true) else Uses(emptySet(), head = true)
+            Action.PEEK_GIFT -> Uses(emptySet(), head = true)
         }
     }
 }

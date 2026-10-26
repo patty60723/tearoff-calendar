@@ -115,8 +115,14 @@ class FestivalSession(
      * 正在播主演出或故事事件時日期換了：播完才換（D-36）。
      */
     fun enter(date: LocalDate, festival: Festival?, nowMs: Long, scene: FestivalScene.Result?, reduced: Boolean) {
-        if (this.date == date && this.festival == festival) return
+        if (this.date == date && this.festival == festival) {
+            // 演出中日期換過去又換回來：之前排的新日期已經過時
+            if (pending != null) note("日期換回 $date：取消等待中的 ${pending!!.first}")
+            pending = null
+            return
+        }
         if (this.date != null && (mode == Mode.MAIN || mode == Mode.STORY)) {
+            // 演出中多次換日期：只留最新的那一個
             pending = date to festival
             note("日期換成 $date：等目前的演出播完")
             return

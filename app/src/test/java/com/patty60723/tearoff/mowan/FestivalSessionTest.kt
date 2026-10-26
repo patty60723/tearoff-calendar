@@ -284,4 +284,85 @@ class FestivalSessionTest {
         assertEquals(1, m.mains())
         assertTrue(m.session.events.none { "被擋下" in it })
     }
+
+    // ---------- 日期邊界（P6-1 審核強化） ----------
+
+    /** 演出中跨午夜：演完才用新日期，新日期自己的每日一次照樣判斷 */
+    @Test
+    fun pendingDateIsUsedAfterTheMainEnds() {
+        val m = Sim(); m.enter(); m.step(1000)
+        m.date = day1.plusDays(1); m.enter()
+        assertEquals("還在演初一", day1, m.session.date)
+        m.step(springMain - 1000 + 50)
+        assertEquals(day1.plusDays(1), m.session.date)
+        assertEquals("初二自己的主演出", Mode.MAIN, m.session.mode)
+        assertEquals(setOf("2027-02-06:SPRING", "2027-02-07:SPRING"), (m.log as FestivalSession.MemoryLog).keys)
+    }
+
+    /** 演出中多次換模擬日期：演完用最後一次的日期 */
+    @Test
+    fun latestPendingDateWins() {
+        val m = Sim(); m.enter(); m.step(500)
+        for (d in listOf(xmas, plain, day1.plusDays(2))) { m.date = d; m.enter() }
+        m.step(springMain)
+        assertEquals(day1.plusDays(2), m.session.date)
+        assertEquals(Festival.SPRING, m.session.festival)
+        assertEquals("中間經過的聖誕沒有被記成演過", setOf("2027-02-06:SPRING", "2027-02-08:SPRING"), (m.log as FestivalSession.MemoryLog).keys)
+    }
+
+    /** 換過去又換回原日期：不套用過時的 pending */
+    @Test
+    fun switchingBackDropsTheStalePendingDate() {
+        val m = Sim(); m.enter(); m.step(500)
+        m.date = xmas; m.enter()
+        m.date = day1; m.enter()
+        m.step(springMain + 100)
+        assertEquals(day1, m.session.date)
+        assertEquals(Mode.BASE, m.session.mode)
+        assertEquals(1, m.mains())
+        assertEquals(setOf("2027-02-06:SPRING"), (m.log as FestivalSession.MemoryLog).keys)
+        // 之後過了很久也不會冒出聖誕
+        m.step(120_000)
+        assertEquals(day1, m.session.date)
+        assertEquals(1, m.mains())
+    }
+
+    /** 故事事件中跨午夜也一樣：故事結束才換日期 */
+    @Test
+    fun pendingDateAlsoWaitsForStory() {
+        val m = Sim(date = plain); m.enter()
+        m.session.story(m.now, 2000, false)
+        m.date = day1; m.enter()
+        assertEquals(plain, m.session.date)
+        m.step(2100)
+        assertEquals(day1, m.session.date)
+        assertEquals(Mode.MAIN, m.session.mode)
+    }
+
+    /** 日期改了、節日沒變（初一 → 初二）：依新日期判斷，各自一次；已經演過的日期重進不演 */
+    @Test
+    fun sameFestivalNewDateIsJudgedByDate() {
+        val log = FestivalSession.MemoryLog()
+        val m = Sim(log = log); m.enter(); m.step(springMain + 100)
+        m.date = day1.plusDays(1); m.enter()
+        assertEquals(Mode.MAIN, m.session.mode)
+        m.step(springMain + 100)
+        // 重開 App 回到初二（同一份紀錄）：不演
+        val again = Sim(date = day1.plusDays(1), log = log); again.enter()
+        assertEquals(Mode.BASE, again.session.mode)
+        // 模擬日期倒回初一：初一已經演過，也不演
+        again.date = day1; again.enter()
+        assertEquals(Mode.BASE, again.session.mode)
+        assertEquals(0, again.mains())
+    }
+
+    /** 待機中換日期：不用等，直接換 */
+    @Test
+    fun dateChangeDuringIdleAppliesImmediately() {
+        val m = Sim(); m.enter(); m.step(springMain + 100)
+        while (m.session.mode != Mode.IDLE) m.step(50)
+        m.date = day1.plusDays(1); m.enter()
+        assertEquals(day1.plusDays(1), m.session.date)
+        assertEquals(Mode.MAIN, m.session.mode)
+    }
 }
