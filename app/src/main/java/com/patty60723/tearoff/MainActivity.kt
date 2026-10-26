@@ -290,7 +290,8 @@ class MainActivity : Activity() {
         val stickmanPx = (pageWidthPx * 0.17f).toInt()
         val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density)
         val page = views.apply(this, frame).apply { isClickable = false }
-        page.findViewById<View>(R.id.stickman)?.layoutParams?.let {
+        // 舊火柴人（ViewFlipper）和 V3（mowan_still）用同樣的大小和位置
+        for (id in intArrayOf(R.id.stickman, R.id.mowan_still)) page.findViewById<View>(id)?.layoutParams?.let {
             it.width = stickmanPx
             it.height = stickmanPx * 4 / 3
             (it as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin = (pageWidthPx * 0.09f).toInt()

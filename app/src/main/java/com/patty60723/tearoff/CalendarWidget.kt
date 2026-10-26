@@ -155,8 +155,10 @@ class CalendarWidget : AppWidgetProvider() {
         )
 
         /**
-         * V3 墨丸（P5-3）：一張靜態代表姿勢（D-04），跟 App 用同樣的部位、紙帽、包袱、天氣；不播撕頁動作（D-27）。
-         * 版面裡的 ViewFlipper 不動：6 格都放同一張圖（RemoteViews 只存一份），輪播間隔拉到一天，看起來就不會動。
+         * V3 墨丸（P5-3、P5-4）：一張靜態代表姿勢（D-04），跟 App 用同樣的部位、紙帽、包袱、天氣；不播撕頁動作（D-27）。
+         * 畫在版面裡的 `mowan_still`（一般的 ImageView，不會動）；舊火柴人的 ViewFlipper 隱藏、清掉圖。
+         * ViewFlipper 的自動輪播只有 `setFlipInterval` 能透過 RemoteViews 改（`setAutoStart`、`stopFlipping` 不行），
+         * 隱藏的 ViewFlipper 仍會照間隔換頁，所以間隔拉到一天、裡面沒有圖。
          * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）。
          */
         private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate) {
@@ -171,12 +173,15 @@ class CalendarWidget : AppWidgetProvider() {
                 Mowan.partsOf(book.parts), MowanSettings.hatOn(context), MowanSettings.bundleOn(context), weather,
                 widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(), density = density,
             )
-            for (id in FRAME_IDS) views.setImageViewBitmap(id, bitmap)
+            views.setViewVisibility(R.id.stickman, View.GONE)
+            for (id in FRAME_IDS) views.setImageViewResource(id, 0)
             views.setDisplayedChild(R.id.stickman, 0)
             views.setInt(R.id.stickman, "setFlipInterval", STILL_FLIP_MS)
+            views.setViewVisibility(R.id.mowan_still, View.VISIBLE)
+            views.setImageViewBitmap(R.id.mowan_still, bitmap)
         }
 
-        /** V3 靜態圖時 ViewFlipper 的輪播間隔：一天（6 格都是同一張圖） */
+        /** V3 時隱藏的 ViewFlipper 的輪播間隔：一天（裡面沒有圖） */
         internal const val STILL_FLIP_MS = 24 * 60 * 60 * 1000
 
         /** 火柴人目前長到哪裡、最近一次撕頁的動作，畫成幾張圖輪播。 */
@@ -190,6 +195,10 @@ class CalendarWidget : AppWidgetProvider() {
                 props = if (book.page == 0) emptySet() else book.lastProps,
             )
             frames.forEachIndexed { i, bitmap -> views.setImageViewBitmap(FRAME_IDS[i], bitmap) }
+            // 從 V3 切回來時（同一個版面重新套用）要把 V3 的圖藏起來
+            views.setViewVisibility(R.id.stickman, View.VISIBLE)
+            views.setViewVisibility(R.id.mowan_still, View.GONE)
+            views.setImageViewResource(R.id.mowan_still, 0)
             views.setInt(R.id.stickman, "setFlipInterval", (action.periodMs / FRAME_IDS.size).toInt())
         }
 

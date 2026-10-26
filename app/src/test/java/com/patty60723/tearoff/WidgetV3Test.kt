@@ -69,6 +69,9 @@ class WidgetV3Test {
 
     private fun View.frames(): List<Bitmap> = frameIds.map { (findViewById<ImageView>(it).drawable as BitmapDrawable).bitmap }
 
+    /** V3 的靜態圖（mowan_still） */
+    private fun View.still(): Bitmap = (findViewById<ImageView>(R.id.mowan_still).drawable as BitmapDrawable).bitmap
+
     private val density get() = context.resources.displayMetrics.density.coerceAtMost(3f)
 
     /** App 那邊應該畫出來的圖：同樣的部位、紙帽、包袱、天氣 */
@@ -77,15 +80,73 @@ class WidgetV3Test {
         (widthDp * density).toInt(), (widthDp * 4 / 3 * density).toInt(), density,
     )
 
+    /** V3：一張靜態圖畫在 mowan_still；ViewFlipper 隱藏、沒有圖、輪播間隔一天 */
     @Test
     fun oneStillPictureInEveryLayout() {
         for (layout in PageLayout.entries) {
-            val frames = applied(layout).frames()
+            val v = applied(layout)
             val at = layout.name
-            // 6 格都是同一張靜態圖
-            assertTrue(at, frames.all { it.sameAs(frames[0]) })
-            assertTrue("$at 跟 App 的狀態一樣", frames[0].sameAs(expected(layout.stickmanDp)))
+            assertEquals(at, View.VISIBLE, v.findViewById<View>(R.id.mowan_still).visibility)
+            assertTrue("$at 跟 App 的狀態一樣", v.still().sameAs(expected(layout.stickmanDp)))
+            val flipper = v.findViewById<android.widget.ViewFlipper>(R.id.stickman)
+            assertEquals(at, View.GONE, flipper.visibility)
+            assertEquals(at, CalendarWidget.STILL_FLIP_MS, flipper.flipInterval)
+            frameIds.forEach { assertEquals("$at 隱藏的 ViewFlipper 不留圖", null, v.findViewById<ImageView>(it).drawable) }
         }
+    }
+
+    /**
+     * 放進真的視窗（attach、看得到）之後過一個小時：V3 的畫面一個像素都不變、隱藏的 ViewFlipper 也沒換頁；
+     * 舊火柴人 1 秒內就會換圖（對照組）。
+     */
+    @Test
+    fun staysStaticOnScreen() {
+        val activity = Robolectric.buildActivity(android.app.Activity::class.java).setup().get()
+        fun attach(): View {
+            val host = FrameLayout(activity)
+            activity.setContentView(host)
+            val v = applied(PageLayout.TALL)
+            host.addView(v)
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            return v
+        }
+        fun pixels(v: View): Bitmap {
+            val w = v.width.coerceAtLeast(1)
+            val h = v.height.coerceAtLeast(1)
+            return Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { v.draw(Canvas(it)) }
+        }
+        val v3 = attach()
+        val flipper = v3.findViewById<android.widget.ViewFlipper>(R.id.stickman)
+        val before = pixels(v3)
+        val child = flipper.displayedChild
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofHours(1))
+        assertEquals("隱藏的 ViewFlipper 一小時內沒換頁", child, flipper.displayedChild)
+        assertTrue("V3 畫面一小時內不變", pixels(v3).sameAs(before))
+
+        MowanSettings.setStoryCard(context, false)
+        val old = attach()
+        val oldFlipper = old.findViewById<android.widget.ViewFlipper>(R.id.stickman)
+        val oldChild = oldFlipper.displayedChild
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1))
+        assertTrue("舊火柴人照樣輪播", oldFlipper.displayedChild != oldChild)
+    }
+
+    /** 同一個版面切換 V3／舊火柴人（launcher 重新套用 RemoteViews）：顯示的是對的那一個 */
+    @Test
+    fun switchingReappliesCleanly() {
+        val parent = FrameLayout(context)
+        val page = Almanac.page(today)
+        val v = CalendarWidget.build(context, page, PageLayout.TALL).apply(context, parent)
+        MowanSettings.setStoryCard(context, false)
+        CalendarWidget.build(context, page, PageLayout.TALL).reapply(context, v)
+        assertEquals(View.VISIBLE, v.findViewById<View>(R.id.stickman).visibility)
+        assertEquals(View.GONE, v.findViewById<View>(R.id.mowan_still).visibility)
+        assertTrue(v.frames().all { it.width > 0 })
+        MowanSettings.setStoryCard(context, true)
+        CalendarWidget.build(context, page, PageLayout.TALL).reapply(context, v)
+        assertEquals(View.GONE, v.findViewById<View>(R.id.stickman).visibility)
+        assertEquals(View.VISIBLE, v.findViewById<View>(R.id.mowan_still).visibility)
+        assertTrue(v.still().sameAs(expected(PageLayout.TALL.stickmanDp)))
     }
 
     /** D-25：小工具（48–64 dp 高）用簡化版；App 日曆頁（約 80 dp 高）用完整版 */
@@ -100,19 +161,19 @@ class WidgetV3Test {
         }
         for (layout in PageLayout.entries) {
             val h = layout.stickmanDp * 4 / 3 * density
-            val got = applied(layout).frames()[0]
+            val got = applied(layout).still()
             assertTrue("${layout.name} 簡化", got.sameAs(direct(layout.stickmanDp, Detail.simplified(h.toDouble()))))
             assertFalse("${layout.name} 不是完整版", got.sameAs(direct(layout.stickmanDp, Detail.FULL)))
         }
         // App 日曆頁：60 dp 寬 → 80 dp 高
         val pageDp = 60f
-        val got = applied(PageLayout.TALL, stickmanDp = pageDp).frames()[0]
+        val got = applied(PageLayout.TALL, stickmanDp = pageDp).still()
         assertTrue("日曆頁完整版", got.sameAs(direct(pageDp, Detail.FULL)))
     }
 
     @Test
     fun followsTheSameStateAsTheApp() {
-        fun tall() = applied(PageLayout.TALL).frames()[0]
+        fun tall() = applied(PageLayout.TALL).still()
         val rain = tall()
         // 紙帽、包袱
         MowanSettings.setHatOn(context, false)
@@ -132,7 +193,7 @@ class WidgetV3Test {
         StoryBook(context).jumpTo(5, today)
         assertTrue(tall().sameAs(expected(PageLayout.TALL.stickmanDp, Mowan.Weather.SNOW)))
         // 不是今天那頁：不畫天氣
-        assertTrue(applied(PageLayout.TALL, today.plusDays(1)).frames()[0].sameAs(expected(PageLayout.TALL.stickmanDp, Mowan.Weather.NONE)))
+        assertTrue(applied(PageLayout.TALL, today.plusDays(1)).still().sameAs(expected(PageLayout.TALL.stickmanDp, Mowan.Weather.NONE)))
     }
 
     /** 關掉 V3：跟原本的舊火柴人完全一樣（6 張輪播） */
@@ -148,6 +209,9 @@ class WidgetV3Test {
                 props = book.lastProps,
             )
             frames.zip(old).forEachIndexed { i, (a, b) -> assertTrue("${layout.name} 第 $i 張", a.sameAs(b)) }
+            val v = applied(layout)
+            assertEquals(View.VISIBLE, v.findViewById<View>(R.id.stickman).visibility)
+            assertEquals(View.GONE, v.findViewById<View>(R.id.mowan_still).visibility)
         }
     }
 
@@ -171,16 +235,32 @@ class WidgetV3Test {
 
     private fun estimate(views: RemoteViews) = (RemoteViews::class.java.getMethod("estimateMemoryUsage").invoke(views) as Number).toLong()
 
-    /** 一次更新（Android 12 以上 4 種版面）的 bitmap 總量在 1 MB 以內 */
+    /**
+     * 一次更新（Android 12 以上 4 種版面）的 bitmap 總量在 1 MB 以內。
+     * `estimateMemoryUsage` 算的是 RemoteViews 裡真的放進去的圖；這裡也確認它剛好等於 4 張 V3 靜態圖
+     * （每個版面一張，沒有舊火柴人的 6 張輪播）的位元組數。
+     */
     @Test
     fun bitmapBudget() {
-        val out = StringBuilder("# 小工具 bitmap（P5-3，V3 靜態一張）\n\nRobolectric 量測，`RemoteViews.estimateMemoryUsage()`。\n\n| 密度 | 4 版面合計 | 只送 TALL（Android 8–11） |\n|---|---|---|\n")
+        val out = StringBuilder("# 小工具 bitmap（P5-4，V3 靜態一張）\n\n")
+        out.append("Robolectric 量測，不是實機。`RemoteViews.estimateMemoryUsage()` 是系統檢查上限用的數字（RemoteViews 裡實際放的圖）；")
+        out.append("Parcel 是 Robolectric 裡寫進 Parcel 的大小（實機上大圖可能走共享記憶體，不能當成傳輸量）。\n\n")
+        out.append("| 密度 | 4 版面合計 | 其中圖片張數 | Parcel | 只送 TALL（Android 8–11） | 一次更新畫幾張 |\n|---|---|---|---|---|---|\n")
         for (q in listOf("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")) {
             RuntimeEnvironment.setQualifiers("w411dp-h891dp-$q")
+            val d = context.resources.displayMetrics.density.coerceAtMost(3f)
+            val renders = MowanBitmap.renderCount
             val perLayout = PageLayout.entries.associateWith { CalendarWidget.build(context, page, it) }
+            val drawn = MowanBitmap.renderCount - renders
             val single = estimate(perLayout.getValue(PageLayout.TALL))
             val all = estimate(RemoteViews(perLayout.entries.associate { (l, v) -> SizeF(l.minWidthDp, l.minHeightDp) to v }))
-            out.append("| $q | ${"%.1f".format(all / 1024.0)} KB | ${"%.1f".format(single / 1024.0)} KB |\n")
+            val expectedBytes = PageLayout.entries.sumOf { l -> (l.stickmanDp * d).toInt().toLong() * (l.stickmanDp * 4 / 3 * d).toInt() * 4 }
+            assertEquals("$q：RemoteViews 裡就是 4 張 V3 圖", expectedBytes, all)
+            assertEquals("$q：4 個版面各畫一次", 4, drawn)
+            val parcel = android.os.Parcel.obtain().let { p ->
+                try { RemoteViews(perLayout.entries.associate { (l, v) -> SizeF(l.minWidthDp, l.minHeightDp) to v }).writeToParcel(p, 0); p.dataSize() } finally { p.recycle() }
+            }
+            out.append("| $q | ${"%.1f".format(all / 1024.0)} KB | 4 | ${"%.1f".format(parcel / 1024.0)} KB | ${"%.1f".format(single / 1024.0)} KB | $drawn |\n")
             assertTrue("$q：${all / 1024} KB", all < 1024 * 1024)
         }
         File("build/screenshots/p5").apply { mkdirs() }.resolve("bitmap-v3.md").writeText(out.toString())
@@ -193,14 +273,14 @@ class WidgetV3Test {
         val manager = shadowOf(AppWidgetManager.getInstance(context))
         val id = manager.createWidget(CalendarWidget::class.java, R.layout.widget_tall)
         CalendarWidget.refreshAll(context)
-        fun widgetFrame() = (manager.getViewFor(id).findViewById<ImageView>(R.id.frame0).drawable as BitmapDrawable).bitmap
+        fun widgetFrame() = manager.getViewFor(id).still()
         val before = widgetFrame()
         val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         a.findViewById<TextView>(R.id.story_bundle).performClick()
         assertFalse(MowanSettings.bundleOn(context))
         assertFalse("小工具上的包袱要卸下", widgetFrame().sameAs(before))
         // App 日曆頁也換了（最上面那張可能是今天或昨天那頁；不是今天就不畫天氣）
-        val pageFrame = (a.findViewById<ImageView>(R.id.frame0).drawable as BitmapDrawable).bitmap
+        val pageFrame = (a.findViewById<ImageView>(R.id.mowan_still).drawable as BitmapDrawable).bitmap
         val parts = Mowan.partsOf(StoryBook(context).parts)
         val candidates = listOf(Mowan.Weather.RAINY, Mowan.Weather.NONE).map { w ->
             MowanBitmap.still(parts, true, false, w, pageFrame.width, pageFrame.height, density)

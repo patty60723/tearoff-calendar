@@ -17,7 +17,7 @@ PASS_N=0
 FAIL_N=0
 WARN_N=0
 # 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
-EXPECTED_CHECKS=25
+EXPECTED_CHECKS=34
 check() { # check <名稱> <條件結果 0/1> <說明>
   if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
   else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
@@ -348,6 +348,160 @@ adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
 shot stickman
 dump_ui stickman
 check "舊火柴人沒有包袱入口" "$([ -f "$OUT/ui/stickman.txt" ] && [ -z "$(bounds_of stickman story_bundle)" ] && echo 0 || echo 1)" ""
+
+log ""
+log "== 10. 小工具（P5-4）=="
+# 狀態：關掉 App、寫設定（關掉才不會被 App 記憶體裡的舊設定蓋掉）
+state() { # state <頁數> <天氣> <V3 true/false> [包袱] [紙帽]
+  adb shell am force-stop $PKG
+  write_prefs story "  <int name=\"page\" value=\"$1\" />
+  <string name=\"lastTornDate\">$YESTERDAY</string>
+  <string name=\"lastText\">$(story_text "$1")</string>"
+  write_prefs mowan "  <boolean name=\"storyCard\" value=\"$3\" />
+  <boolean name=\"paperHatOn\" value=\"${5:-true}\" />
+  <boolean name=\"bundleOn\" value=\"${4:-true}\" />"
+  write_prefs weather "  <string name=\"fakeMood\">$2</string>"
+}
+# 測試用宿主（debug APK 的 WidgetHostActivity）：用系統的 AppWidgetHost 掛 5 個不同大小的小工具
+host_run() { # host_run <名稱>：開宿主、截圖、把這次的報告存到 ui/widget-host-<名稱>.txt
+  adb shell log -t W7HOST "mark $1"
+  adb shell am start -W -n $PKG/.WidgetHostActivity >/dev/null
+  sleep 7
+  adb exec-out screencap -p > "$OUT/shots/widget-host-$1.png"
+  adb logcat -d -s W7HOST:I | awk -v m="mark $1" 'index($0, m) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' > "$OUT/ui/widget-host-$1.txt"
+}
+host_line() { grep "report layout=$2 " "$OUT/ui/widget-host-$1.txt" | tail -1; }
+
+if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
+  # V3：5 種大小都套用成功、ViewFlipper 隱藏、靜態圖顯示、角色整個在小工具裡
+  state 14 RAIN true
+  host_run v3
+  for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+    r=$(host_line v3 $L)
+    ok=$(echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=GONE" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" && echo 0 || echo 1)
+    check "小工具 $L（V3）" "$ok" "${r#*report }"
+  done
+  f=$(frames_in 10 widget-v3)
+  check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "${f%% *}" -le 5 ] 2>/dev/null && echo 0 || echo 1)" "10 秒內畫了 $f 張"
+  # 舊火柴人：ViewFlipper 顯示、V3 的圖隱藏（對照組會一直重畫）
+  state 14 RAIN false
+  host_run old
+  bad=0
+  for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+    r=$(host_line old $L)
+    echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=VISIBLE" && echo "$r" | grep -q "still=GONE" && echo "$r" | grep -q "characterInside=true" || bad=$((bad + 1))
+  done
+  g=$(frames_in 10 widget-old)
+  check "小工具（舊火柴人）不受影響" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對；10 秒內畫了 $g 張（輪播）"
+  # 密度
+  for d in 320 560; do
+    adb shell wm density $d
+    state 14 RAIN true
+    host_run v3-$d
+    bad=0
+    for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+      r=$(host_line v3-$d $L)
+      echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" || { bad=$((bad + 1)); log "  $d：$r"; }
+    done
+    check "小工具（V3）密度 $d" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對"
+  done
+  adb shell wm density reset
+else
+  for _ in 1 2 3 4 5 6 7 8 9; do check "小工具宿主" 1 "appwidget grantbind 失敗，沒辦法綁定小工具"; done
+fi
+
+# 真正的桌面 launcher：用 App 的「把小工具放到桌面」，在 launcher 的對話框按加入。
+# 這一段放不上去時只記 WARN、列為沒測（launcher 的對話框不在我們控制之內）；放上去之後的檢查失敗照樣算失敗。
+log ""
+log "== 11. 桌面 launcher 上的小工具（P5-4）=="
+screen_diff() { # screen_diff <a> <b>：兩張全螢幕截圖（扣掉狀態列和導覽列）差幾個像素
+  local y0=$((H * 6 / 100)) h=$((H * 86 / 100))
+  convert "$OUT/shots/$1.png" -crop "${W}x$h+0+$y0" +repage /tmp/a.png
+  convert "$OUT/shots/$2.png" -crop "${W}x$h+0+$y0" +repage /tmp/b.png
+  compare -metric AE -fuzz 3% /tmp/a.png /tmp/b.png null: 2>&1 | awk '{print $1}'
+}
+home_shot() { adb shell input keyevent KEYCODE_HOME; sleep 3; adb exec-out screencap -p > "$OUT/shots/$1.png"; }
+pinned() { adb shell dumpsys appwidget | python3 -c "
+import sys, re
+t = sys.stdin.read()
+w = t.split('Widgets:', 1)[-1]
+n = 0
+for block in re.split(r'\n\s+\[\d+\]', w):
+    if 'com.patty60723.tearoff/com.patty60723.tearoff.CalendarWidget' in block or 'com.patty60723.tearoff/.CalendarWidget' in block:
+        m = re.search(r'pkg:([\w.]+)', block)
+        if m and m.group(1) != 'com.patty60723.tearoff':
+            n += 1
+print(n)
+"; }
+state 14 RAIN true
+adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+dump_ui pin
+p=$(bounds_of pin pin)
+placed=0
+if [ -n "$p" ]; then
+  set -- $p
+  adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+  sleep 3
+  adb exec-out screencap -p > "$OUT/shots/launcher-pin-dialog.png"
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui/launcher-pin.xml" >/dev/null 2>&1
+  a=$(python3 - "$OUT/ui/launcher-pin.xml" <<'PYEOF'
+import re, sys
+import xml.etree.ElementTree as ET
+try:
+    nodes = list(ET.parse(sys.argv[1]).iter("node"))
+except Exception:
+    sys.exit()
+for want in ["add automatically", "add to home screen", "add", "新增", "加入"]:
+    for n in nodes:
+        if (n.get("text") or "").strip().lower() == want:
+            x1, y1, x2, y2 = map(int, re.findall(r"\d+", n.get("bounds")))
+            print((x1 + x2) // 2, (y1 + y2) // 2)
+            sys.exit()
+PYEOF
+)
+  if [ -n "$a" ]; then
+    adb shell input tap $a
+    sleep 3
+    [ "$(pinned)" -ge 1 ] 2>/dev/null && placed=1
+  fi
+fi
+if [ $placed = 1 ]; then
+  log "  已放上桌面：$(adb shell dumpsys appwidget | grep -m1 -o 'pkg:[a-z.]*launcher[a-z0-9.]*')"
+  home_shot launcher-1-v3
+  update_case() { # update_case <名稱> <說明> <state 參數…>：改設定、送更新廣播、截圖、跟上一張比
+    local name=$1 what=$2; shift 2
+    state "$@"
+    adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null
+    sleep 4
+    home_shot "launcher-$name"
+    local diff; diff=$(screen_diff "$PREV" "launcher-$name")
+    check "桌面小工具：$what" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
+    PREV="launcher-$name"
+  }
+  PREV=launcher-1-v3
+  update_case 2-bundle-off "卸下包袱後更新" 14 RAIN true false
+  update_case 3-hat-off "脫下紙帽後更新" 14 RAIN true false false
+  update_case 4-page5 "換成第 5 頁後更新" 5 RAIN true
+  update_case 5-snow "天氣換成雪後更新" 5 SNOW true
+  update_case 6-old "關掉 V3 後換回舊火柴人" 5 SNOW false
+  update_case 7-v3 "打開 V3 後換回墨丸" 14 RAIN true
+  # 在 App 裡點「卸下包袱」：App 自己叫 refreshAll
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+  dump_ui launcher-app; sleep 1; dump_ui launcher-app
+  b=$(bounds_of launcher-app story_bundle)
+  if [ -n "$b" ]; then
+    set -- $b
+    adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 2
+    home_shot launcher-8-app-toggle
+    diff=$(screen_diff launcher-7-v3 launcher-8-app-toggle)
+    check "在 App 卸下包袱後，桌面小工具跟著換" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
+  else
+    warn "找不到 App 的包袱入口，沒測 App 觸發的更新"
+  fi
+else
+  warn "沒辦法自動把小工具放上桌面 launcher（找不到按鈕或 launcher 的對話框），這一段列為沒測"
+  log "NOTTESTED  桌面 launcher 上的小工具"
+fi
 
 log ""
 check "全程沒有閃退" "$(crashed && echo 1 || echo 0)" "logcat 沒有 FATAL EXCEPTION"

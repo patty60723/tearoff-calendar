@@ -9,6 +9,11 @@ import android.graphics.Canvas
  * 角色視覺高度低於 72 dp 用簡化版（D-25，見 [Detail.of]）。背景透明，疊在頁面上。
  */
 object MowanBitmap {
+    /** 畫了幾張（測試用：確認一次小工具更新沒有重複畫） */
+    @Volatile
+    internal var renderCount = 0
+        private set
+
     /**
      * @param widthPx、heightPx 圖的大小；角色會等比例放進去（viewBox 120 × 160）
      * @param density 螢幕密度（1 = mdpi），用來算視覺高度
@@ -17,6 +22,7 @@ object MowanBitmap {
         parts: Set<String>, hatOn: Boolean, bundleOn: Boolean, weather: Mowan.Weather,
         widthPx: Int, heightPx: Int, density: Float,
     ): Bitmap {
+        renderCount++
         val drawnHeight = minOf(widthPx / VIEW_W, heightPx / VIEW_H) * VIEW_H
         val frame = Mowan.frame(
             parts, 0, hatOn, weather, MowanTimeline.stillClock(weather),
