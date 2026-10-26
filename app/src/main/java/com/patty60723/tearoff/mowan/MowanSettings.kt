@@ -39,6 +39,26 @@ object MowanSettings {
         prefs(context).edit().putBoolean(KEY_BUNDLE_ON, on).apply()
     }
 
+    /**
+     * 節日主演出「演過了」的紀錄（D-33、D-45）：最近 [PLAYED_KEEP] 個「日期:節日」key，存在同一個 prefs。
+     * 開始播的時候就寫入（同步寫，避免剛開始演就被系統關掉、重開又演一次）。
+     */
+    class FestivalLog(context: Context) : FestivalSession.MainLog {
+        private val prefs = prefs(context.applicationContext)
+
+        fun keys(): List<String> = prefs.getString(KEY_FESTIVAL_PLAYED, "").orEmpty().split('|').filter { it.isNotEmpty() }
+
+        override fun played(key: String) = key in keys()
+
+        override fun markPlayed(key: String) {
+            val keep = ((keys() - key) + key).takeLast(PLAYED_KEEP)
+            prefs.edit().putString(KEY_FESTIVAL_PLAYED, keep.joinToString("|")).commit()
+        }
+    }
+
+    private const val KEY_FESTIVAL_PLAYED = "festivalMainPlayed"
+    const val PLAYED_KEEP = 10
+
     /** 故事從頭開始時，裝備狀態也回到預設 */
     fun resetEquipment(context: Context) {
         prefs(context).edit().remove(KEY_HAT_ON).remove(KEY_BUNDLE_ON).apply()

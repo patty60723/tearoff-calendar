@@ -13,11 +13,13 @@ import kotlin.random.Random
  *
  * @param random 打雷間隔用的亂數
  * @param higherPriorityPlaying 現在有沒有比「天氣日常」更優先的演出（成長故事、節日演出）。
- *   有的話，輪到的那次打雷整個跳過、不補播（整合規格 §5.4）。P6 之前沒有這類演出，固定是 false。
+ *   有的話，輪到的那次打雷整個跳過、不補播（整合規格 §5.4）。
+ * @param thunderAllowed 今天能不能打雷。節日當天整天不打雷（D-31），不只演出的時候；雨與雷雨雲照常。
  */
 class MowanTimeline(
     private val random: Random = Random.Default,
     private val higherPriorityPlaying: () -> Boolean = { false },
+    private val thunderAllowed: () -> Boolean = { true },
 ) {
     /** 某一刻要畫的東西 */
     data class Sample(
@@ -64,14 +66,14 @@ class MowanTimeline(
     }
 
     /**
-     * 打雷排程往前推到 [nowMs]。錯過的（例如 App 在背景、正在播更高優先的演出、或關閉動畫）一律跳過，不補播；
+     * 打雷排程往前推到 [nowMs]。錯過的（例如 App 在背景、正在播更高優先的演出、節日當天、或關閉動畫）一律跳過，不補播；
      * 只有「剛好輪到、而且還在驚嚇時間內」的那一次會真的打。
      */
     private fun advanceThunder(nowMs: Long, reducedMotion: Boolean) {
         while (true) {
             val at = nextStrikeMs ?: return
             if (nowMs < at) return
-            if (!reducedMotion && nowMs - at < STRIKE_MS && !higherPriorityPlaying()) lastStrikeMs = at
+            if (!reducedMotion && nowMs - at < STRIKE_MS && !higherPriorityPlaying() && thunderAllowed()) lastStrikeMs = at
             nextStrikeMs = at + nextInterval()
         }
     }
