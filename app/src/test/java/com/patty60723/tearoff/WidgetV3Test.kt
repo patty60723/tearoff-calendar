@@ -210,7 +210,8 @@ class WidgetV3Test {
 
     // ---------- 截圖（不是比對） ----------
 
-    private fun shot(layout: PageLayout, date: LocalDate = LocalDate.of(2026, 10, 23)): Bitmap {
+    /** 今天那頁（天氣只畫在今天那頁，跟日出日落旁的天氣文字一樣） */
+    private fun shot(layout: PageLayout, date: LocalDate = today): Bitmap {
         val d = context.resources.displayMetrics.density
         val w = (layout.minWidthDp * 1.15f * d).toInt()
         val h = (layout.minHeightDp * 1.15f * d).toInt()
@@ -233,7 +234,8 @@ class WidgetV3Test {
             for ((title, bs) in rows) {
                 c.drawText(title, 16f, y + 60, label)
                 var x = 260f
-                for (bm in bs) { c.drawBitmap(bm, x, y, null); x += bm.width + 24 }
+                // 不同密度畫出來的圖不要被自動縮放：照實際像素貼上
+                for (bm in bs) { bm.density = b.density; c.drawBitmap(bm, x, y, null); x += bm.width + 24 }
                 y += bs.maxOf { it.height } + 24
             }
             File("build/screenshots/p5").apply { mkdirs() }.resolve("$name.png").outputStream().use { b.compress(Bitmap.CompressFormat.PNG, 100, it) }
