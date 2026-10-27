@@ -1,7 +1,7 @@
 # 墨丸 V3 — P6 節日系統計畫
 
 > 日期：2026-10-26　分支：`feature/mowan-weather-poses`
-> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a 驗收通過（2026-10-27），P6-4b 進行中。**
+> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a 驗收通過（2026-10-27），P6-4b 完成、等待審核（11.8）。**
 > 相關文件：[整合規格](character-integration-spec.md)・[實作計畫](character-implementation-plan.md#p6--節日系統)・[未定案事項](character-open-decisions.md)
 > 原型只是參考（Confirmed）。本文件把原型跟目前 Kotlin 的差異列出來，**不假設原型已經定稿**。
 
@@ -505,3 +505,17 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 既有的觀察（沒有修改）：一般站姿的筆觸重畫間隔是捨去成整數毫秒，會落在影格邊界前一點點，接著再補一次 1 ms 的重畫；看到的仍是每秒 6 張，但實際每秒約重畫 12 次。P5 以來就是這樣，沒有節日時也一樣；條件 7 要求沒有節日時排程不變，所以這次不動。**2026-10-27 決定：記為 P7 效能待辦**（[實作計畫 P7](character-implementation-plan.md#p7--整合效能qa)），P6-4b 不改這個排程。
 
 **P6-4a 驗收結論（2026-10-27）**：正式通過。`FestivalSession.resumed()` 修正接受；其餘五項排程檢查通過；CI #89 280 項通過、模擬器 #41 41/41。實機與模擬器上的節日畫面仍列 Not tested。
+
+### 11.8 P6-4b 結果（2026-10-27，等待審核）
+
+素材：[`acceptance/mowan-p6-4b`](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p6-4b)
+
+- **程式**（`fb79fa1`；之後的 `a40c536`、`a703928`、`91312e9` 只改測試與截圖）
+  - 故事卡：V3 打開時 `MowanView.today = AppClock.today`；V3 關閉時是 null，不判斷節日、不記錄（D-42）。外觀設好以後才給日期，主演出鎖定的層級才對。
+  - 日曆頁：只有今天那頁的 V3 墨丸畫節日靜態外觀（D-41）。`CalendarWidget.build(festivalLook)` 只有 App 傳 true，**小工具不變**（P6-4c）。
+  - 除錯選單：「重播節日主演出」（不改一天一次的紀錄）、「節日頭飾」開關（存在 `MowanSettings`，故事卡與日曆頁一起換）。
+  - 前景跨午夜（D-44）：`ACTION_DATE_CHANGED`、`TIME_CHANGED`、`TIMEZONE_CHANGED`（onStart 註冊、onStop 取消）只更新故事卡的今天與節日；日曆頁與撕頁狀態不動，回到 App（onResume）時照原本的做法重算。
+- **自動測試**：CI Build APK #93 通過，291 個（新增 `FestivalAppTest` 9 個、`FestivalAppShotsTest` 2 個）。第一次 #90 有 3 個新測試失敗，都是測試寫法（同一天第二種天氣已演過、V3 打開時可見性覆寫的時機、跨午夜測試被背景的天氣下載重建頁面），已修正。
+- **模擬器**：#44 PASS 41／FAIL 0（既有回歸），另外截了節日畫面（第 12 段，不計入必要檢查）：初一第一次看到故事卡有演主演出、同一天重開不重播、初二初三各自演、今天那頁沒撕時最上面那頁不畫節日、聖誕、中秋。
+- **Not tested**：實機；模擬器上的前景跨午夜（只有 Robolectric 送廣播）、除錯選單的實際點擊（只有 Robolectric）、Reduced Motion 下的節日畫面（P6-5）。
+- **觀察（沒有修改）**：天氣在背景抓到新資料時，`refreshWeather` 會呼叫 `show(date)` 重建日曆頁；如果剛好跨過午夜，撕頁狀態會照新的一天重算。這是既有行為，不是 P6-4b 新增的，留到 P6-5 跟模擬器的跨午夜一起確認要不要處理。
