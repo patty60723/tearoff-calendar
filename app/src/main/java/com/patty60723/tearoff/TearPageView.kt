@@ -110,6 +110,9 @@ class TearPageView @JvmOverloads constructor(
         return true
     }
 
+    /** 正在撕（手指拉著或動畫中）：這時不能換掉底下的頁面 */
+    internal val busy: Boolean get() = corner != null || animator != null
+
     /** 不用手指，直接把這一頁撕掉（按鈕用）。 */
     fun peelAway() {
         if (animator != null || width == 0) return

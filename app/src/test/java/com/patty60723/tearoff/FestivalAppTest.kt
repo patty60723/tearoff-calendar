@@ -285,4 +285,95 @@ class FestivalAppTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(spring, a.mowan.today)
     }
+
+    // ---------- D-44 補查：背景天氣更新、時間與時區、視窗焦點 ----------
+
+    /** 日曆頁現在的狀態：哪一頁、可不可以撕、提示 */
+    private fun pageState(a: MainActivity) = listOf(
+        a.findViewById<android.widget.TextView>(R.id.details).text.toString(),
+        a.findViewById<TearPageView>(R.id.page).tearable,
+        a.findViewById<android.widget.TextView>(R.id.hint).text.toString(),
+    )
+
+    @Test
+    fun weatherUpdateSameDayStillRedrawsThePage() {
+        val a = open(spring, tornToday = true).get()
+        val pad = a.findViewById<TearPageView>(R.id.page)
+        val before = pad.getChildAt(0)
+        val state = pageState(a)
+        WeatherService.setFakeMood(context, Mood.RAIN)
+        a.onWeatherRefreshed()
+        assertFalse("同一天：照常換上新天氣（重畫同一頁）", before === pad.getChildAt(0))
+        assertEquals("還是同一頁、撕頁狀態不變", state, pageState(a))
+        assertEquals(com.patty60723.tearoff.mowan.Mowan.Weather.RAINY, a.mowan.weather)
+    }
+
+    @Test
+    fun weatherUpdateAfterMidnightKeepsThePage() {
+        val c = open(eve, tornToday = true)
+        val a = c.get()
+        val pad = a.findViewById<TearPageView>(R.id.page)
+        val page = pad.getChildAt(0)
+        val state = pageState(a)
+        // 前景跨過午夜，之後才抓到新天氣
+        AppClock.setFakeToday(context, spring)
+        WeatherService.setFakeMood(context, Mood.RAIN)
+        a.onWeatherRefreshed()
+        assertSame("不重建日曆頁", page, pad.getChildAt(0))
+        assertEquals("不換頁、不改撕頁狀態與提示", state, pageState(a))
+        assertEquals("故事卡的天氣照常更新", com.patty60723.tearoff.mowan.Mowan.Weather.RAINY, a.mowan.weather)
+        // 回到 App：照原本的做法重算（今天那頁可以撕了）
+        c.pause().resume()
+        assertTrue(pad.tearable)
+    }
+
+    @Test
+    fun weatherUpdateWhileTearingKeepsThePage() {
+        val a = open(spring).get()
+        val pad = a.findViewById<TearPageView>(R.id.page)
+        val page = pad.getChildAt(0)
+        pad.holdPeel(rightCorner = true, x = pad.width * 0.6f, y = pad.height * 0.6f)
+        assertTrue(pad.busy)
+        a.onWeatherRefreshed()
+        assertSame("撕到一半：不換掉底下的頁面", page, pad.getChildAt(0))
+        assertTrue("還可以撕", pad.tearable)
+    }
+
+    @Test
+    fun timeAndTimezoneChangesUpdateTheStoryCard() {
+        val a = open(eve, tornToday = true).get()
+        val state = pageState(a)
+        AppClock.setFakeToday(context, spring)
+        context.sendBroadcast(Intent(Intent.ACTION_TIME_CHANGED))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(spring, a.mowan.today)
+        assertEquals(Festival.SPRING, a.mowan.festival)
+        val xmas = LocalDate.of(2027, 12, 25)
+        AppClock.setFakeToday(context, xmas)
+        context.sendBroadcast(Intent(Intent.ACTION_TIMEZONE_CHANGED))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(xmas, a.mowan.today)
+        assertEquals(Festival.XMAS, a.mowan.festival)
+        AppClock.setFakeToday(context, plain)
+        context.sendBroadcast(Intent(Intent.ACTION_DATE_CHANGED))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertNull("不是節日", a.mowan.festival)
+        assertEquals("日曆頁都沒動", state, pageState(a))
+    }
+
+    @Test
+    fun regainingFocusCatchesUpAMissedDateChange() {
+        val a = open(eve, tornToday = true).get()
+        val page = a.findViewById<TearPageView>(R.id.page).getChildAt(0)
+        val state = pageState(a)
+        a.onWindowFocusChanged(false)
+        // 日期換了，但沒收到廣播
+        AppClock.setFakeToday(context, spring)
+        assertEquals(eve, a.mowan.today)
+        a.onWindowFocusChanged(true)
+        assertEquals("拿回焦點時補上", spring, a.mowan.today)
+        assertEquals(Festival.SPRING, a.mowan.festival)
+        assertSame("日曆頁不動", page, a.findViewById<TearPageView>(R.id.page).getChildAt(0))
+        assertEquals(state, pageState(a))
+    }
 }

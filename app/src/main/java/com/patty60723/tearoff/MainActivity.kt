@@ -141,11 +141,19 @@ class MainActivity : Activity() {
         thread {
             if (WeatherService.refreshIfStale(this)) runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
-                showWeather()
-                show(date)
-                CalendarWidget.refreshAll(this)
+                onWeatherRefreshed()
             }
         }
+    }
+
+    /**
+     * 背景抓到新天氣：故事卡和小工具照常更新；日曆頁重畫同一頁（換上新天氣）。
+     * 但 App 停在前景時已經跨過午夜、或正在撕頁的話，不動日曆頁（D-44），等回到 App（onResume）或撕完再重算。
+     */
+    internal fun onWeatherRefreshed() {
+        showWeather()
+        if (AppClock.today(this) == shownOn && !pad.busy) show(date)
+        CalendarWidget.refreshAll(this)
     }
 
     private fun showWeather() {
@@ -233,9 +241,13 @@ class MainActivity : Activity() {
     /** 封面時當作在看今天 */
     private fun viewing(): LocalDate = date ?: AppClock.today(this)
 
+    /** 日曆頁上次是在哪一天排的（撕頁狀態、提示、今天那頁的外觀都照這一天算） */
+    private var shownOn: LocalDate? = null
+
     private fun show(newDate: LocalDate?) {
         date = newDate
         val today = AppClock.today(this)
+        shownOn = today
         val page = Almanac.page(newDate ?: today)
 
         pad.removeAllViews()
@@ -362,6 +374,12 @@ class MainActivity : Activity() {
     internal fun onDayChanged() {
         if (!::book.isInitialized) return
         findViewById<MowanView>(R.id.story_mowan).today = if (MowanSettings.storyCard(this)) AppClock.today(this) else null
+    }
+
+    /** 拿回視窗焦點（例如拉下通知欄再收起）：日期改變的廣播萬一沒收到，這裡補一次；只動故事卡 */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) onDayChanged()
     }
 
     override fun onStart() {
