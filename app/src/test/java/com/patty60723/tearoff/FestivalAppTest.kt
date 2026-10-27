@@ -133,18 +133,19 @@ class FestivalAppTest {
         assertEquals(View.GONE, a.mowan.visibility)
         assertNull("V3 關閉：不判斷節日", a.mowan.today)
         assertNull(a.mowan.festival)
+        // 就算墨丸那一塊在畫面上、視窗有焦點，V3 關閉（墨丸隱藏）也不觸發
         a.lookAtStoryCard()
         assertTrue("V3 關閉：不記錄", log.keys().isEmpty())
         // 日曆頁是舊火柴人
         val page = a.findViewById<TearPageView>(R.id.page)
         assertEquals(View.VISIBLE, page.findViewById<View>(R.id.stickman).visibility)
         assertEquals(View.GONE, page.findViewById<View>(R.id.mowan_still).visibility)
-        // 打開 V3、回到 App：第一次看到才演
+        // 打開 V3、回到 App：故事卡在畫面上、有焦點，就是打開後第一次看到，這時才演、才記錄
         MowanSettings.setStoryCard(context, true)
-        c.pause().resume()
-        assertEquals(spring, a.mowan.today)
+        c.pause()
         assertTrue(log.keys().isEmpty())
-        a.lookAtStoryCard()
+        c.resume()
+        assertEquals(spring, a.mowan.today)
         assertEquals(Mode.MAIN, a.mowan.session.mode)
         assertEquals(listOf("2027-02-06:SPRING"), log.keys())
     }
@@ -254,6 +255,9 @@ class FestivalAppTest {
 
     @Test
     fun midnightInTheForegroundUpdatesOnlyTheStoryCard() {
+        // 天氣剛抓過（不然 onResume 的背景下載抓到新天氣時會重畫日曆頁，跟這裡要測的事無關）
+        context.getSharedPreferences("weather", android.content.Context.MODE_PRIVATE).edit()
+            .putString("city", Cities.selected(context).name).putLong("fetchedAt", System.currentTimeMillis()).commit()
         val c = open(eve, tornToday = true)
         val a = c.get()
         a.lookAtStoryCard()
@@ -261,6 +265,7 @@ class FestivalAppTest {
         val pad = a.findViewById<TearPageView>(R.id.page)
         val page = pad.getChildAt(0)
         val tearable = pad.tearable
+        val details = a.findViewById<android.widget.TextView>(R.id.details).text.toString()
         AppClock.setFakeToday(context, spring)
         context.sendBroadcast(Intent(Intent.ACTION_DATE_CHANGED))
         shadowOf(Looper.getMainLooper()).idle()
@@ -268,6 +273,7 @@ class FestivalAppTest {
         assertEquals(Festival.SPRING, a.mowan.festival)
         assertEquals("看得到：演今天的主演出", Mode.MAIN, a.mowan.session.mode)
         assertSame("日曆頁沒有重建", page, pad.getChildAt(0))
+        assertEquals("還是同一天的頁", details, a.findViewById<android.widget.TextView>(R.id.details).text.toString())
         assertEquals("撕頁狀態不變", tearable, pad.tearable)
         // 回到 App（onResume）時日曆頁照原本的做法重算
         c.pause().resume()

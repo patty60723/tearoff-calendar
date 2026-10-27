@@ -122,6 +122,8 @@ class FestivalAppShotsTest {
             val main = FestivalScene.spec(f).main
             save("$name-page", draw(a.page))
             a.lookAtStoryCard()
+            // 同一天的第二種天氣：已經演過了，用除錯重播
+            if (a.mowan.session.mode != Mode.MAIN) a.mowan.replayFestival()
             assertEquals(Mode.MAIN, a.mowan.session.mode)
             advance(main.keyMs)
             val key = draw(a.card)
