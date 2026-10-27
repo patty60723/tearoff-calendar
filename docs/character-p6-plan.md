@@ -530,3 +530,23 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 模擬器上真實跨午夜與天氣更新的時序（只有 Robolectric 用假日期與廣播驗證）。
 - 實機驗證。
 - 撕頁中跳過天氣更新、不安排立即補畫：**已接受的取捨**，等撕完或回到 App 時才換上新天氣。
+
+### 11.9 P6-4c 小工具節日候選圖（2026-10-27，等待美術審核）
+
+素材：[`acceptance/mowan-p6-4c`](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p6-4c)（README 有每張圖的說明）。用實際的小工具管線（`CalendarWidget.build` → RemoteViews → `MowanBitmap.still`）畫，Robolectric 繪圖。**正式的小工具還沒有接上節日**，審核定案後才接。
+
+| 代號 | 內容 | 狀態 |
+|---|---|---|
+| 0 | 現在的小工具：沒有節日外觀 | 既有 |
+| A | 頭飾＋手上道具＋一個節日背景（春聯／月亮／禮物），天氣環境讓位，雨傘照畫 | 現行程式預設（`SmallEnv.FESTIVAL`），D-16 的基礎 |
+| B | A＋最多一個不衝突的簡化天氣線索 | **D-43 候選**（`SmallEnv.CUE`） |
+| C | 只有頭飾與手上道具，雨傘照畫 | **48dp 極簡候選**（`SmallEnv.MINIMAL`） |
+
+- B 的規則：晴、熱留太陽（有月亮不畫）；陰留一朵雲，中秋不畫；雷雨留左上的烏雲，春節（春聯也在左上）不畫；雨、雪留右邊兩條／兩片；霧留腳邊那條；冷沒有環境。
+- 程式：`ArtConfig.SmallEnv` 加 `CUE`、`MINIMAL`；`Mowan.render` 只在這兩個值時走新的分支，既有 A／WEATHER／BOTH 與完整版畫法不變（golden 不變）。`CalendarWidget.build` 多一個 `art` 參數給候選比較用。
+- 測試：`FestivalRenderTest.smallSizeBackdropCandidates` 加 B、C 的規則；`WidgetFestivalCandidatesTest`（產圖，加一個「正式小工具還是沒有節日」的檢查）。
+- 觀察（給美術審核參考）：
+  - 48dp（COMPACT）在 mdpi 只有 48 px：頭飾（財神帽、聖誕帽、兔耳）都還認得出來；禮物只剩約 3×3 px 的方塊，春聯是一個紅色菱形加細繩。
+  - 小工具的版面裡，春聯掛在角色左邊，在 COMPACT、MEDIUM 很靠近大大的日期數字。
+  - 中秋遇到雨、雷雨、雪時本來就看不到月亮（D-37），四種候選裡 A、B 都會改畫天氣環境，C 只剩雨傘。
+  - 聖誕遇到雪：A 拿掉雪花，B 只留右邊兩片。
