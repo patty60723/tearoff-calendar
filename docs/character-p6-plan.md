@@ -558,3 +558,4 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 中秋遇到雨、雷雨、雪維持 D-37，不額外補裝飾。
 - 正式的小工具還沒接節日（`festivalLook` 只有 App 日曆頁與截圖測試傳 true）；最終圖片驗收通過後才接。
 - 最終候選截圖：`WidgetFestivalFinalShotsTest` → `acceptance/mowan-p6-4c-final`。
+- **最終候選截圖**（`d06c262`，CI Build APK #101）：[`acceptance/mowan-p6-4c-final`](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p6-4c-final)。春聯跟同一高度文字的距離（各版面最小尺寸）：WIDE 17.3 dp、MEDIUM 6.3 dp（調整前約 1 dp）；COMPACT 用極簡沒有春聯；TALL 春聯旁邊沒有文字。測試要求 ≥ 6 dp。等待圖片驗收。
