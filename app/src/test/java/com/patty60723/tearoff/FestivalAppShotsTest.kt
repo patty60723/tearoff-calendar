@@ -52,7 +52,16 @@ class FestivalAppShotsTest {
     private fun save(name: String, bitmap: Bitmap) =
         File(out, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
 
-    private fun draw(v: View) = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(paper); v.draw(this) } }
+    private fun draw(v: View): Bitmap {
+        // 剛換過內容、還沒排版的話，照現在的大小排一次
+        if (v.isLayoutRequested && v.width > 0) {
+            v.measure(View.MeasureSpec.makeMeasureSpec(v.width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(v.height, View.MeasureSpec.EXACTLY))
+            v.layout(v.left, v.top, v.right, v.bottom)
+        }
+        return shoot(v)
+    }
+
+    private fun shoot(v: View) = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(paper); v.draw(this) } }
 
     private fun open(today: LocalDate, mood: Mood, tornToday: Boolean = true, v3: Boolean = true): MainActivity {
         MowanSettings.setStoryCard(context, v3)
