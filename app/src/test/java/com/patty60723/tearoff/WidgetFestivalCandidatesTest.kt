@@ -48,11 +48,13 @@ class WidgetFestivalCandidatesTest {
 
     /** 候選：null 是「現在的小工具」（沒有節日外觀，既有規則） */
     private val candidates = listOf(
-        "0 現在（沒有節日）" to null,
-        "A 節日背景優先" to SmallEnv.FESTIVAL,
-        "B 節日＋一個天氣線索" to SmallEnv.CUE,
+        "0 現在" to null,
+        "A 節日優先" to SmallEnv.FESTIVAL,
+        "B 節日+線索" to SmallEnv.CUE,
         "C 極簡" to SmallEnv.MINIMAL,
     )
+
+    private val legend = "0＝現在的小工具（沒有節日，既有）　A＝節日背景優先（現行程式預設，天氣環境讓位）　B＝A＋一個不衝突的天氣線索（D-43 候選）　C＝只有頭飾與手上道具（48dp 極簡候選）"
 
     private val festivals = listOf(Festival.SPRING to "春節", Festival.MOON to "中秋", Festival.XMAS to "聖誕")
 
@@ -99,17 +101,18 @@ class WidgetFestivalCandidatesTest {
     private val words = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF2B2B2B.toInt(); textSize = 30f }
     private val small = Paint(words).apply { textSize = 24f; color = 0xFF6B6B6B.toInt() }
 
-    /** 表格：rows × cols 張圖，加上欄、列標題 */
+    /** 表格：rows × cols 張圖，加上欄、列標題（欄標題可以用 \n 分兩行） */
     private fun grid(name: String, title: String, colTitles: List<String>, rowTitles: List<String>, cells: List<List<Bitmap>>) {
-        val cw = cells.flatten().maxOf { it.width } + 16
+        val cw = maxOf(cells.flatten().maxOf { it.width } + 16, 150)
         val ch = cells.flatten().maxOf { it.height } + 16
         val left = 140
-        val top = 110
-        val sheet = Bitmap.createBitmap(left + cw * colTitles.size, top + ch * rowTitles.size, Bitmap.Config.ARGB_8888)
+        val top = 160
+        val sheet = Bitmap.createBitmap(maxOf(left + cw * colTitles.size, 1900), top + ch * rowTitles.size, Bitmap.Config.ARGB_8888)
         Canvas(sheet).apply {
             drawColor(paper)
             drawText(title, 12f, 40f, words)
-            colTitles.forEachIndexed { i, t -> drawText(t, (left + i * cw + 4).toFloat(), 96f, small) }
+            drawText(legend, 12f, 80f, small)
+            colTitles.forEachIndexed { i, t -> t.split('\n').forEachIndexed { k, line -> drawText(line, (left + i * cw + 8).toFloat(), 118f + k * 28, small) } }
             rowTitles.forEachIndexed { r, t ->
                 drawText(t, 12f, (top + r * ch + ch / 2).toFloat(), words)
                 cells[r].forEachIndexed { c, b -> drawBitmap(b, (left + c * cw + 8).toFloat(), (top + r * ch + 8).toFloat(), null) }
@@ -122,7 +125,7 @@ class WidgetFestivalCandidatesTest {
     @Test
     fun weathersPerFestival() {
         for ((f, fname) in festivals) {
-            val cols = listOf(PageLayout.TALL, PageLayout.COMPACT).flatMap { l -> candidates.map { (c, _) -> "${if (l == PageLayout.TALL) "64dp" else "48dp"} $c" } }
+            val cols = listOf(PageLayout.TALL, PageLayout.COMPACT).flatMap { l -> candidates.map { (c, _) -> "${if (l == PageLayout.TALL) "TALL 64dp" else "COMPACT 48dp"}\n$c" } }
             val cells = weathers.map { (mood, _) ->
                 listOf(PageLayout.TALL, PageLayout.COMPACT).flatMap { l -> candidates.map { (_, env) -> onPaper(still(widget(f, mood, l, env))) } }
             }
@@ -139,7 +142,7 @@ class WidgetFestivalCandidatesTest {
             val cells = candidates.map { (_, env) ->
                 PageLayout.entries.map { l -> draw(widget(f, mood, l, env)).let { Bitmap.createScaledBitmap(it, it.width / 2, it.height / 2, true) } }
             }
-            grid("2-$f-layouts", "$fname・$wname：4 種版面（整個小工具，縮成 50%）", PageLayout.entries.map { "${it.name}（角色 ${(it.stickmanDp * 4 / 3).toInt()}dp）" }, candidates.map { it.first.take(6) }, cells)
+            grid("2-$f-layouts", "$fname・$wname：4 種版面（整個小工具，縮成 50%）", PageLayout.entries.map { "${it.name}\n角色 ${(it.stickmanDp * 4 / 3).toInt()}dp" }, candidates.map { it.first.substringBefore(' ') }, cells)
         }
     }
 
@@ -156,7 +159,7 @@ class WidgetFestivalCandidatesTest {
                     listOf(onPaper(b), onPaper(b, zoom))
                 }
             }
-            val cols = candidates.flatMap { (c, _) -> listOf(c, "×$zoom") }
+            val cols = candidates.flatMap { (c, _) -> listOf("$c\n實際", "$c\n×$zoom") }
             grid("3-48dp-$q", "48dp（COMPACT）$q：實際像素與 $zoom 倍放大", cols, rows.map { it.third }, cells)
         }
         RuntimeEnvironment.setQualifiers("xxhdpi")
