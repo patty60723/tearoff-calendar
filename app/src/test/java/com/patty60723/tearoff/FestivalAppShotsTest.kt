@@ -147,6 +147,8 @@ class FestivalAppShotsTest {
         val top = open(spring, Mood.SUNNY, tornToday = false)
         val yesterday = draw(top.page)
         top.findViewById<View>(R.id.next).performClick()
+        // 換頁後要排版過才畫得出來
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
         row("rule-1-page-only-today", listOf("最上面：昨天那頁" to yesterday, "往後翻：今天那頁" to draw(top.page)))
         // 節日頭飾關閉（除錯選單）：照紙帽的裝備狀態
         MowanSettings.setFestivalHeadwear(context, false)
