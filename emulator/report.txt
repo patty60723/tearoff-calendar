@@ -1,0 +1,93 @@
+裝置：sdk_gphone64_x86_64，Android 14（API 34），螢幕 1080x2400，密度 420
+
+== 1. 8 種天氣（第 14 頁）==
+  寫入的設定：<?xml version='1.0' encoding='utf-8' standalone='yes' ?> <map>   <boolean name="storyCard" value="true" />   <boolean name="paperHatOn" value="true" />   <boolean name="bundleOn" value="true" /> </map> 
+  故事卡範圍：1080x529+0+597
+PASS  8 種天氣都顯示 — 逐一切換、重開 App，沒有閃退
+
+== 2. 動畫錄影 ==
+
+== 3. 成長頁數（晴天）==
+PASS  第 1 頁包袱入口 — 不應該出現
+PASS  第 3 頁包袱入口 — 不應該出現
+PASS  第 4 頁包袱入口 — 不應該出現
+PASS  第 5 頁包袱入口 — 不應該出現
+PASS  第 8 頁包袱入口 — 不應該出現
+PASS  第 13 頁包袱入口 — 不應該出現
+PASS  第 14 頁包袱入口 — 應該出現（395 960 572 1086）
+
+== 4. 包袱入口：點擊、狀態保存、畫面更新 ==
+  入口位置 395 960 572 1086（高 126 px = 48 dp）
+  第 1 下：true → false
+  第 2 下：false → true
+  第 3 下：true → false
+PASS  包袱入口每一下都切換 — 3 下裡切換了 3 下
+PASS  包袱點擊不閃退 — 點三下
+  點完的文字看截圖 bundle-2-off（dumpsys 沒有文字內容）
+PASS  包袱狀態存起來 —     <boolean name="bundleOn" value="false" />
+PASS  重開 App 還是卸下 —     <boolean name="bundleOn" value="false" />；畫面看截圖 bundle-3-restart
+
+== 5. 重畫次數（gfxinfo，10 秒；模擬器是軟體繪圖，張數與 jank 只能比較，不代表實機）==
+  晴天動畫：200 169 (84.50%)（總張數 jank）
+  雷雨動畫：197 194 (98.48%)
+  沒有天氣（一般站姿，只有筆觸 6 FPS）：61 32 (52.46%)
+  PID %CPU  RES[NAME]
+10450  6.4 141M com.patty60723.tearoff
+
+== 6. Reduced Motion（系統「移除動畫」）==
+PASS  關閉動畫時故事卡不動 — 相隔 3 秒的兩張故事卡差 0 個像素
+PASS  關閉動畫時整個 App 幾乎不重畫 — V3 故事卡：10 秒內畫了 0 0 (0.00%) 張
+  INFO  關閉動畫、舊火柴人故事卡（對照組）：10 秒內畫了 296 214 (72.30%) 張
+PASS  關閉動畫時 V3 不比舊火柴人多畫 — V3 0 張、舊火柴人 296 張
+PASS  打開動畫後繼續動（從背景回來） — 5 秒內畫了 81 80 (98.77%) 張
+PASS  留在前景、關掉又打開動畫後繼續動 — 之後 5 秒畫了 100 88 (88.00%) 張（Android 13 以上）
+
+== 7. 背景／前景（雷雨）==
+PASS  背景 45 秒後回來不閃退 — 錄了回來後的 4 秒（錯過的雷不補播，除非剛好輪到下一次）
+
+== 8. 螢幕密度與字體大小 ==
+PASS  密度 320、字體 1.0 的包袱入口 — 入口 300 1347 436 1443（高 96 px），故事文字下緣 1343
+PASS  密度 420、字體 1.0 的包袱入口 — 入口 395 960 572 1086（高 126 px），故事文字下緣 955
+PASS  密度 420、字體 1.3 的包袱入口 — 入口 395 630 629 756（高 126 px），故事文字下緣 625
+PASS  密度 420、字體 2.0 的包袱入口 — 入口 395 -92 738 34（高 126 px），故事文字下緣 -97
+PASS  密度 560、字體 1.0 的包袱入口 — 入口 525 219 764 387（高 168 px），故事文字下緣 212
+
+== 9. 舊火柴人故事卡 ==
+PASS  舊火柴人沒有包袱入口 — 
+
+== 10. 小工具（P5-4）==
+PASS  小工具 COMPACT（V3） — layout=COMPACT ok=true size=301x301 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+PASS  小工具 WIDE（V3） — layout=WIDE ok=true size=761x328 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+PASS  小工具 MEDIUM（V3） — layout=MEDIUM ok=true size=393x511 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+PASS  小工具 TALL（V3） — layout=TALL ok=true size=459x761 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+PASS  小工具 BETWEEN（V3） — layout=BETWEEN ok=true size=525x525 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+  INFO  V3 小工具剛綁定後 10 秒：畫了 11 11 (100.00%) 張（還在收更新，只記錄）
+PASS  V3 小工具真的靜止（宿主畫面不重畫） — 穩定後 10 秒內畫了 0 0 (0.00%) 張
+PASS  小工具（舊火柴人）不受影響 — 5 種大小裡 0 種不對；10 秒內畫了 170 134 (78.82%) 張（輪播）
+PASS  小工具（V3）密度 320 — 5 種大小裡 0 種不對
+PASS  小工具（V3）密度 560 — 5 種大小裡 0 種不對
+
+== 11. 桌面 launcher 上的小工具（P5-4）==
+  讀不到 launcher 對話框的畫面結構，改按右下角的加入按鈕位置 831 2256
+  已放上桌面：pkg:com.google.android.apps.nexuslauncher
+PASS  桌面小工具：卸下包袱後更新 — 跟上一張差 303 個像素
+PASS  桌面小工具：脫下紙帽後更新 — 跟上一張差 214 個像素
+PASS  桌面小工具：換成第 5 頁後更新 — 跟上一張差 5730 個像素
+PASS  桌面小工具：天氣換成雪後更新 — 跟上一張差 3578 個像素
+PASS  桌面小工具：關掉 V3 後換回舊火柴人 — 跟上一張差 2427 個像素
+PASS  桌面小工具：打開 V3 後換回墨丸 — 跟上一張差 5042 個像素
+PASS  在 App 卸下包袱後，桌面小工具跟著換 — 跟上一張差 303 個像素
+
+== 12. 節日（P6-4b 審核用截圖；不計入必要檢查，節日驗收在 P6-5）==
+  spring（2027-02-06，SUNNY，今天那頁已撕）：演過的紀錄 2027-02-06:SPRING
+  spring-again（2027-02-06，SUNNY，今天那頁已撕）：演過的紀錄 2027-02-06:SPRING
+  spring-rain（2027-02-07，RAIN，今天那頁已撕）：演過的紀錄 2027-02-06:SPRING|2027-02-07:SPRING
+  spring-yesterday-top（2027-02-08，SUNNY，今天那頁沒撕）：演過的紀錄 2027-02-06:SPRING|2027-02-07:SPRING|2027-02-08:SPRING
+  xmas（2026-12-25，SNOW，今天那頁已撕）：演過的紀錄 2027-02-06:SPRING|2027-02-07:SPRING|2027-02-08:SPRING|2026-12-25:XMAS
+  moon（2027-09-15，SUNNY，今天那頁已撕）：演過的紀錄 2027-02-06:SPRING|2027-02-07:SPRING|2027-02-08:SPRING|2026-12-25:XMAS|2027-09-15:MOON
+  moon-rain（2027-09-15，RAIN，今天那頁已撕）：演過的紀錄 2027-02-06:SPRING|2027-02-07:SPRING|2027-02-08:SPRING|2026-12-25:XMAS|2027-09-15:MOON
+  spring-again 是同一天重開 App（不應該重播）；moon-rain 是同一天換天氣重開（不應該重播）
+
+PASS  全程沒有閃退 — logcat 沒有 FATAL EXCEPTION
+
+結果：PASS 41、FAIL 0、WARN 0（WARN 是素材問題，不影響結果）
