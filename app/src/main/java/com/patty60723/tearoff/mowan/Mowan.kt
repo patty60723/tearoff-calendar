@@ -473,8 +473,10 @@ object Mowan {
         }
         if (festEnv(FestivalScene.Item.COUPLET)) {
             owner = "couplet"
-            hangFrom(Props.COUPLET_C.x, 14.5, "cplString")
-            ringPath(Layer.BACKDROP, Props.COUPLET, Props.RED, "couplet", Props.OW, 0.35, 0.85f * envOp, floor = accent)
+            // 小尺寸（小工具）往角色靠，離日期數字遠一點
+            val dx = if (festSmall) Props.SMALL_COUPLET_DX else 0.0
+            hangFrom(Props.COUPLET_C.x + dx, 14.5, "cplString")
+            ringPath(Layer.BACKDROP, if (dx == 0.0) Props.COUPLET else Props.COUPLET.map { Pt(it.x + dx, it.y) }, Props.RED, "couplet", Props.OW, 0.35, 0.85f * envOp, floor = accent)
             // 「春」字：小尺寸時拿掉（原型 48 px 也不寫字）
             if (!simple) Props.CHUN.forEachIndexed { i, (kind, stroke) ->
                 val ph = Rng.phases("chun$i", v)

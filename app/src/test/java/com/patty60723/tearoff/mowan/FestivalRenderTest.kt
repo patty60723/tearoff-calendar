@@ -187,6 +187,27 @@ class FestivalRenderTest {
         }
     }
 
+    /** P6-4c：小尺寸的春聯往角色靠 [Props.SMALL_COUPLET_DX]（離小工具上的日期數字遠一點），不碰到頭；完整版位置不變 */
+    @Test
+    fun smallCoupletMovesTowardsTheCharacter() {
+        val parts = FestivalFixtures.parts(14)
+        fun box(detail: Detail, part: String) =
+            bounds(Mowan.frame(parts, 0, true, Weather.SUNNY, 0.0, detail = detail, festival = Festival.SPRING, art = ArtConfig(smallEnv = ArtConfig.SmallEnv.CUE)).ops.filter { it.part == part })
+        val full = box(Detail.FULL, "couplet")
+        val small = box(Detail.simplified(144.0), "couplet")
+        // 簡化版的輪廓加粗到下限，外框差一點點
+        assertEquals(Props.SMALL_COUPLET_DX, small[0] - full[0], 0.3)
+        assertEquals(Props.SMALL_COUPLET_DX, small[2] - full[2], 0.3)
+        assertEquals("高度不變", full[1], small[1], 0.3)
+        // 菱形右角（y = 25）跟頭在同一高度的左緣（圓心約 (60, 47)、半徑約 24）至少 10 單位
+        val head = box(Detail.simplified(144.0), "head")
+        val r = (head[2] - head[0]) / 2
+        val cx = (head[0] + head[2]) / 2
+        val cy = (head[1] + head[3]) / 2
+        val headLeftAt25 = cx - kotlin.math.sqrt(r * r - (25 - cy) * (25 - cy))
+        assertTrue("春聯右角 ${small[2]}、頭的左緣 $headLeftAt25", headLeftAt25 - small[2] >= 10)
+    }
+
     /** 沒有節日時畫法完全不變（既有黃金數值另外比對；這裡確認 festival = null 走原本的路） */
     @Test
     fun noFestivalIsUnchanged() {

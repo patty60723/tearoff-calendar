@@ -12,6 +12,7 @@ import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import com.patty60723.tearoff.mowan.ArtConfig
+import com.patty60723.tearoff.mowan.ArtConfig.SmallEnv
 import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanBitmap
@@ -95,7 +96,7 @@ class CalendarWidget : AppWidgetProvider() {
         /**
          * @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊
          * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-41）。App 日曆頁（P6-4b）才傳 true；小工具在 P6-4c
-         * @param art 美術設定；null 是 [MowanSettings.art]（P6-4c 候選圖用來比較 D-16／D-43 的小尺寸取捨）
+         * @param art 美術設定；null 是 [MowanSettings.art] 加上這個版面的小尺寸取捨（[smallEnvFor]）。P6-4c 候選圖用來比較
          */
         fun build(
             context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp,
@@ -126,10 +127,17 @@ class CalendarWidget : AppWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
                 if (stickmanDp > 0) {
                     // 故事卡用 V3 時，小工具和 App 日曆頁也用 V3（D-23、D-24）
-                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date, festivalLook, art ?: MowanSettings.art(context)) else setStickman(context, this, stickmanDp)
+                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date, festivalLook, art ?: MowanSettings.art(context).copy(smallEnv = smallEnvFor(layout))) else setStickman(context, this, stickmanDp)
                 }
             }
         }
+
+        /**
+         * 小工具上節日背景與天氣環境怎麼取捨（D-16、D-43；2026-10-27 選定方向，待最終圖片驗收）：
+         * COMPACT（角色 48dp）只留頭飾與手上道具（C）；其他版面節日背景＋最多一個不衝突的天氣線索（B）。
+         * 只影響簡化版（角色 < 72dp）的節日畫法；沒有節日、或完整版時不影響。
+         */
+        internal fun smallEnvFor(layout: PageLayout): SmallEnv = if (layout == PageLayout.COMPACT) SmallEnv.MINIMAL else SmallEnv.CUE
 
         /** 「日出 05:53\n日落 17:22」，用設定的城市算。 */
         fun sunText(context: Context, page: DayPage): String {

@@ -1,7 +1,7 @@
 # 墨丸 V3 — P6 節日系統計畫
 
 > 日期：2026-10-26　分支：`feature/mowan-weather-poses`
-> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c：小工具候選圖等待美術審核（11.9）。**
+> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c：方向已選定（11.9），最終候選截圖等待圖片驗收。**
 > 相關文件：[整合規格](character-integration-spec.md)・[實作計畫](character-implementation-plan.md#p6--節日系統)・[未定案事項](character-open-decisions.md)
 > 原型只是參考（Confirmed）。本文件把原型跟目前 Kotlin 的差異列出來，**不假設原型已經定稿**。
 
@@ -550,3 +550,11 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
   - 小工具的版面裡，春聯掛在角色左邊，在 COMPACT、MEDIUM 很靠近大大的日期數字。
   - 中秋遇到雨、雷雨、雪時本來就看不到月亮（D-37），四種候選裡 A、B 都會改畫天氣環境，C 只剩雨傘。
   - 聖誕遇到雪：A 拿掉雪花，B 只留右邊兩片。
+
+**選定方向（2026-10-27，待最終圖片驗收）**
+- 64dp 以上（TALL、MEDIUM、WIDE）用 B；48dp（COMPACT）用 C。程式：`CalendarWidget.smallEnvFor(layout)`（`build` 沒指定美術設定時用它；只影響簡化版的節日畫法）。
+- D-43 的天氣線索以不干擾節日元素為前提，不強制每種天氣都出現。
+- 春聯與日期保持明顯間距：只調整春聯，小尺寸時往角色移 `Props.SMALL_COUPLET_DX`＝10 單位（菱形右角離頭的左緣仍有 10 單位以上），日期版面不動。
+- 中秋遇到雨、雷雨、雪維持 D-37，不額外補裝飾。
+- 正式的小工具還沒接節日（`festivalLook` 只有 App 日曆頁與截圖測試傳 true）；最終圖片驗收通過後才接。
+- 最終候選截圖：`WidgetFestivalFinalShotsTest` → `acceptance/mowan-p6-4c-final`。
