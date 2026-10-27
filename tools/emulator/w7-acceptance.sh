@@ -532,6 +532,52 @@ else
 fi
 
 log ""
+log "== 12. 節日（P6-4b 審核用截圖；不計入必要檢查，節日驗收在 P6-5）=="
+# fest <名稱> <假日期> <天氣> <今天那頁撕了沒 true/false>：用除錯的假日期打開 App，截日曆頁、捲到故事卡錄主演出
+fest() {
+  local day=$2 torn=$4 last
+  if [ "$torn" = true ]; then last=$day; else last=$(date -d "$day -1 day" +%F); fi
+  adb shell am force-stop $PKG
+  # mowan.xml 整個重寫，「演過了」的紀錄要留著（不然每次都像第一次）
+  local played
+  played=$(adb shell run-as $PKG cat shared_prefs/mowan.xml 2>/dev/null | tr -d '\r' | grep -o '<string name="festivalMainPlayed">[^<]*</string>')
+  write_prefs debug "  <string name=\"fakeToday\">$day</string>"
+  write_prefs story "  <int name=\"page\" value=\"14\" />
+  <string name=\"lastTornDate\">$last</string>
+  <string name=\"lastText\">$(story_text 14)</string>"
+  write_prefs mowan "  <boolean name=\"storyCard\" value=\"true\" />
+  <boolean name=\"paperHatOn\" value=\"true\" />
+  <boolean name=\"bundleOn\" value=\"true\" />
+  $played"
+  write_prefs weather "  <string name=\"fakeMood\">$3</string>"
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  adb exec-out screencap -p > "$OUT/shots/fest-$1-page.png"
+  # 主演出在故事卡捲進畫面一半以上時開始：一邊錄影一邊捲
+  adb shell screenrecord --time-limit 9 /sdcard/rec.mp4 &
+  local rec=$!
+  sleep 1
+  scroll_down
+  adb exec-out screencap -p > "$OUT/shots/fest-$1-card-main.png"
+  wait $rec
+  adb exec-out screencap -p > "$OUT/shots/fest-$1-card-after.png"
+  adb pull /sdcard/rec.mp4 "$OUT/video/fest-$1-full.mp4" >/dev/null 2>&1
+  dump_ui "fest-$1" && card_region "fest-$1" && to_gif "fest-$1" 12 480
+  log "  $1（$day，$3，今天那頁$([ "$torn" = true ] && echo 已撕 || echo 沒撕)）：演過的紀錄 $(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'festivalMainPlayed">[^<]*' | sed 's/.*">//')"
+}
+fest spring 2027-02-06 SUNNY true
+fest spring-again 2027-02-06 SUNNY true
+fest spring-rain 2027-02-07 RAIN true
+fest spring-yesterday-top 2027-02-08 SUNNY false
+fest xmas 2026-12-25 SNOW true
+fest moon 2027-09-15 SUNNY true
+fest moon-rain 2027-09-15 RAIN true
+log "  spring-again 是同一天重開 App（不應該重播）；moon-rain 是同一天換天氣重開（不應該重播）"
+# 回到真實日期
+adb shell am force-stop $PKG
+write_prefs debug ""
+
+log ""
 check "全程沒有閃退" "$(crashed && echo 1 || echo 0)" "logcat 沒有 FATAL EXCEPTION"
 adb logcat -d | grep -A20 "FATAL EXCEPTION" > "$OUT/crash.txt" || true
 # 手動觸發時可以故意加一項失敗，確認 CI 真的會變紅

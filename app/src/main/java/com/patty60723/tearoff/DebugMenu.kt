@@ -8,7 +8,10 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import com.patty60723.tearoff.mowan.Capabilities
+import com.patty60723.tearoff.mowan.Festival
+import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
@@ -44,6 +47,8 @@ class DebugMenu(
             "故事卡用墨丸 V3（現在：${if (MowanSettings.storyCard(activity)) "開" else "關"}）",
             "墨丸的紙帽（現在：${hatState()}）",
             "墨丸的包袱（現在：${bundleState()}）",
+            "重播節日主演出（今天：${FestivalTheme.of(today)?.let(::festivalName) ?: "不是節日"}）",
+            "節日頭飾（現在：${if (MowanSettings.festivalHeadwear(activity)) "戴" else "不戴，照紙帽"}）",
         )
         AlertDialog.Builder(activity)
             .setTitle("除錯")
@@ -74,9 +79,32 @@ class DebugMenu(
                         MowanSettings.setBundleOn(activity, !MowanSettings.bundleOn(activity))
                         refresh()
                     }
+                    12 -> replayFestival()
+                    13 -> {
+                        MowanSettings.setFestivalHeadwear(activity, !MowanSettings.festivalHeadwear(activity))
+                        refresh()
+                    }
                 }
             }
             .show()
+    }
+
+    /** D-33：重播只在除錯選單；不改「今天演過了」的紀錄 */
+    private fun replayFestival() {
+        val view = activity.findViewById<MowanView>(R.id.story_mowan)
+        val message = when {
+            !MowanSettings.storyCard(activity) || view == null -> "故事卡沒有用墨丸 V3"
+            view.festival == null -> "今天不是節日"
+            view.replayFestival() -> null
+            else -> "現在不能重播（故事卡今天還沒出現過）"
+        }
+        message?.let { Toast.makeText(activity, it, Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun festivalName(f: Festival) = when (f) {
+        Festival.SPRING -> "春節"
+        Festival.XMAS -> "聖誕"
+        Festival.MOON -> "中秋"
     }
 
     private fun setToday(date: LocalDate?) {

@@ -71,6 +71,10 @@ class MowanView @JvmOverloads constructor(
             checkVisible()
         }
 
+    /** 美術設定（節日頭飾開關，見 [MowanSettings.art]）；只影響節日的畫法 */
+    var art: ArtConfig = ArtConfig.DEFAULT
+        set(value) { if (field != value) { field = value; redraw() } }
+
     /** 今天的節日（由 [today] 算出來） */
     var festival: Festival? = null
         private set
@@ -149,7 +153,7 @@ class MowanView @JvmOverloads constructor(
         invalidate()
     }
 
-    private fun scene(f: Festival) = FestivalScene.resolve(parts, f, weather, hatOn, bundleOn)
+    private fun scene(f: Festival) = FestivalScene.resolve(parts, f, weather, hatOn, bundleOn, art)
 
     private fun onScreenFraction(): Float {
         if (!isShown || width == 0 || height == 0) return 0f
@@ -238,11 +242,11 @@ class MowanView @JvmOverloads constructor(
             performing = perf != null && !s.held
             if (perf != null && s.held) heldUntil = s.startMs + action.durMs
             if (perf == null && weather == Mowan.Weather.NONE) {
-                boil[variant] ?: MowanPainter(Mowan.frame(parts, variant, hatOn, bundleOn = bundleOn, festival = f)).also { boil[variant] = it }
+                boil[variant] ?: MowanPainter(Mowan.frame(parts, variant, hatOn, bundleOn = bundleOn, festival = f, art = art)).also { boil[variant] = it }
             } else {
                 MowanPainter(Mowan.frame(
                     parts, variant, hatOn, weather, sample.clockMs, sample.rainStep,
-                    still = sample.still, bundleOn = bundleOn, festival = f, performance = perf,
+                    still = sample.still, bundleOn = bundleOn, festival = f, art = art, performance = perf,
                 ))
             }
         }

@@ -59,6 +59,19 @@ object MowanSettings {
     private const val KEY_FESTIVAL_PLAYED = "festivalMainPlayed"
     const val PLAYED_KEEP = 10
 
+    private const val KEY_FESTIVAL_HEADWEAR = "festivalHeadwear"
+
+    /** 節日頭飾開關（只在除錯選單，D-05）：關掉時節日也照紙帽的裝備狀態畫。預設戴節日頭飾 */
+    fun festivalHeadwear(context: Context): Boolean = prefs(context).getBoolean(KEY_FESTIVAL_HEADWEAR, true)
+
+    fun setFestivalHeadwear(context: Context, on: Boolean) {
+        prefs(context).edit().putBoolean(KEY_FESTIVAL_HEADWEAR, on).apply()
+    }
+
+    /** 故事卡、日曆頁、小工具共用的美術設定（除了節日頭飾開關，其他都是審核確認的預設值） */
+    fun art(context: Context): ArtConfig =
+        if (festivalHeadwear(context)) ArtConfig.DEFAULT else ArtConfig.DEFAULT.copy(festivalHeadwear = false)
+
     /** 故事從頭開始時，裝備狀態也回到預設 */
     fun resetEquipment(context: Context) {
         prefs(context).edit().remove(KEY_HAT_ON).remove(KEY_BUNDLE_ON).apply()

@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
+import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanBitmap
 import com.patty60723.tearoff.mowan.MowanSettings
@@ -90,8 +91,14 @@ class CalendarWidget : AppWidgetProvider() {
             }
         }
 
-        /** @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊 */
-        fun build(context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp): RemoteViews {
+        /**
+         * @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊
+         * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-41）。App 日曆頁（P6-4b）才傳 true；小工具在 P6-4c
+         */
+        fun build(
+            context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp,
+            festivalLook: Boolean = false,
+        ): RemoteViews {
             val palette = Palettes.forMonth(page.date.monthValue)
             return RemoteViews(context.packageName, layout.res).apply {
                 setTextViewText(R.id.month, MONTHS[page.date.monthValue - 1])
@@ -117,7 +124,7 @@ class CalendarWidget : AppWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
                 if (stickmanDp > 0) {
                     // 故事卡用 V3 時，小工具和 App 日曆頁也用 V3（D-23、D-24）
-                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date) else setStickman(context, this, stickmanDp)
+                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date, festivalLook) else setStickman(context, this, stickmanDp)
                 }
             }
         }
@@ -159,12 +166,13 @@ class CalendarWidget : AppWidgetProvider() {
          * 畫在版面裡的 `mowan_still`（一般的 ImageView，不會動）；舊火柴人的 ViewFlipper 隱藏、清掉圖。
          * ViewFlipper 的自動輪播只有 `setFlipInterval` 能透過 RemoteViews 改（`setAutoStart`、`stopFlipping` 不行），
          * 隱藏的 ViewFlipper 仍會照間隔換頁，所以間隔拉到一天、裡面沒有圖。
-         * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）。
+         * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）；節日外觀也只有今天那頁（D-41），而且要 [festivalLook]。
          */
-        private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate) {
+        private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate, festivalLook: Boolean) {
             val book = StoryBook(context)
             val density = context.resources.displayMetrics.density.coerceAtMost(3f)
-            val weather = if (date == AppClock.today(context)) {
+            val isToday = date == AppClock.today(context)
+            val weather = if (isToday) {
                 WeatherService.current(context)?.let { MowanSettings.weatherOf(it.mood) } ?: Mowan.Weather.NONE
             } else {
                 Mowan.Weather.NONE
@@ -172,6 +180,7 @@ class CalendarWidget : AppWidgetProvider() {
             val bitmap = MowanBitmap.still(
                 Mowan.partsOf(book.parts), MowanSettings.hatOn(context), MowanSettings.bundleOn(context), weather,
                 widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(), density = density,
+                festival = if (festivalLook && isToday) FestivalTheme.of(date) else null, art = MowanSettings.art(context),
             )
             views.setViewVisibility(R.id.stickman, View.GONE)
             for (id in FRAME_IDS) views.setImageViewResource(id, 0)

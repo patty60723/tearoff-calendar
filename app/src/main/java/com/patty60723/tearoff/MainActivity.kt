@@ -4,7 +4,11 @@ import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
+import android.content.BroadcastReceiver
 import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
@@ -167,7 +171,10 @@ class MainActivity : Activity() {
             parts = Mowan.partsOf(book.parts)
             hatOn = MowanSettings.hatOn(this@MainActivity)
             bundleOn = MowanSettings.bundleOn(this@MainActivity)
+            art = MowanSettings.art(this@MainActivity)
             this.weather = weather
+            // 節日（P6-4）：外觀都設好了才給今天，主演出開始時鎖定的層級才對。V3 關閉時不判斷節日、不記錄（D-42）
+            today = if (v3) AppClock.today(this@MainActivity) else null
         }
         showBundleToggle(v3)
     }
@@ -288,7 +295,8 @@ class MainActivity : Activity() {
         val metrics = resources.displayMetrics
         val pageWidthPx = metrics.widthPixels - (56 * metrics.density).toInt()
         val stickmanPx = (pageWidthPx * 0.17f).toInt()
-        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density)
+        // 今天那頁的 V3 墨丸畫節日外觀（D-41）
+        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density, festivalLook = true)
         val page = views.apply(this, frame).apply { isClickable = false }
         // 舊火柴人（ViewFlipper）和 V3（mowan_still）用同樣的大小和位置
         for (id in intArrayOf(R.id.stickman, R.id.mowan_still)) page.findViewById<View>(id)?.layoutParams?.let {
@@ -342,6 +350,36 @@ class MainActivity : Activity() {
     }
 
     private val scaleListener = ValueAnimator.DurationScaleChangeListener { runOnUiThread { if (::pad.isInitialized) updatePageMotion() } }
+
+    /**
+     * App 停在前景時跨午夜（或改了時間、時區）：只更新故事卡上墨丸的「今天」與節日（D-44），
+     * 不換使用者正在看的日曆頁、不中斷撕頁；日曆頁等回到 App（onResume）時照原本的做法重算。
+     */
+    private val dayChanged = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = onDayChanged()
+    }
+
+    internal fun onDayChanged() {
+        if (!::book.isInitialized) return
+        findViewById<MowanView>(R.id.story_mowan).today = if (MowanSettings.storyCard(this)) AppClock.today(this) else null
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_DATE_CHANGED)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+        }
+        // 系統廣播；不接收其他 App 送來的
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) registerReceiver(dayChanged, filter, RECEIVER_NOT_EXPORTED)
+        else registerReceiver(dayChanged, filter)
+    }
+
+    override fun onStop() {
+        unregisterReceiver(dayChanged)
+        super.onStop()
+    }
 
     override fun onDestroy() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.unregisterDurationScaleChangeListener(scaleListener)
