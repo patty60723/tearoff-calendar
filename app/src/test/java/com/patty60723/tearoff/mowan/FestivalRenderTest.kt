@@ -168,6 +168,20 @@ class FestivalRenderTest {
                     }
                     ArtConfig.SmallEnv.WEATHER -> assertTrue("$c", fest.isEmpty())
                     ArtConfig.SmallEnv.BOTH -> assertEquals("$c", if (keepShown) setOf(partOf[keep]) else emptySet<String>(), fest)
+                    ArtConfig.SmallEnv.CUE -> {
+                        assertEquals("$c", if (keepShown) setOf(partOf[keep]) else emptySet<String>(), fest)
+                        val cues = got intersect weatherParts
+                        assertTrue("$c 最多一個天氣線索：$cues", cues.size <= 1)
+                        if (keepShown && keep == Item.MOON) assertTrue("$c 月亮與雲、太陽不同時：$cues", "clouds" !in cues && "sun" !in cues)
+                        if (keepShown) for (part in listOf("rain", "snow")) {
+                            val ops = frame(c, Detail.simplified(144.0), ArtConfig(smallEnv = env)).ops.filter { it.part == part }
+                            if (ops.isNotEmpty()) assertTrue("$c $part 只留右邊", ops.size <= 2 && bounds(ops)[0] > 60)
+                        }
+                    }
+                    ArtConfig.SmallEnv.MINIMAL -> {
+                        assertTrue("$c 極簡：沒有節日背景", fest.isEmpty())
+                        assertTrue("$c 極簡：沒有天氣環境", (got intersect weatherParts).isEmpty())
+                    }
                 }
             }
         }

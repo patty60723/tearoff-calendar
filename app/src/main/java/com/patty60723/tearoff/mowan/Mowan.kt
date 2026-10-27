@@ -138,6 +138,10 @@ object Mowan {
     private const val STORM_CLOUD = 0
     private val MAIN_DROPS = setOf(1, 2, 5, 6)
     private val MAIN_FLAKES = setOf(0, 2, 3, 5)
+
+    /** D-43 候選（ArtConfig.SmallEnv.CUE）：節日背景在左邊時，雨絲、雪花只留右邊這兩條／兩片 */
+    private val RIGHT_DROPS = setOf(5, 6)
+    private val RIGHT_FLAKES = setOf(3, 5)
     private val SNOW_MOUND = Geometry.resample(pts(38.0, 129.5, 50.0, 126.4, 62.0, 125.8, 76.0, 126.4, 86.0, 129.5), 48)
 
     /** 霧帶：兩頭尖的長條 */
@@ -335,14 +339,19 @@ object Mowan {
         // 小尺寸最多一個主要背景裝飾（D-16 方向）：每個節日只留一個背景元素；跟天氣環境怎麼取捨是候選（ArtConfig.smallEnv）
         val festSmall = simple && fest?.festival != null
         val smallKeep = fest?.festival?.let { Props.SMALL_KEEP[it] }
+        // 48dp 極簡候選：節日背景與天氣環境都不畫
+        val minimal = festSmall && art.smallEnv == ArtConfig.SmallEnv.MINIMAL
         fun festEnv(item: FestivalScene.Item): Boolean {
             if (fest == null || fest[item.slot!!] != item) return false
             if (!festSmall) return true
-            return art.smallEnv != ArtConfig.SmallEnv.WEATHER && item == smallKeep
+            return art.smallEnv != ArtConfig.SmallEnv.WEATHER && !minimal && item == smallKeep
         }
         val festBackdropSmall = festSmall && smallKeep != null && festEnv(smallKeep)
         // 天氣環境（太陽、雲、雨、雪、霧、熱氣）；雨傘是功能道具，不受影響
-        val weatherEnv = !(festBackdropSmall && art.smallEnv == ArtConfig.SmallEnv.FESTIVAL)
+        val weatherEnv = !minimal && !(festBackdropSmall && art.smallEnv == ArtConfig.SmallEnv.FESTIVAL)
+        // D-43 候選：節日背景＋一個不衝突的天氣線索
+        val cue = festBackdropSmall && art.smallEnv == ArtConfig.SmallEnv.CUE
+        val cloudOff = cue && (smallKeep == FestivalScene.Item.MOON || (weather == Weather.THUNDER && smallKeep == FestivalScene.Item.COUPLET))
         // 太陽：天空有月亮時不畫（D-32）
         val sunOn = weatherEnv && (fest == null || fest.shown(FestivalScene.Item.SUN))
 
@@ -381,7 +390,7 @@ object Mowan {
             add(Layer.SKY, PathData.ellipse(99.0, 4.0, 10.5, 10.5), PINK, 0.85f * skyOp)
             ops += Op(Layer.SKY, PathData.ellipse(99.0, 4.0, 14.5, 14.5), null, skyOp, stroke = PINK, strokeWidth = sw(1.2, accent), part = owner)
         }
-        if ((weather == Weather.CLOUDY || weather == Weather.THUNDER) && weatherEnv) {
+        if ((weather == Weather.CLOUDY || weather == Weather.THUNDER) && weatherEnv && !cloudOff) {
             // 陰天的雲慢慢往右飄；雷雨的雲比較深、不動、高一點
             val storm = weather == Weather.THUNDER
             owner = "clouds"
@@ -415,7 +424,7 @@ object Mowan {
         // ---- 雨（8 FPS） ----
         if (rainy && weatherEnv) for ((i, d) in DROPS.withIndex()) {
             // 簡化：只留兩邊各兩條
-            if (simple && i !in MAIN_DROPS) continue
+            if (simple && i !in (if (cue) RIGHT_DROPS else MAIN_DROPS)) continue
             val y = ((d.y + rainStep * 7) % 150) - 20
             val path = PathData.Builder().move(Pt(d.x, y)).line(Pt(d.x - 1.6, y + 7)).build()
             ops += Op(Layer.RAIN, path, null, stroke = SAGE, strokeWidth = sw(1.5, accent), roundCap = true, part = "rain")
@@ -429,7 +438,7 @@ object Mowan {
         }
         if (weather == Weather.SNOW && weatherEnv) FLAKES.forEachIndexed { i, (x0, y0, r0) ->
             // 簡化：只留四片大的，半徑至少 1.2 px
-            if (simple && i !in MAIN_FLAKES) return@forEachIndexed
+            if (simple && i !in (if (cue) RIGHT_FLAKES else MAIN_FLAKES)) return@forEachIndexed
             val r = max(r0, 0.6 * accent * 2)
             val y = ((y0 + clockMs / 1000 * 7) % 150) - 20
             val x = x0 + 2.6 * sin(clockMs / 1100 + i)

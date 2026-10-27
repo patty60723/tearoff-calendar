@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
+import com.patty60723.tearoff.mowan.ArtConfig
 import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanBitmap
@@ -94,10 +95,11 @@ class CalendarWidget : AppWidgetProvider() {
         /**
          * @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊
          * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-41）。App 日曆頁（P6-4b）才傳 true；小工具在 P6-4c
+         * @param art 美術設定；null 是 [MowanSettings.art]（P6-4c 候選圖用來比較 D-16／D-43 的小尺寸取捨）
          */
         fun build(
             context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp,
-            festivalLook: Boolean = false,
+            festivalLook: Boolean = false, art: ArtConfig? = null,
         ): RemoteViews {
             val palette = Palettes.forMonth(page.date.monthValue)
             return RemoteViews(context.packageName, layout.res).apply {
@@ -124,7 +126,7 @@ class CalendarWidget : AppWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
                 if (stickmanDp > 0) {
                     // 故事卡用 V3 時，小工具和 App 日曆頁也用 V3（D-23、D-24）
-                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date, festivalLook) else setStickman(context, this, stickmanDp)
+                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date, festivalLook, art ?: MowanSettings.art(context)) else setStickman(context, this, stickmanDp)
                 }
             }
         }
@@ -168,7 +170,7 @@ class CalendarWidget : AppWidgetProvider() {
          * 隱藏的 ViewFlipper 仍會照間隔換頁，所以間隔拉到一天、裡面沒有圖。
          * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）；節日外觀也只有今天那頁（D-41），而且要 [festivalLook]。
          */
-        private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate, festivalLook: Boolean) {
+        private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate, festivalLook: Boolean, art: ArtConfig) {
             val book = StoryBook(context)
             val density = context.resources.displayMetrics.density.coerceAtMost(3f)
             val isToday = date == AppClock.today(context)
@@ -180,7 +182,7 @@ class CalendarWidget : AppWidgetProvider() {
             val bitmap = MowanBitmap.still(
                 Mowan.partsOf(book.parts), MowanSettings.hatOn(context), MowanSettings.bundleOn(context), weather,
                 widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(), density = density,
-                festival = if (festivalLook && isToday) FestivalTheme.of(date) else null, art = MowanSettings.art(context),
+                festival = if (festivalLook && isToday) FestivalTheme.of(date) else null, art = art,
             )
             views.setViewVisibility(R.id.stickman, View.GONE)
             for (id in FRAME_IDS) views.setImageViewResource(id, 0)

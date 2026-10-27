@@ -1,7 +1,7 @@
 # 墨丸 V3 — P6 節日系統計畫
 
 > 日期：2026-10-26　分支：`feature/mowan-weather-poses`
-> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a 驗收通過（2026-10-27），P6-4b 完成、等待審核（11.8）。**
+> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c：小工具候選圖等待美術審核（11.9）。**
 > 相關文件：[整合規格](character-integration-spec.md)・[實作計畫](character-implementation-plan.md#p6--節日系統)・[未定案事項](character-open-decisions.md)
 > 原型只是參考（Confirmed）。本文件把原型跟目前 Kotlin 的差異列出來，**不假設原型已經定稿**。
 
@@ -506,7 +506,7 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 
 **P6-4a 驗收結論（2026-10-27）**：正式通過。`FestivalSession.resumed()` 修正接受；其餘五項排程檢查通過；CI #89 280 項通過、模擬器 #41 41/41。實機與模擬器上的節日畫面仍列 Not tested。
 
-### 11.8 P6-4b 結果（2026-10-27，等待審核）
+### 11.8 P6-4b 結果（2026-10-27；同日正式驗收通過）
 
 素材：[`acceptance/mowan-p6-4b`](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p6-4b)
 
@@ -525,3 +525,8 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 修正：`MainActivity.onWeatherRefreshed()`：故事卡、小工具照常更新；日曆頁只在「排版時的那一天＝今天」而且沒有在撕頁（`TearPageView.busy`）時才重畫同一頁。`onWindowFocusChanged(true)` 補呼叫 `onDayChanged()`（只動故事卡）。離開 App 再回來照原本的 `onResume` 重算。
 - 測試（Robolectric）：`weatherUpdateSameDayStillRedrawsThePage`、`weatherUpdateAfterMidnightKeepsThePage`、`weatherUpdateWhileTearingKeepsThePage`、`timeAndTimezoneChangesUpdateTheStoryCard`、`regainingFocusCatchesUpAMissedDateChange`。
 - CI Build APK #95：296 個通過。模擬器 #46：PASS 41／FAIL 0（既有回歸；跨午夜、天氣更新的時序沒有在模擬器上驗，列 Not tested）。
+
+**P6-4b 驗收結論（2026-10-27）**：正式通過。保留的 Not tested：
+- 模擬器上真實跨午夜與天氣更新的時序（只有 Robolectric 用假日期與廣播驗證）。
+- 實機驗證。
+- 撕頁中跳過天氣更新、不安排立即補畫：**已接受的取捨**，等撕完或回到 App 時才換上新天氣。

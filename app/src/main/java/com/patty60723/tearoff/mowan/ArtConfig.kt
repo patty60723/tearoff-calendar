@@ -21,8 +21,12 @@ data class ArtConfig(
      * - FESTIVAL：有節日背景（春聯／禮物／月亮）時，天氣環境不畫
      * - WEATHER：天氣環境照畫，節日背景不畫
      * - BOTH：兩個都畫（超過一個，只當對照）
+     * - CUE（P6-4c 候選，待美術審核）：節日背景＋最多一個不衝突的簡化天氣線索（D-43）。
+     *   春聯在左上、月亮在右上、禮物在右下；雨絲、雪花只留右邊兩條／兩片，雲跟月亮（都在天空）或雷雨的雲跟春聯（都在左上）衝突時不畫，
+     *   太陽有月亮時不畫（本來就這樣），霧留腳邊那條
+     * - MINIMAL（P6-4c 候選，48dp 極簡，待美術審核）：只有頭飾與手上的節日道具，節日背景與天氣環境都不畫（雨傘照畫）
      */
-    enum class SmallEnv { FESTIVAL, WEATHER, BOTH }
+    enum class SmallEnv { FESTIVAL, WEATHER, BOTH, CUE, MINIMAL }
 
     /** A：右斜戴（原型最早的戴法）；B：上一輪的第二種戴法；C：往頭頂、放正、壓低 */
     enum class HatStyle { A, B, C }
