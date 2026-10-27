@@ -148,10 +148,10 @@ class WidgetFestivalFinalShotsTest {
     private val small = Paint(words).apply { textSize = 24f; color = 0xFF6B6B6B.toInt() }
 
     private fun grid(name: String, title: String, note: String, colTitles: List<String>, rowTitles: List<String>, cells: List<List<Bitmap>>) {
-        val cw = maxOf(cells.flatten().maxOf { it.width } + 16, 150)
+        val cw = maxOf(cells.flatten().maxOf { it.width } + 16, 190)
         val ch = cells.flatten().maxOf { it.height } + 16
         val left = 140
-        val top = 160
+        val top = 190
         val sheet = Bitmap.createBitmap(maxOf(left + cw * colTitles.size, 1500), top + ch * rowTitles.size, Bitmap.Config.ARGB_8888)
         Canvas(sheet).apply {
             drawColor(paper)
@@ -166,7 +166,7 @@ class WidgetFestivalFinalShotsTest {
         File(out, "$name.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    private fun label(l: PageLayout) = "${l.name}\n角色 ${(l.stickmanDp * 4 / 3).toInt()}dp・${if (CalendarWidget.smallEnvFor(l) == SmallEnv.MINIMAL) "C 極簡" else "B 節日+線索"}"
+    private fun label(l: PageLayout) = "${l.name}\n角色 ${(l.stickmanDp * 4 / 3).toInt()}dp\n${if (CalendarWidget.smallEnvFor(l) == SmallEnv.MINIMAL) "C 極簡" else "B 節日+線索"}"
 
     /** 規則：COMPACT 是 C，其他是 B */
     @Test
@@ -184,7 +184,7 @@ class WidgetFestivalFinalShotsTest {
             }
             grid(
                 "1-$f-weathers", "$fname：選定方向（xxhdpi 實際像素）", "第一欄是現在的小工具（沒有節日）對照；其他欄是各版面最後會畫的樣子",
-                listOf("現在\nTALL 沒有節日") + layouts.map(::label), weathers.map { it.second }, cells,
+                listOf("現在（TALL）\n沒有節日\n對照") + layouts.map(::label), weathers.map { it.second }, cells,
             )
         }
     }

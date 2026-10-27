@@ -554,7 +554,7 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 **選定方向（2026-10-27，待最終圖片驗收）**
 - 64dp 以上（TALL、MEDIUM、WIDE）用 B；48dp（COMPACT）用 C。程式：`CalendarWidget.smallEnvFor(layout)`（`build` 沒指定美術設定時用它；只影響簡化版的節日畫法）。
 - D-43 的天氣線索以不干擾節日元素為前提，不強制每種天氣都出現。
-- 春聯與日期保持明顯間距：只調整春聯，小尺寸時往角色移 `Props.SMALL_COUPLET_DX`＝10 單位（菱形右角離頭的左緣仍有 10 單位以上），日期版面不動。
+- 春聯與日期保持明顯間距：只調整春聯，小尺寸時往角色移 `Props.SMALL_COUPLET_DX`＝14 單位（菱形右角離頭的左緣約 10 單位；MEDIUM 跟日期數字從約 1.3dp 變成 6dp 以上），日期版面不動。
 - 中秋遇到雨、雷雨、雪維持 D-37，不額外補裝飾。
 - 正式的小工具還沒接節日（`festivalLook` 只有 App 日曆頁與截圖測試傳 true）；最終圖片驗收通過後才接。
 - 最終候選截圖：`WidgetFestivalFinalShotsTest` → `acceptance/mowan-p6-4c-final`。

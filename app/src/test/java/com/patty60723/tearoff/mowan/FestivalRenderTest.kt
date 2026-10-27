@@ -199,13 +199,13 @@ class FestivalRenderTest {
         assertEquals(Props.SMALL_COUPLET_DX, small[0] - full[0], 0.3)
         assertEquals(Props.SMALL_COUPLET_DX, small[2] - full[2], 0.3)
         assertEquals("高度不變", full[1], small[1], 0.3)
-        // 菱形右角（y = 25）跟頭在同一高度的左緣（圓心約 (60, 47)、半徑約 24）至少 10 單位
+        // 菱形右角（y = 25）跟頭在同一高度的左緣（圓心約 (60, 47)、半徑約 24）至少 8 單位（MEDIUM 約 3dp）
         val head = box(Detail.simplified(144.0), "head")
         val r = (head[2] - head[0]) / 2
         val cx = (head[0] + head[2]) / 2
         val cy = (head[1] + head[3]) / 2
         val headLeftAt25 = cx - kotlin.math.sqrt(r * r - (25 - cy) * (25 - cy))
-        assertTrue("春聯右角 ${small[2]}、頭的左緣 $headLeftAt25", headLeftAt25 - small[2] >= 10)
+        assertTrue("春聯右角 ${small[2]}、頭的左緣 $headLeftAt25", headLeftAt25 - small[2] >= 8)
     }
 
     /** 沒有節日時畫法完全不變（既有黃金數值另外比對；這裡確認 festival = null 走原本的路） */
