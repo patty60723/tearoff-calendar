@@ -518,4 +518,10 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - **自動測試**：CI Build APK #93 通過，291 個（新增 `FestivalAppTest` 9 個、`FestivalAppShotsTest` 2 個）。第一次 #90 有 3 個新測試失敗，都是測試寫法（同一天第二種天氣已演過、V3 打開時可見性覆寫的時機、跨午夜測試被背景的天氣下載重建頁面），已修正。
 - **模擬器**：#44 PASS 41／FAIL 0（既有回歸），另外截了節日畫面（第 12 段，不計入必要檢查）：初一第一次看到故事卡有演主演出、同一天重開不重播、初二初三各自演、今天那頁沒撕時最上面那頁不畫節日、聖誕、中秋。
 - **Not tested**：實機；模擬器上的前景跨午夜（只有 Robolectric 送廣播）、除錯選單的實際點擊（只有 Robolectric）、Reduced Motion 下的節日畫面（P6-5）。
-- **觀察（沒有修改）**：天氣在背景抓到新資料時，`refreshWeather` 會呼叫 `show(date)` 重建日曆頁；如果剛好跨過午夜，撕頁狀態會照新的一天重算。這是既有行為，不是 P6-4b 新增的，留到 P6-5 跟模擬器的跨午夜一起確認要不要處理。
+- ~~觀察：背景天氣更新會重建日曆頁~~ → 見下面的 D-44 補查（已修正）。
+
+**D-44 補查（2026-10-27，`bebc8da`）**
+- 缺口：背景抓到新天氣時 `refreshWeather` 呼叫 `show(date)` 重建日曆頁。前景跨午夜後會照新的一天重算撕頁狀態與提示；正在撕頁時也會換掉底下的頁面。拿回視窗焦點時也沒有補做日期檢查（只靠廣播）。
+- 修正：`MainActivity.onWeatherRefreshed()`：故事卡、小工具照常更新；日曆頁只在「排版時的那一天＝今天」而且沒有在撕頁（`TearPageView.busy`）時才重畫同一頁。`onWindowFocusChanged(true)` 補呼叫 `onDayChanged()`（只動故事卡）。離開 App 再回來照原本的 `onResume` 重算。
+- 測試（Robolectric）：`weatherUpdateSameDayStillRedrawsThePage`、`weatherUpdateAfterMidnightKeepsThePage`、`weatherUpdateWhileTearingKeepsThePage`、`timeAndTimezoneChangesUpdateTheStoryCard`、`regainingFocusCatchesUpAMissedDateChange`。
+- CI Build APK #95：296 個通過。模擬器 #46：PASS 41／FAIL 0（既有回歸；跨午夜、天氣更新的時序沒有在模擬器上驗，列 Not tested）。
