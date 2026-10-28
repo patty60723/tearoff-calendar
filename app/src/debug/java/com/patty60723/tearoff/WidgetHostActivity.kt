@@ -4,7 +4,9 @@ import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RemoteViews
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.ViewFlipper
@@ -23,6 +26,7 @@ import android.widget.ViewFlipper
  * 走跟桌面 launcher 一樣的流程（系統綁定 → 廣播更新 → RemoteViews 跨 process 套用）。
  * 要先 `adb shell appwidget grantbind --package com.patty60723.tearoff`。
  * 每個小工具套用好之後把狀態寫到 logcat（tag W7HOST），驗收腳本讀這些來判斷。
+ * 每收到一次小工具更新（RemoteViews）也記一筆 `update id=…`：量「靜止」時用來分辨一次性的內容更新（例如背景抓到新天氣）與持續重畫。
  */
 class WidgetHostActivity : Activity() {
     private lateinit var host: AppWidgetHost
@@ -36,7 +40,15 @@ class WidgetHostActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        host = AppWidgetHost(applicationContext, HOST_ID)
+        host = object : AppWidgetHost(applicationContext, HOST_ID) {
+            override fun onCreateView(context: Context, appWidgetId: Int, appWidget: AppWidgetProviderInfo?): AppWidgetHostView =
+                object : AppWidgetHostView(context) {
+                    override fun updateAppWidget(remoteViews: RemoteViews?) {
+                        super.updateAppWidget(remoteViews)
+                        Log.i(TAG, "update id=$appWidgetId")
+                    }
+                }
+        }
         host.deleteHost() // 上一次留下來的小工具清掉
         val manager = AppWidgetManager.getInstance(this)
         val provider = ComponentName(this, CalendarWidget::class.java)
