@@ -31,6 +31,10 @@ finish() {
   [ "$FAIL_N" = 0 ] && exit 0 || exit 1
 }
 
+# 靜止判斷的腳本測試（不需要模擬器）：判斷規則壞了就不要拿來驗收
+if bash "$(dirname "$0")/test-quiet.sh" > "$OUT/test-quiet.txt" 2>&1; then log "腳本測試（test-quiet.sh）：全部通過"
+else check "腳本測試（test-quiet.sh）" 1 "見 test-quiet.txt"; fi
+
 adb install -r "$APK" >/dev/null || { check "安裝 APK" 1 "$APK"; finish; }
 adb shell svc power stayon true
 adb shell input keyevent KEYCODE_WAKEUP
@@ -380,19 +384,31 @@ host_run() { # host_run <名稱>：開宿主、截圖、把這次的報告存到
   adb logcat -d -s W7HOST:I | awk -v m="mark $1" 'index($0, m) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' > "$OUT/ui/widget-host-$1.txt"
 }
 host_line() { grep "report layout=$2 " "$OUT/ui/widget-host-$1.txt" | tail -1; }
-# quiet_frames <名稱>：宿主畫面 10 秒內重畫幾張。這段時間小工具收到更新（例如綁定時背景抓天氣，抓到後重新套用一次）
-# 就記下來、再量一次，最多 3 次；印出「張數 更新次數 第幾次」。沒有收到更新的那一段才拿來判斷是不是真的靜止。
-quiet_frames() {
-  local f u i
-  for i in 1 2 3; do
-    adb shell log -t W7HOST "mark win-$1-$i"
-    f=$(frames_in 10 "$1-$i")
-    u=$(adb logcat -d -s W7HOST:I | awk -v m="mark win-$1-$i" 'index($0, m) { c = 0; on = 1; next } on && /update id=/ { c++ } END { print c + 0 }')
-    [ "$u" = 0 ] && break
-    log "  INFO  $1 第 $i 次量測時小工具收到 $u 次更新（畫了 ${f%% *} 張），再量一次" >&2
-  done
+# 小工具「真的靜止」：判斷規則在 quiet.sh（tools/emulator/test-quiet.sh 有各種情境的測試）
+. "$(dirname "$0")/quiet.sh"
+# measure_window <宿主名稱> <第幾次>：量 10 秒，印「張數 更新次數」；更新只算這次宿主綁定的受測小工具（HOST_IDS）
+measure_window() {
+  local tag="win-$1-$2" f
+  adb shell log -t W7HOST "mark $tag start"
+  f=$(frames_in 10 "$1-$2")
+  adb shell log -t W7HOST "mark $tag end"
+  adb logcat -d -s W7HOST:I > "$OUT/ui/logcat-$tag.txt"
   # frames_in 印的是「張數 jank（百分比）」，這裡只要張數
-  echo "${f%% *} $u $i"
+  echo "${f%% *} $(count_updates "$OUT/ui/logcat-$tag.txt" "mark $tag start" "mark $tag end" $HOST_IDS)"
+}
+# static_check <檢查名稱> <宿主名稱>：先確認更新監測涵蓋每一個受測小工具，再照 quiet.sh 的規則量；每一次的結果都寫進報告
+static_check() {
+  local name=$1 run=$2 missing out verdict
+  HOST_IDS=$(host_ids "$OUT/ui/widget-host-$run.txt")
+  missing=$(missing_updates "$OUT/ui/widget-host-$run.txt" $HOST_IDS)
+  if [ -z "$HOST_IDS" ] || [ -n "$missing" ]; then
+    check "$name" 1 "更新監測沒有涵蓋受測小工具（綁定的 id：${HOST_IDS:-沒有}；宿主 log 裡沒有更新的 id：${missing:-—}）"
+    return
+  fi
+  out=$(quiet_judge measure_window "$run")
+  while IFS= read -r l; do log "  $l"; done <<<"$out"
+  verdict=$(tail -1 <<<"$out")
+  check "$name" "$([[ "$verdict" == "verdict=PASS "* ]] && echo 0 || echo 1)" "${verdict#*reason=}（受測小工具 id：$HOST_IDS）"
 }
 
 if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
@@ -408,8 +424,7 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   # 所以先量一段只記錄，再量第二段（綁定後約 17 秒起）當作穩定狀態檢查。會輪播的話兩段都會很多（舊火柴人約 170 張）。
   f0=$(frames_in 10 widget-v3-settle)
   log "  INFO  V3 小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
-  r=$(quiet_frames widget-v3); set -- $r
-  check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "$1" -le 5 ] 2>/dev/null && [ "$2" = 0 ] && echo 0 || echo 1)" "沒有收到更新的 10 秒內畫了 $1 張（第 $3 次量測；這段收到 $2 次更新）"
+  static_check "V3 小工具真的靜止（宿主畫面不重畫）" v3
   # P6-4c：節日當天（假日期春節初一）的 V3 小工具：5 種大小都套用成功、一樣是一張靜態圖、不重畫
   state 14 RAIN true
   write_prefs debug "  <string name=\"fakeToday\">2027-02-06</string>"
@@ -422,8 +437,7 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   check "節日小工具（春節）5 種大小" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對"
   f0=$(frames_in 10 widget-spring-settle)
   log "  INFO  節日小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
-  r=$(quiet_frames widget-spring); set -- $r
-  check "節日小工具真的靜止（宿主畫面不重畫）" "$([ "$1" -le 5 ] 2>/dev/null && [ "$2" = 0 ] && echo 0 || echo 1)" "沒有收到更新的 10 秒內畫了 $1 張（第 $3 次量測；這段收到 $2 次更新）"
+  static_check "節日小工具真的靜止（宿主畫面不重畫）" v3-spring
   write_prefs debug ""
   # 舊火柴人：ViewFlipper 顯示、V3 的圖隱藏（對照組會一直重畫）
   state 14 RAIN false
