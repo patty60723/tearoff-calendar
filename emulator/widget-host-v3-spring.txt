@@ -1,0 +1,35 @@
+10-28 02:58:58.431 13991 13991 I W7HOST  : bind layout=COMPACT id=7 bound=true
+10-28 02:58:58.450 13991 13991 I W7HOST  : update id=7
+10-28 02:58:58.453 13991 13991 I W7HOST  : bind layout=WIDE id=8 bound=true
+10-28 02:58:58.468 13991 13991 I W7HOST  : update id=8
+10-28 02:58:58.555 13991 13991 I W7HOST  : bind layout=MEDIUM id=9 bound=true
+10-28 02:58:58.579 13991 13991 I W7HOST  : update id=9
+10-28 02:58:58.590 13991 13991 I W7HOST  : bind layout=TALL id=10 bound=true
+10-28 02:58:58.606 13991 13991 I W7HOST  : update id=10
+10-28 02:58:58.635 13991 13991 I W7HOST  : bind layout=BETWEEN id=11 bound=true
+10-28 02:58:58.645 13991 13991 I W7HOST  : update id=11
+10-28 02:58:59.883 13991 13991 I W7HOST  : update id=7
+10-28 02:58:59.895 13991 13991 I W7HOST  : update id=8
+10-28 02:58:59.908 13991 13991 I W7HOST  : update id=9
+10-28 02:58:59.928 13991 13991 I W7HOST  : update id=10
+10-28 02:58:59.938 13991 13991 I W7HOST  : update id=11
+10-28 02:59:01.125 13991 13991 I W7HOST  : update id=7
+10-28 02:59:01.995 13991 13991 I W7HOST  : update id=7
+10-28 02:59:02.061 13991 13991 I W7HOST  : update id=8
+10-28 02:59:02.127 13991 13991 I W7HOST  : update id=9
+10-28 02:59:02.192 13991 13991 I W7HOST  : update id=10
+10-28 02:59:02.267 13991 13991 I W7HOST  : update id=11
+10-28 02:59:02.325 13991 13991 I W7HOST  : update id=7
+10-28 02:59:02.421 13991 13991 I W7HOST  : update id=8
+10-28 02:59:02.534 13991 13991 I W7HOST  : update id=8
+10-28 02:59:02.536 13991 13991 I W7HOST  : update id=9
+10-28 02:59:02.612 13991 13991 I W7HOST  : update id=9
+10-28 02:59:02.667 13991 13991 I W7HOST  : update id=10
+10-28 02:59:02.727 13991 13991 I W7HOST  : update id=10
+10-28 02:59:02.837 13991 13991 I W7HOST  : update id=11
+10-28 02:59:02.852 13991 13991 I W7HOST  : update id=11
+10-28 02:59:03.963 13991 13991 I W7HOST  : report layout=COMPACT ok=true size=301x301 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-28 02:59:03.963 13991 13991 I W7HOST  : report layout=WIDE ok=true size=761x328 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-28 02:59:03.963 13991 13991 I W7HOST  : report layout=MEDIUM ok=true size=393x511 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-28 02:59:03.963 13991 13991 I W7HOST  : report layout=TALL ok=true size=459x761 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
+10-28 02:59:03.963 13991 13991 I W7HOST  : report layout=BETWEEN ok=true size=525x525 flipper=GONE flipping=true interval=86400000 still=VISIBLE stillImage=true characterInside=true clipped=0
