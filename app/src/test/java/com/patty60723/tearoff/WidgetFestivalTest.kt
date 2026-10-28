@@ -240,7 +240,9 @@ class WidgetFestivalTest {
         // 縮到一樣高排成一列
         val h = 900
         val scaled = shots.map { (t, b) -> t to Bitmap.createScaledBitmap(b, b.width * h / b.height, h, true) }
-        val sheet = Bitmap.createBitmap(scaled.sumOf { it.second.width + 20 }, h + 70, Bitmap.Config.ARGB_8888)
+        // 不同密度畫出來的圖：照實際像素貼上，不要被自動縮放
+        scaled.forEach { it.second.density = Bitmap.DENSITY_NONE }
+        val sheet = Bitmap.createBitmap(scaled.sumOf { it.second.width + 20 }, h + 70, Bitmap.Config.ARGB_8888).apply { density = Bitmap.DENSITY_NONE }
         val label = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF2B2B2B.toInt(); textSize = 26f }
         Canvas(sheet).apply {
             drawColor(0xFFEFEAE1.toInt())
@@ -276,12 +278,16 @@ class WidgetFestivalTest {
             val colW = layouts.map { l -> (l.minWidthDp * dens).toInt() / 2 + 16 }
             val rowH = rows.map { r -> r.maxOf { it.height } + 16 }
             val left = 140
-            val top = 80
+            val top = 110
             val sheet = Bitmap.createBitmap(left + colW.sum(), top + rowH.sum(), Bitmap.Config.ARGB_8888)
             Canvas(sheet).apply {
                 drawColor(0xFFEFEAE1.toInt())
                 var x = left.toFloat()
-                layouts.forEachIndexed { i, l -> drawText("${l.name}（${CalendarWidget.smallEnvFor(l).name}）", x, 50f, label); x += colW[i] }
+                layouts.forEachIndexed { i, l ->
+                    drawText(l.name, x, 40f, label)
+                    drawText(if (CalendarWidget.smallEnvFor(l).name == "MINIMAL") "C 極簡" else "B 節日+線索", x, 80f, label)
+                    x += colW[i]
+                }
                 var y = top.toFloat()
                 rows.forEachIndexed { r, cells ->
                     drawText(weathers[r].second, 10f, y + rowH[r] / 2, label)
