@@ -1,6 +1,6 @@
 # 墨丸 V3 — 實作計畫（Phase 2B）
 
-> 狀態：階段順序已確認（2026-10-24）。P0–P3 已完成。P4：W1–W7 與 D-22 已完成（故事卡用 V3 時，8 種天氣與包袱都已接上；V3 改成預設在 P7）。P5（Widget V3）已結案（2026-10-26）。P6：P6-1～P6-3、P6-4a、P6-4b 完成，P6-4c 方向已選定、最終候選截圖等待圖片驗收，見 [P6 計畫](character-p6-plan.md)。W7 驗收見 [W7 驗收報告](character-w7-acceptance.md)。
+> 狀態：階段順序已確認（2026-10-24）。P0–P3 已完成。P4：W1–W7 與 D-22 已完成（故事卡用 V3 時，8 種天氣與包袱都已接上；V3 改成預設在 P7）。P5（Widget V3）已結案（2026-10-26）。P6：P6-1～P6-3、P6-4a、P6-4b 完成，P6-4c 圖片驗收通過，正式小工具整合進行中，見 [P6 計畫](character-p6-plan.md)。W7 驗收見 [W7 驗收報告](character-w7-acceptance.md)。
 > 相關文件：[整合規格](character-integration-spec.md)・[未定案事項](character-open-decisions.md)
 
 ## 排序原則

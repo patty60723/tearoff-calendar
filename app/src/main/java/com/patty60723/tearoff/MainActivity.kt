@@ -307,8 +307,8 @@ class MainActivity : Activity() {
         val metrics = resources.displayMetrics
         val pageWidthPx = metrics.widthPixels - (56 * metrics.density).toInt()
         val stickmanPx = (pageWidthPx * 0.17f).toInt()
-        // 今天那頁的 V3 墨丸畫節日外觀（D-41）
-        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density, festivalLook = true)
+        // 今天那頁的 V3 墨丸畫節日外觀（D-41）；頁面窄、角色小於 72dp 時跟小工具 TALL 一樣用簡化版的取捨
+        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density)
         val page = views.apply(this, frame).apply { isClickable = false }
         // 舊火柴人（ViewFlipper）和 V3（mowan_still）用同樣的大小和位置
         for (id in intArrayOf(R.id.stickman, R.id.mowan_still)) page.findViewById<View>(id)?.layoutParams?.let {

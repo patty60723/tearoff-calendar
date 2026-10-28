@@ -52,6 +52,8 @@ class WidgetV3Test {
 
     @Before
     fun setUp() {
+        // 固定一個不是節日的日子（節日當天小工具會畫節日外觀，P6-4c；那些在 WidgetFestivalTest）
+        AppClock.setFakeToday(context, LocalDate.of(2026, 10, 21))
         StoryBook(context).jumpTo(14, today)
         MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, Mood.RAIN)
@@ -62,6 +64,7 @@ class WidgetV3Test {
         MowanSettings.setStoryCard(context, false)
         MowanSettings.resetEquipment(context)
         WeatherService.setFakeMood(context, null)
+        AppClock.setFakeToday(context, null)
     }
 
     private fun applied(layout: PageLayout, date: LocalDate = today, stickmanDp: Float = layout.stickmanDp): View =

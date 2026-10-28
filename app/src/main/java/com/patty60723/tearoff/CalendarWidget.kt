@@ -95,12 +95,13 @@ class CalendarWidget : AppWidgetProvider() {
 
         /**
          * @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊
-         * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-41）。App 日曆頁（P6-4b）才傳 true；小工具在 P6-4c
+         * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-16、D-41）：小工具（P6-4c）與 App 日曆頁（P6-4b）都是 true；
+         *   false 只給候選圖、截圖畫「沒有節日」的對照
          * @param art 美術設定；null 是 [MowanSettings.art] 加上這個版面的小尺寸取捨（[smallEnvFor]）。P6-4c 候選圖用來比較
          */
         fun build(
             context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp,
-            festivalLook: Boolean = false, art: ArtConfig? = null,
+            festivalLook: Boolean = true, art: ArtConfig? = null,
         ): RemoteViews {
             val palette = Palettes.forMonth(page.date.monthValue)
             return RemoteViews(context.packageName, layout.res).apply {
@@ -176,7 +177,8 @@ class CalendarWidget : AppWidgetProvider() {
          * 畫在版面裡的 `mowan_still`（一般的 ImageView，不會動）；舊火柴人的 ViewFlipper 隱藏、清掉圖。
          * ViewFlipper 的自動輪播只有 `setFlipInterval` 能透過 RemoteViews 改（`setAutoStart`、`stopFlipping` 不行），
          * 隱藏的 ViewFlipper 仍會照間隔換頁，所以間隔拉到一天、裡面沒有圖。
-         * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）；節日外觀也只有今天那頁（D-41），而且要 [festivalLook]。
+         * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）；節日外觀也只有今天那頁（D-41）。
+         * 節日也是同一張靜態圖：不演出、不輪播（D-16）；背景與天氣的取捨照版面（[smallEnvFor]）。
          */
         private fun setMowan(context: Context, views: RemoteViews, widthDp: Float, date: LocalDate, festivalLook: Boolean, art: ArtConfig) {
             val book = StoryBook(context)

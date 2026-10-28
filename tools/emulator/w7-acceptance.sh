@@ -396,6 +396,21 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   log "  INFO  V3 小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
   f=$(frames_in 10 widget-v3)
   check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "${f%% *}" -le 5 ] 2>/dev/null && echo 0 || echo 1)" "穩定後 10 秒內畫了 $f 張"
+  # P6-4c：節日當天（假日期春節初一）的 V3 小工具：5 種大小都套用成功、一樣是一張靜態圖、不重畫
+  state 14 RAIN true
+  write_prefs debug "  <string name=\"fakeToday\">2027-02-06</string>"
+  host_run v3-spring
+  bad=0
+  for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+    r=$(host_line v3-spring $L)
+    echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=GONE" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" || { bad=$((bad + 1)); log "  春節：$r"; }
+  done
+  check "節日小工具（春節）5 種大小" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對"
+  f0=$(frames_in 10 widget-spring-settle)
+  log "  INFO  節日小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
+  f=$(frames_in 10 widget-spring)
+  check "節日小工具真的靜止（宿主畫面不重畫）" "$([ "${f%% *}" -le 5 ] 2>/dev/null && echo 0 || echo 1)" "穩定後 10 秒內畫了 $f 張"
+  write_prefs debug ""
   # 舊火柴人：ViewFlipper 顯示、V3 的圖隱藏（對照組會一直重畫）
   state 14 RAIN false
   host_run old
@@ -420,7 +435,7 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   done
   adb shell wm density reset
 else
-  for _ in 1 2 3 4 5 6 7 8 9; do check "小工具宿主" 1 "appwidget grantbind 失敗，沒辦法綁定小工具"; done
+  for _ in 1 2 3 4 5 6 7 8 9 10 11; do check "小工具宿主" 1 "appwidget grantbind 失敗，沒辦法綁定小工具"; done
 fi
 
 # 真正的桌面 launcher：用 App 的「把小工具放到桌面」，在 launcher 的對話框按加入。
@@ -526,6 +541,27 @@ if [ $placed = 1 ]; then
   else
     warn "找不到 App 的包袱入口，沒測 App 觸發的更新"
   fi
+  # P6-4c：節日小工具（假日期）。換日用午夜那次的廣播（NEW_DAY），跟真的換頁走同一條路
+  fest_day() { write_prefs debug "  <string name=\"fakeToday\">$1</string>"; }
+  fest_day 2027-02-05
+  update_case 9-eve "換到除夕（不是節日，對照）" 14 RAIN true
+  fest_day 2027-02-06
+  update_case 10-spring "換到春節初一（節日外觀）" 14 RAIN true
+  update_case 11-spring-bundle "節日當天卸下包袱" 14 RAIN true false
+  update_case 12-spring-snow "節日當天天氣換成雪" 14 SNOW true false
+  update_case 13-spring-page5 "節日當天換成第 5 頁" 5 SNOW true false
+  update_case 14-spring-old "節日當天關掉 V3（舊火柴人）" 5 SNOW false
+  update_case 15-spring-v3 "節日當天打開 V3" 14 RAIN true
+  fest_day 2027-02-09
+  update_case 16-after "離開春節（初四）" 14 RAIN true
+  # 中秋、聖誕只截圖
+  for d in 2027-09-15:moon 2027-12-25:xmas; do
+    fest_day "${d%%:*}"; state 14 SUNNY true
+    adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null; sleep 4
+    home_shot "launcher-17-${d##*:}"
+  done
+  write_prefs debug ""
+  adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null
 else
   warn "沒辦法自動把小工具放上桌面 launcher（找不到按鈕或 launcher 的對話框），這一段列為沒測"
   log "NOTTESTED  桌面 launcher 上的小工具"

@@ -1,7 +1,7 @@
 # 墨丸 V3 — P6 節日系統計畫
 
 > 日期：2026-10-26　分支：`feature/mowan-weather-poses`
-> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c：方向已選定（11.9），最終候選截圖等待圖片驗收。**
+> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c：圖片驗收通過（2026-10-28，11.9），正式小工具整合進行中（11.10）。**
 > 相關文件：[整合規格](character-integration-spec.md)・[實作計畫](character-implementation-plan.md#p6--節日系統)・[未定案事項](character-open-decisions.md)
 > 原型只是參考（Confirmed）。本文件把原型跟目前 Kotlin 的差異列出來，**不假設原型已經定稿**。
 
@@ -531,7 +531,7 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 實機驗證。
 - 撕頁中跳過天氣更新、不安排立即補畫：**已接受的取捨**，等撕完或回到 App 時才換上新天氣。
 
-### 11.9 P6-4c 小工具節日候選圖（2026-10-27，等待美術審核）
+### 11.9 P6-4c 小工具節日候選圖（2026-10-27；2026-10-28 圖片驗收通過）
 
 素材：[`acceptance/mowan-p6-4c`](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p6-4c)（README 有每張圖的說明）。用實際的小工具管線（`CalendarWidget.build` → RemoteViews → `MowanBitmap.still`）畫，Robolectric 繪圖。**正式的小工具還沒有接上節日**，審核定案後才接。
 
@@ -551,7 +551,7 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
   - 中秋遇到雨、雷雨、雪時本來就看不到月亮（D-37），四種候選裡 A、B 都會改畫天氣環境，C 只剩雨傘。
   - 聖誕遇到雪：A 拿掉雪花，B 只留右邊兩片。
 
-**選定方向（2026-10-27，待最終圖片驗收）**
+**選定方向（2026-10-27；2026-10-28 正式確認）**
 - 64dp 以上（TALL、MEDIUM、WIDE）用 B；48dp（COMPACT）用 C。程式：`CalendarWidget.smallEnvFor(layout)`（`build` 沒指定美術設定時用它；只影響簡化版的節日畫法）。
 - D-43 的天氣線索以不干擾節日元素為前提，不強制每種天氣都出現。
 - 春聯與日期保持明顯間距：只調整春聯，小尺寸時往角色移 `Props.SMALL_COUPLET_DX`＝14 單位（菱形右角離頭的左緣約 10 單位；MEDIUM 跟日期數字從約 1.3dp 變成 6dp 以上），日期版面不動。
@@ -559,3 +559,7 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - 正式的小工具還沒接節日（`festivalLook` 只有 App 日曆頁與截圖測試傳 true）；最終圖片驗收通過後才接。
 - 最終候選截圖：`WidgetFestivalFinalShotsTest` → `acceptance/mowan-p6-4c-final`。
 - **最終候選截圖**（`d06c262`，CI Build APK #101）：[`acceptance/mowan-p6-4c-final`](https://github.com/patty60723/tearoff-calendar/tree/acceptance/mowan-p6-4c-final)。春聯跟同一高度文字的距離（各版面最小尺寸）：WIDE 17.3 dp、MEDIUM 6.3 dp（調整前約 1 dp）；COMPACT 用極簡沒有春聯；TALL 春聯旁邊沒有文字。測試要求 ≥ 6 dp。等待圖片驗收。
+
+**P6-4c 圖片驗收結論（2026-10-28）**：通過，Blocker 0。D-16、D-43 Confirmed（規則同上）。48dp 的紅包、月餅細節，以及 COMPACT 聖誕主要靠帽子辨識：接受現狀，不再調整美術。不修改已驗收的墨丸造型、帽子、配件、筆畫或現有版面。
+
+### 11.10 P6-4c 正式小工具節日整合（2026-10-28，進行中）

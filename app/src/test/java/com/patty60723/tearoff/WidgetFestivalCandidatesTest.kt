@@ -29,7 +29,7 @@ import java.time.LocalDate
 /**
  * P6-4c 美術審核素材：小工具的節日外觀候選（D-16、D-43、48dp）。
  * 每一格都是實際的小工具管線畫出來的：`CalendarWidget.build` → RemoteViews 套到版面 → `MowanBitmap.still`。
- * 存到 app/build/screenshots/p6-4c。這不是比對用的測試，也還沒有接到真正的小工具（候選審核後才接）。
+ * 存到 app/build/screenshots/p6-4c。這不是比對用的測試（P6-4c 審核用；定案是 COMPACT＝C、其他版面＝B，已接到正式小工具）。
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -171,10 +171,9 @@ class WidgetFestivalCandidatesTest {
         val now = still(widget(Festival.SPRING, Mood.RAIN, PageLayout.TALL, null))
         val a = still(widget(Festival.SPRING, Mood.RAIN, PageLayout.TALL, SmallEnv.FESTIVAL))
         assertEquals(false, now.sameAs(a))
-        // 正式的小工具還沒接：不傳 festivalLook 時跟現在一樣
-        MowanSettings.setStoryCard(context, true)
-        val today = day(Festival.SPRING)
-        val real = still(CalendarWidget.build(context, Almanac.page(today), PageLayout.TALL).apply(context, FrameLayout(context)))
-        assertEquals(true, real.sameAs(now))
+        // 正式的小工具（P6-4c 整合後）：TALL 用定案的 B
+        val cue = still(widget(Festival.SPRING, Mood.RAIN, PageLayout.TALL, SmallEnv.CUE))
+        val real = still(CalendarWidget.build(context, Almanac.page(day(Festival.SPRING)), PageLayout.TALL).apply(context, FrameLayout(context)))
+        assertEquals(true, real.sameAs(cue))
     }
 }

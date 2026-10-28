@@ -32,7 +32,7 @@ import java.time.LocalDate
 /**
  * P6-4c 最終候選截圖：照 2026-10-27 選定的方向（COMPACT 用 C 極簡、其他版面用 B 節日＋一個天氣線索、小尺寸春聯往角色靠），
  * 用實際的小工具管線畫（`CalendarWidget.build` 不指定美術設定，走 [CalendarWidget.smallEnvFor]）。
- * 存到 app/build/screenshots/p6-4c-final。正式小工具還沒接節日（`festivalLook` 只有這裡和 App 日曆頁傳 true）。
+ * 存到 app/build/screenshots/p6-4c-final。2026-10-28 圖片驗收通過，已接到正式小工具。
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)

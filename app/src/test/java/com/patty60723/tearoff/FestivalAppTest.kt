@@ -197,8 +197,7 @@ class FestivalAppTest {
         // 往前翻到昨天：平常的樣子
         a.findViewById<Button>(R.id.prev).performClick()
         assertTrue("昨天那頁：平常的樣子", pageStill(a).sameAs(expected(a, eve, false)))
-        // 小工具（P6-4c 才做）：還是平常的樣子
-        assertTrue(expected(a, spring, false).sameAs(usual))
+        // 小工具（P6-4c）也照今天那頁畫節日外觀，見 WidgetFestivalTest
     }
 
     @Test
