@@ -97,8 +97,10 @@ class WidgetFestivalTest {
             assertEquals(f, FestivalTheme.of(d))
             CalendarWidget.refreshAll(context)
             val got = manager.getViewFor(id).still()
-            assertTrue("$d", got.sameAs(expected(PageLayout.TALL, f)))
-            if (f != null) assertFalse("$d 節日外觀", got.sameAs(expected(PageLayout.TALL, null)))
+            // Android 12 以上由系統照大小挑版面：看圖的寬度是哪一個版面的
+            val layout = PageLayout.entries.single { (it.stickmanDp * density).toInt() == got.width }
+            assertTrue("$d ${layout.name}", got.sameAs(expected(layout, f)))
+            if (f != null) assertFalse("$d 節日外觀", got.sameAs(expected(layout, null)))
         }
     }
 
