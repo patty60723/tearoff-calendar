@@ -381,7 +381,7 @@ host_run() { # host_run <名稱>：開宿主、截圖、把這次的報告存到
 }
 host_line() { grep "report layout=$2 " "$OUT/ui/widget-host-$1.txt" | tail -1; }
 # quiet_frames <名稱>：宿主畫面 10 秒內重畫幾張。這段時間小工具收到更新（例如綁定時背景抓天氣，抓到後重新套用一次）
-# 就記下來、再量一次，最多 3 次；印出「張數 jank 更新次數 第幾次」。沒有收到更新的那一段才拿來判斷是不是真的靜止。
+# 就記下來、再量一次，最多 3 次；印出「張數 更新次數 第幾次」。沒有收到更新的那一段才拿來判斷是不是真的靜止。
 quiet_frames() {
   local f u i
   for i in 1 2 3; do
@@ -391,7 +391,8 @@ quiet_frames() {
     [ "$u" = 0 ] && break
     log "  INFO  $1 第 $i 次量測時小工具收到 $u 次更新（畫了 ${f%% *} 張），再量一次" >&2
   done
-  echo "$f $u $i"
+  # frames_in 印的是「張數 jank（百分比）」，這裡只要張數
+  echo "${f%% *} $u $i"
 }
 
 if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
@@ -408,7 +409,7 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   f0=$(frames_in 10 widget-v3-settle)
   log "  INFO  V3 小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
   r=$(quiet_frames widget-v3); set -- $r
-  check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "$1" -le 5 ] 2>/dev/null && [ "$3" = 0 ] && echo 0 || echo 1)" "沒有收到更新的 10 秒內畫了 $1 張（第 $4 次量測；這段收到 $3 次更新）"
+  check "V3 小工具真的靜止（宿主畫面不重畫）" "$([ "$1" -le 5 ] 2>/dev/null && [ "$2" = 0 ] && echo 0 || echo 1)" "沒有收到更新的 10 秒內畫了 $1 張（第 $3 次量測；這段收到 $2 次更新）"
   # P6-4c：節日當天（假日期春節初一）的 V3 小工具：5 種大小都套用成功、一樣是一張靜態圖、不重畫
   state 14 RAIN true
   write_prefs debug "  <string name=\"fakeToday\">2027-02-06</string>"
@@ -422,7 +423,7 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   f0=$(frames_in 10 widget-spring-settle)
   log "  INFO  節日小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
   r=$(quiet_frames widget-spring); set -- $r
-  check "節日小工具真的靜止（宿主畫面不重畫）" "$([ "$1" -le 5 ] 2>/dev/null && [ "$3" = 0 ] && echo 0 || echo 1)" "沒有收到更新的 10 秒內畫了 $1 張（第 $4 次量測；這段收到 $3 次更新）"
+  check "節日小工具真的靜止（宿主畫面不重畫）" "$([ "$1" -le 5 ] 2>/dev/null && [ "$2" = 0 ] && echo 0 || echo 1)" "沒有收到更新的 10 秒內畫了 $1 張（第 $3 次量測；這段收到 $2 次更新）"
   write_prefs debug ""
   # 舊火柴人：ViewFlipper 顯示、V3 的圖隱藏（對照組會一直重畫）
   state 14 RAIN false
