@@ -115,7 +115,7 @@ class V3GoldenTest {
         if (System.getenv("V3_GOLDEN_WRITE") == "1") file.writeText(now.toString(1) + "\n")
         val golden = JSONObject(file.readText())
         val keys = surfaces.flatMap { s -> conditions.map { c -> "${s.id}/${c.id}" } }
-        assertEquals("golden 的組合", keys.toSet() + "note", golden.keySet())
+        assertEquals("golden 的組合", keys.toSet() + "note", golden.keys().asSequence().toSet())
         for (k in keys) compare(k, golden.getJSONObject(k), now.getJSONObject(k))
     }
 
