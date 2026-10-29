@@ -74,5 +74,5 @@ Blocker：0。
 
 - V3 改成唯一正式角色、移除舊火柴人與除錯切換、清理 ViewFlipper（見 [P7 計畫](character-p7-plan.md)）。
 - 站姿筆觸重畫兩次（P6-4a 補查，記為 P7 效能待辦）。
-- `tools/emulator/quiet.sh` 的 `count_updates()`：少了開始或結束標記時應判定 FAIL。
+- ~~`tools/emulator/quiet.sh` 的 `count_updates()`：少了開始或結束標記時應判定 FAIL。~~（P7-0 完成）
 - 上面所有 Not tested 中可以在 P7 驗的項目（實機、跨午夜、WIDE、其他 launcher、Android 8–13）。

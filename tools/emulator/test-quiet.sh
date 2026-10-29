@@ -60,7 +60,16 @@ echo "10-28 02:29:55.000 1 1 I W7HOST  : update id=8" >>"$tmp/host.txt"
 missing=$(missing_updates "$tmp/host.txt" $ids)
 [ -z "$missing" ] && pass "每個受測小工具都看得到更新時，沒有遺漏" || fail "應該沒有遺漏，得到「$missing」"
 
-cat >"$tmp/logcat.txt" <<'EOF'
+# count_updates_case <名稱> <開始標記> <結束標記> <預期輸出> <預期結束碼>（受測小工具固定是 7、8）
+count_updates_case() {
+  local out rc
+  out=$(count_updates "$tmp/logcat.txt" "$2" "$3" 7 8); rc=$?
+  if [[ "$out" == $4 && "$rc" == "$5" ]]; then pass "$1（輸出 $out，結束碼 $rc）"
+  else fail "$1：預期輸出 $4、結束碼 $5，得到「$out」、$rc"; fi
+}
+
+echo "== 標記之間的更新次數"
+cat >"$tmp/logcat.txt" <<'EOF2'
 I W7HOST  : update id=7
 I W7HOST  : mark win-widget-v3-1 start
 I W7HOST  : update id=7
@@ -69,11 +78,34 @@ I W7HOST  : update id=8
 I W7HOST  : update id=70
 I W7HOST  : mark win-widget-v3-1 end
 I W7HOST  : update id=8
-EOF
-n=$(count_updates "$tmp/logcat.txt" "mark win-widget-v3-1 start" "mark win-widget-v3-1 end" 7 8)
-[ "$n" = 2 ] && pass "只算量測期間、受測小工具的更新（id 7、8 各一次；id 99、70 和期間外的不算）" || fail "更新次數：得到 $n，應該是 2"
-n=$(count_updates "$tmp/logcat.txt" "mark win-widget-v3-2 start" "mark win-widget-v3-2 end" 7 8)
-[ "$n" = 0 ] && pass "沒有這次的標記時是 0（不會算到別次）" || fail "得到 $n"
+I W7HOST  : mark win-widget-v3-2 start
+I W7HOST  : mark win-widget-v3-2 end
+I W7HOST  : update id=7
+I W7HOST  : mark win-widget-v3-3 start
+I W7HOST  : update id=7
+I W7HOST  : mark win-widget-v3-4 end
+I W7HOST  : update id=8
+I W7HOST  : mark win-widget-v3-4 start
+EOF2
+count_updates_case "正常：只算量測期間、受測小工具的更新（id 7、8 各一次；id 99、70 和期間外的不算）" \
+  "mark win-widget-v3-1 start" "mark win-widget-v3-1 end" 2 0
+count_updates_case "正常：兩個標記都有、中間沒有更新是 0" \
+  "mark win-widget-v3-2 start" "mark win-widget-v3-2 end" 0 0
+count_updates_case "兩個標記都沒有：FAIL（不能當成 0，也不會算到別次）" \
+  "mark win-widget-v3-9 start" "mark win-widget-v3-9 end" "error:*" 1
+count_updates_case "少了結束標記：FAIL（不會一路算到檔案結尾）" \
+  "mark win-widget-v3-3 start" "mark win-widget-v3-3 end" "error:找不到結束標記" 1
+count_updates_case "少了開始標記：FAIL" \
+  "mark win-widget-v3-5 start" "mark win-widget-v3-4 end" "error:找不到開始標記" 1
+count_updates_case "結束標記在開始標記之前：FAIL" \
+  "mark win-widget-v3-4 start" "mark win-widget-v3-4 end" "error:結束標記在開始標記之前" 1
+
+# 整條鏈：量測的更新次數是 error → quiet_judge 判 FAIL，記錄裡看得到原因
+broken_window() { echo "0 $(count_updates "$tmp/logcat.txt" "mark win-widget-v3-3 start" "mark win-widget-v3-3 end" 7 8)"; }
+out=$(quiet_judge broken_window)
+if grep -q '^try=1 frames=0 updates=error:找不到結束標記 note=量測失敗' <<<"$out" &&
+   [[ "$(tail -1 <<<"$out")" == "verdict=FAIL tries=1 "* ]]; then pass "標記不完整時整次靜止檢查是 FAIL，記錄留下原因"
+else fail "標記不完整時應該 FAIL"; echo "$out" | sed 's/^/        /'; fi
 rm -rf "$tmp"
 
 echo

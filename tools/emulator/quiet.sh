@@ -51,14 +51,20 @@ missing_updates() {
   echo "${out# }"
 }
 
-# count_updates <logcat 文字檔> <開始標記> <結束標記> <id…>：兩個標記之間，這些小工具收到幾次更新（其他 id 不算）
+# count_updates <logcat 文字檔> <開始標記> <結束標記> <id…>：兩個標記之間，這些小工具收到幾次更新（其他 id 不算）。
+# 找不到開始標記、找不到結束標記、或結束在開始之前：印「error:原因」並傳回 1（不能當成 0 次更新，quiet_judge 會判 FAIL）。
 count_updates() {
   local log=$1 from=$2 to=$3
   shift 3
   awk -v from="$from" -v to="$to" -v ids=" $* " '
-    index($0, from) { on = 1; c = 0; next }
-    index($0, to) { on = 0; next }
-    on && match($0, /update id=[0-9]+/) { id = substr($0, RSTART + 10, RLENGTH - 10); if (index(ids, " " id " ")) c++ }
-    END { print c + 0 }
+    !s && index($0, from) { s = NR; next }
+    !e && index($0, to) { e = NR; if (!s) bad = 1; next }
+    s && !e && match($0, /update id=[0-9]+/) { id = substr($0, RSTART + 10, RLENGTH - 10); if (index(ids, " " id " ")) c++ }
+    END {
+      if (!s) { print "error:找不到開始標記"; exit 1 }
+      if (bad) { print "error:結束標記在開始標記之前"; exit 1 }
+      if (!e) { print "error:找不到結束標記"; exit 1 }
+      print c + 0
+    }
   ' "$log"
 }
