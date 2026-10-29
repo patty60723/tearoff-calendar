@@ -1,7 +1,7 @@
 # 墨丸 V3 — P6 節日系統計畫
 
 > 日期：2026-10-26　分支：`feature/mowan-weather-poses`
-> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c 正式完成（2026-10-28，11.9、11.10）。P6 整體結案等待確認。**
+> **狀態：P6-1～P6-3 完成。P6-4 計畫已批准（2026-10-26），P6-4a、P6-4b 驗收通過（2026-10-27）。P6-4c 正式完成（2026-10-28，11.9、11.10）。**P6 正式結案（2026-10-29）**，見 [P6 結案報告](character-p6-acceptance.md)。**
 > 相關文件：[整合規格](character-integration-spec.md)・[實作計畫](character-implementation-plan.md#p6--節日系統)・[未定案事項](character-open-decisions.md)
 > 原型只是參考（Confirmed）。本文件把原型跟目前 Kotlin 的差異列出來，**不假設原型已經定稿**。
 
@@ -144,6 +144,8 @@ D-02、D-05（紙帽部分）、D-16、D-28 到 D-36。
 - **停點**：模擬器跑之前先審。
 
 ### P6-5：黃金數值、截圖、模擬器驗收、結案
+
+> 2026-10-29：原定項目逐項核對見 [P6 結案報告](character-p6-acceptance.md)（模擬器上的 Reduced Motion 節日畫面、真的跨午夜列為 Not tested；裝備的完整乘積只有主要組合）。
 
 - 黃金數值總整理、截圖矩陣（3 節日 × 8 天氣 × 成長階段 × 裝備狀態）、模擬器腳本加一段「節日」（用假日期進入春節、聖誕、中秋：主演出播一次、重開不播、換天氣不播、Reduced Motion、小工具外觀）、驗收報告（Pass／Minor／Blocker／Not tested）。
 - **主要檔案**：`tools/emulator/w7-acceptance.sh`（新段落）、`docs/character-p6-acceptance.md`、測試。

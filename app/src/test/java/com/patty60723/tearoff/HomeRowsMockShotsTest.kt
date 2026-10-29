@@ -213,9 +213,16 @@ class HomeRowsMockShotsTest {
         val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         val weather = a.findViewById<View>(R.id.weather)
         val city = a.findViewById<View>(R.id.city)
-        val root = a.window.decorView
-        val full = Bitmap.createBitmap(root.width, root.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(desk); root.draw(this) } }
-        fun top(v: View) = IntArray(2).also { v.getLocationInWindow(it) }[1]
+        // 小螢幕、大字體時這兩列在畫面外：畫 ScrollView 的整個內容
+        val scroll = a.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as ViewGroup
+        val content = scroll.getChildAt(0)
+        val full = Bitmap.createBitmap(content.width, content.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(desk); content.draw(this) } }
+        fun top(v: View): Int {
+            var y = 0
+            var cur = v
+            while (cur !== content) { y += cur.top; cur = cur.parent as View }
+            return y
+        }
         val y0 = (top(weather) - dp(6f)).toInt().coerceAtLeast(0)
         val y1 = (top(city) + city.height + dp(6f)).toInt().coerceAtMost(full.height)
         return Bitmap.createBitmap(full, 0, y0, full.width, y1 - y0)
