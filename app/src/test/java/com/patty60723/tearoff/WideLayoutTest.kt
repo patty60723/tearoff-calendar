@@ -102,17 +102,20 @@ class WideLayoutTest {
     /** 上下被切掉：這行字要完整落在每一層外框看得到的範圍裡（有 clipToPadding 的要扣掉內距） */
     private fun clipped(root: View, tv: TextView): String? {
         if (tv.visibility != View.VISIBLE || tv.text.isEmpty()) return null
-        // 版面給的高度比字矮（直排 LinearLayout 放不下時，最後一行會被壓扁，字在 TextView 裡面被切掉）
-        val l = tv.layout
-        val need = (l?.getLineBottom(l.lineCount - 1) ?: 0) + tv.totalPaddingTop + tv.totalPaddingBottom
-        if (need > tv.height + 1) return "上下被切掉（需要 %.1f dp，只有 %.1f dp）".format(need / dp, tv.height / dp)
-        val r = rectIn(root, tv)
+        // 字實際畫出來的範圍（墨跡，不是行高）要在 TextView 裡面：直排 LinearLayout 放不下時，最後一行會被壓扁，字在 TextView 裡面被切掉
+        val l = tv.layout ?: return null
+        val ink = Rect().also { tv.paint.getTextBounds(tv.text.toString(), 0, tv.text.length, it) }
+        val baseline = tv.totalPaddingTop + l.getLineBaseline(0)
+        val inkTop = baseline + ink.top
+        val inkBottom = baseline + ink.bottom
+        if (inkTop < -1 || inkBottom > tv.height + 1) return "上下被切掉（字在 %.1f～%.1f dp，TextView 只有 0～%.1f dp）".format(inkTop / dp, inkBottom / dp, tv.height / dp)
+        val r = rectIn(root, tv).let { Rect(it.left, it.top + maxOf(0, inkTop), it.right, it.top + minOf(tv.height, inkBottom)) }
         var cur = tv.parent as? android.view.ViewGroup
         while (cur != null) {
             val a = if (cur === root) Rect(0, 0, root.width, root.height) else rectIn(root, cur)
             val top = a.top + if (cur.clipToPadding) cur.paddingTop else 0
             val bottom = a.bottom - if (cur.clipToPadding) cur.paddingBottom else 0
-            if (r.top < top - 1 || r.bottom > bottom + 1) return "上下被切掉 %.1f dp".format(maxOf(top - r.top, r.bottom - bottom) / dp)
+            if (r.top < top - 1 || r.bottom > bottom + 1) return "上下超出外框 %.1f dp".format(maxOf(top - r.top, r.bottom - bottom) / dp)
             if (cur === root) break
             cur = cur.parent as? android.view.ViewGroup
         }
