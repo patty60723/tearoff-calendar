@@ -116,6 +116,9 @@ class V3PngGoldenTest {
         AppClock.setFakeToday(context, c.day)
         MowanSettings.setBundleOn(context, c.bundle)
         StoryBook(context).apply { jumpTo(c.page - 1, c.day); tear(c.day) }
+        // 標成剛抓過天氣：不然 App 會在背景真的下載天氣，回來的時間每次不同，故事卡的雨滴位置跟著不同（CI #118 的 story-moon-rainy）
+        context.getSharedPreferences("weather", android.content.Context.MODE_PRIVATE).edit()
+            .putString("city", Cities.selected(context).name).putLong("fetchedAt", System.currentTimeMillis()).commit()
         val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         val page = shoot(a.findViewById(R.id.page))
         val mowan = a.findViewById<MowanView>(R.id.story_mowan)
