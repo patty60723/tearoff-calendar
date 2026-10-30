@@ -80,28 +80,42 @@ class CalendarWidget : AppWidgetProvider() {
         private fun render(context: Context, manager: AppWidgetManager, ids: IntArray) {
             val page = Almanac.page(AppClock.today(context))
             for (id in ids) {
+                val options = manager.getAppWidgetOptions(id)
+                val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat()
                 val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     // 系統依小工具實際大小自動挑版面：挑放得下的裡面最大的那個
-                    RemoteViews(PageLayout.entries.associate { SizeF(it.minWidthDp, it.minHeightDp) to build(context, page, it) })
+                    val wide = wideWidthDp(options, width)
+                    RemoteViews(PageLayout.entries.associate { SizeF(it.minWidthDp, it.minHeightDp) to build(context, page, it, wideWidthDp = wide) })
                 } else {
-                    val options = manager.getAppWidgetOptions(id)
-                    val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat()
                     val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).toFloat()
-                    build(context, page, PageLayout.fitting(width, height))
+                    build(context, page, PageLayout.fitting(width, height), wideWidthDp = width)
                 }
                 manager.updateAppWidget(id, views)
             }
         }
 
         /**
+         * WIDE 版面實際有多寬（決定文字要不要精簡，[WideText]）：系統回報的各種大小裡，會用 WIDE 的那些取最窄的；
+         * 沒有回報時用最小寬度。比 WIDE 的最小寬度還窄（還沒回報）就當最小寬度，寧可精簡也不要截斷。
+         */
+        @android.annotation.TargetApi(Build.VERSION_CODES.S)
+        private fun wideWidthDp(options: android.os.Bundle, minWidth: Float): Float {
+            @Suppress("DEPRECATION")
+            val sizes = options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES).orEmpty()
+            val widths = sizes.filter { PageLayout.fitting(it.width, it.height) == PageLayout.WIDE }.map { it.width }
+            return maxOf(widths.minOrNull() ?: minWidth, PageLayout.WIDE.minWidthDp)
+        }
+
+        /**
          * @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊
          * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-16、D-41）：小工具（P6-4c）與 App 日曆頁（P6-4b）都是 true；
          *   false 只給候選圖、截圖畫「沒有節日」的對照
+         * @param wideWidthDp WIDE 小工具的實際寬度（dp），決定右欄文字放多少（[WideText]）；其他版面不用
          * @param art 美術設定；null 是 [MowanSettings.art] 加上這個版面的小尺寸取捨（[smallEnvFor]）。P6-4c 候選圖用來比較
          */
         fun build(
             context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp,
-            festivalLook: Boolean = true, art: ArtConfig? = null,
+            festivalLook: Boolean = true, art: ArtConfig? = null, wideWidthDp: Float = PageLayout.WIDE.minWidthDp,
         ): RemoteViews {
             val palette = Palettes.forMonth(page.date.monthValue)
             return RemoteViews(context.packageName, layout.res).apply {
@@ -123,6 +137,15 @@ class CalendarWidget : AppWidgetProvider() {
                 setTextViewText(R.id.phrase, phrase(page, layout.yiCount))
                 setTextViewText(R.id.lunar, "農曆${page.lunarDate}・${page.ganZhiYear}")
                 setTextViewText(R.id.ji, avoid(page))
+                if (layout == PageLayout.WIDE) {
+                    // WIDE 放得下多少放多少（P7-1）；星期疊在山丘上，用加深的月份色（4.5:1）
+                    val t = WideText.of(page, wideWidthDp, context.resources.configuration.fontScale, layout.yiCount)
+                    setTextViewText(R.id.phrase, t.phrase)
+                    setTextViewTextSize(R.id.phrase, android.util.TypedValue.COMPLEX_UNIT_SP, t.phraseSp)
+                    setTextViewText(R.id.lunar, t.lunar)
+                    setTextViewText(R.id.ji, t.ji)
+                    setTextColor(R.id.weekday, Palettes.blend(Palettes.INK, palette.deep, 0.4f))
+                }
 
                 for (id in intArrayOf(R.id.band, R.id.hills, R.id.rule)) setInt(id, "setColorFilter", palette.main)
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
@@ -161,7 +184,7 @@ class CalendarWidget : AppWidgetProvider() {
             return if (ji.isEmpty()) "" else "忌 " + ji.take(3).joinToString("・")
         }
 
-        private val FILLER = setOf("餘事勿取", "諸事不宜", "無")
+        private val FILLER = WideText.FILLER
         private val MONTHS = listOf("一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月")
         private val MONTHS_EN = listOf(
             "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",

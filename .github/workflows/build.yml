@@ -21,9 +21,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # 模擬器驗收腳本裡「小工具真的靜止」的判斷規則（不需要模擬器）
+      # 模擬器驗收腳本裡「小工具真的靜止」的判斷規則、點擊前的遮擋處理（不需要模擬器）
       - name: Emulator script self-test
-        run: bash tools/emulator/test-quiet.sh
+        run: |
+          bash tools/emulator/test-quiet.sh
+          bash tools/emulator/test-recover.sh
 
       - name: Test and build
         run: ./gradlew testDebugUnitTest assembleDebug

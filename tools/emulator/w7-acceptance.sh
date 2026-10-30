@@ -34,6 +34,8 @@ finish() {
 # 靜止判斷的腳本測試（不需要模擬器）：判斷規則壞了就不要拿來驗收
 if bash "$(dirname "$0")/test-quiet.sh" > "$OUT/test-quiet.txt" 2>&1; then log "腳本測試（test-quiet.sh）：全部通過"
 else check "腳本測試（test-quiet.sh）" 1 "見 test-quiet.txt"; fi
+if bash "$(dirname "$0")/test-recover.sh" > "$OUT/test-recover.txt" 2>&1; then log "腳本測試（test-recover.sh）：全部通過"
+else check "腳本測試（test-recover.sh）" 1 "見 test-recover.txt"; fi
 
 adb install -r "$APK" >/dev/null || { check "安裝 APK" 1 "$APK"; finish; }
 adb shell svc power stayon true
@@ -151,33 +153,8 @@ to_gif() {
 }
 
 crashed() { adb logcat -d | grep -q "FATAL EXCEPTION" ; }
-# 系統的「沒有回應」對話框（其他 App 的 ANR，模擬器上常是 Pixel Launcher）：
-# 有的話先留證據（截圖、焦點視窗、am_anr 事件），再按對話框的「關閉應用程式」；按不到才按返回（＝等待，可能再跳出來）。
-# 回傳 0 表示有處理。只是排除遮擋，不會讓任何檢查變成通過。
-ANR_N=0
-anr_focus() { adb shell dumpsys window | tr -d '\r' | grep -o "mCurrentFocus=.*Application Not Responding[^}]*"; }
-handle_anr() { # handle_anr <情境>
-  local focus tag xy how
-  focus=$(anr_focus) || return 1
-  ANR_N=$((ANR_N + 1))
-  tag="anr-$ANR_N-$1"
-  adb exec-out screencap -p > "$OUT/shots/$tag.png"
-  { echo "$focus"; adb shell dumpsys window | tr -d '\r' | grep -E "mFocusedApp"; adb logcat -d -b events | grep am_anr | tail -3; } > "$OUT/ui/$tag.txt" 2>&1
-  xy=$(timeout 20 adb shell "uiautomator dump /sdcard/anr.xml >/dev/null 2>&1 && cat /sdcard/anr.xml" 2>/dev/null | python3 -c '
-import re, sys
-m = re.search(r"resource-id=\"android:id/aerr_close\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"", sys.stdin.read())
-m and print((int(m[1]) + int(m[3])) // 2, (int(m[2]) + int(m[4])) // 2)')
-  if [ -n "$xy" ]; then adb shell input tap $xy; how="按「關閉應用程式」（$xy）"; else adb shell input keyevent KEYCODE_BACK; how="找不到按鈕，按返回"; fi
-  sleep 1.5
-  anr_focus >/dev/null && how="$how，還在"
-  warn "系統跳出其他 App 的「沒有回應」對話框（${focus##*: }）：$how；證據 shots/$tag.png、ui/$tag.txt"
-}
-# 我們的 App 不在最前面（例如對話框關掉後焦點跑掉）就帶回來（不重開，狀態不變）
-ensure_foreground() {
-  adb shell dumpsys window | tr -d '\r' | grep "mCurrentFocus=" | grep -q "$PKG" && return 0
-  log "  App 不在最前面，帶回前景"
-  adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
-}
+# 點擊前的遮擋處理（其他 App 的「沒有回應」對話框、焦點跑掉、入口位置變了）：tools/emulator/recover.sh（test-recover.sh 有測試）
+. "$(dirname "$0")/recover.sh"
 
 log ""
 log "== 1. 8 種天氣（第 14 頁）=="
@@ -237,35 +214,7 @@ if [ -n "$b" ]; then
   # 每點一下就看設定有沒有切換。沒反應時記 WARN 再點一次（模擬器偶爾吃掉點擊：P5-2 有兩次三下後狀態沒變，
   # 同一份 App 其他次都通過）；再點還是沒切換才算失敗。
   bundle_on() { adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'name="bundleOn" value="[a-z]*"' | grep -o 'true\|false'; }
-  # 點之前：處理「沒有回應」對話框 → 確認 App 在最前面 → 重新量入口位置（捲動位置可能變了）
-  locate_bundle() { # locate_bundle <名稱>：成功時設定 bx by
-    local r
-    dump_ui "$1" || return 1
-    r=$(bounds_of "$1" story_bundle)
-    if [ -z "$r" ]; then scroll_down; dump_ui "$1" || return 1; r=$(bounds_of "$1" story_bundle); fi
-    [ -n "$r" ] || return 1
-    set -- $r
-    bx=$(( ($1 + $3) / 2 )); by=$(( ($2 + $4) / 2 ))
-  }
-  tap_bundle() { # tap_bundle <第幾下>：最多點 3 次；切換成功回傳 0，3 次都沒切換回傳 1（照樣算失敗）
-    local before after try
-    before=$(bundle_on)
-    for try in 1 2 3; do
-      handle_anr "bundle-$1-$try"
-      ensure_foreground
-      if ! locate_bundle "bundle-tap-$1-$try"; then
-        warn "包袱入口第 $1 下第 $try 次：找不到看得到的入口"; shot "bundle-miss-$1-$try"; continue
-      fi
-      handle_anr "bundle-$1-$try-before-tap"
-      adb shell input tap $bx $by; sleep 1.5
-      after=$(bundle_on)
-      if [ "$before" != "$after" ]; then log "  第 $1 下：$before → $after（第 $try 次點擊，位置 $bx $by）"; return 0; fi
-      warn "包袱入口第 $1 下第 $try 次沒有反應（$before，位置 $bx $by），重新確認畫面再點"
-      shot "bundle-miss-$1-$try"
-    done
-    log "  第 $1 下：$before → ${after:-$before}（3 次都沒有切換）"
-    return 1
-  }
+  tap_bundle() { tap_toggle "bundle-$1" "包袱入口第 $1 下" story_bundle bundle_on; } # 最多點 3 次；3 次都沒切換回傳 1（照樣算失敗）
   # 錄影：卸下、背上、再卸下；伸懶腰不應該重來
   adb shell screenrecord --time-limit 30 /sdcard/rec.mp4 &
   REC=$!
