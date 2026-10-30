@@ -58,7 +58,6 @@ class V3PngGoldenTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         MowanSettings.setBundleOn(context, true)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
@@ -93,7 +92,6 @@ class V3PngGoldenTest {
 
     /** 實際的小工具（版面的最小尺寸），撕到 [Condition.page] 頁 */
     private fun widget(c: Condition, layout: PageLayout): Bitmap {
-        MowanSettings.setStoryCard(context, true)
         AppClock.setFakeToday(context, c.day)
         StoryBook(context).jumpTo(c.page, c.day)
         MowanSettings.setBundleOn(context, c.bundle)
@@ -111,7 +109,6 @@ class V3PngGoldenTest {
 
     /** App 的日曆頁與故事卡：今天撕完，到 [Condition.page] 頁；故事卡在節日當天是主演出結束後的站姿（同一天第二種天氣用除錯重播） */
     private fun app(c: Condition): Pair<Bitmap, Bitmap> {
-        MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, c.mood)
         AppClock.setFakeToday(context, c.day)
         MowanSettings.setBundleOn(context, c.bundle)

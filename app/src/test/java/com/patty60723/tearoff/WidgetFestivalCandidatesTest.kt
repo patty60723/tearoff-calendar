@@ -41,7 +41,6 @@ class WidgetFestivalCandidatesTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
     }
@@ -67,7 +66,6 @@ class WidgetFestivalCandidatesTest {
 
     /** 實際的小工具版面（RemoteViews 套出來的 View） */
     private fun widget(f: Festival, mood: Mood?, layout: PageLayout, env: SmallEnv?): View {
-        MowanSettings.setStoryCard(context, true)
         val today = day(f)
         AppClock.setFakeToday(context, today)
         StoryBook(context).jumpTo(14, today)
@@ -142,7 +140,7 @@ class WidgetFestivalCandidatesTest {
             val cells = candidates.map { (_, env) ->
                 PageLayout.entries.map { l -> draw(widget(f, mood, l, env)).let { Bitmap.createScaledBitmap(it, it.width / 2, it.height / 2, true) } }
             }
-            grid("2-$f-layouts", "$fname・$wname：4 種版面（整個小工具，縮成 50%）", PageLayout.entries.map { "${it.name}\n角色 ${(it.stickmanDp * 4 / 3).toInt()}dp" }, candidates.map { it.first.substringBefore(' ') }, cells)
+            grid("2-$f-layouts", "$fname・$wname：4 種版面（整個小工具，縮成 50%）", PageLayout.entries.map { "${it.name}\n角色 ${(it.characterDp * 4 / 3).toInt()}dp" }, candidates.map { it.first.substringBefore(' ') }, cells)
         }
     }
 

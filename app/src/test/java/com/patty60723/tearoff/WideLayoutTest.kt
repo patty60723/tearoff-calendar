@@ -40,7 +40,6 @@ class WideLayoutTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
     }
@@ -59,13 +58,12 @@ class WideLayoutTest {
     /** [mowan] false 時不畫角色（量截斷用，快很多；文字版面一樣） */
     private fun widget(day: LocalDate, w: Int, h: Int, mowan: Boolean = false): View {
         if (mowan) {
-            MowanSettings.setStoryCard(context, true)
             AppClock.setFakeToday(context, day)
             StoryBook(context).jumpTo(14, day)
             WeatherService.setFakeMood(context, Mood.SUNNY)
         }
         val layout = PageLayout.WIDE
-        val views = CalendarWidget.build(context, Almanac.page(day), layout, if (mowan) layout.stickmanDp else 0f, wideWidthDp = w.toFloat())
+        val views = CalendarWidget.build(context, Almanac.page(day), layout, if (mowan) layout.characterDp else 0f, wideWidthDp = w.toFloat())
         return views.apply(context, FrameLayout(context)).apply {
             measure(
                 View.MeasureSpec.makeMeasureSpec((w * dp).toInt(), View.MeasureSpec.EXACTLY),

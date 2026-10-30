@@ -44,7 +44,6 @@ class WidgetFestivalFinalShotsTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
     }
@@ -61,7 +60,6 @@ class WidgetFestivalFinalShotsTest {
 
     /** 實際的小工具（最小尺寸，最擠的情況）；[festive] false 是現在的小工具（沒有節日） */
     private fun widget(f: Festival, mood: Mood?, layout: PageLayout, festive: Boolean = true): View {
-        MowanSettings.setStoryCard(context, true)
         val today = day(f)
         AppClock.setFakeToday(context, today)
         StoryBook(context).jumpTo(14, today)
@@ -166,7 +164,7 @@ class WidgetFestivalFinalShotsTest {
         File(out, "$name.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    private fun label(l: PageLayout) = "${l.name}\n角色 ${(l.stickmanDp * 4 / 3).toInt()}dp\n${if (CalendarWidget.smallEnvFor(l) == SmallEnv.MINIMAL) "C 極簡" else "B 節日+線索"}"
+    private fun label(l: PageLayout) = "${l.name}\n角色 ${(l.characterDp * 4 / 3).toInt()}dp\n${if (CalendarWidget.smallEnvFor(l) == SmallEnv.MINIMAL) "C 極簡" else "B 節日+線索"}"
 
     /** 規則：COMPACT 是 C，其他是 B */
     @Test

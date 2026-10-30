@@ -6,7 +6,6 @@ import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanTimeline
 import com.patty60723.tearoff.mowan.MowanView
-import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
@@ -14,7 +13,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -26,12 +24,8 @@ import org.robolectric.RuntimeEnvironment
 class StoryCardTest {
     private val context get() = RuntimeEnvironment.getApplication()
 
-    @Before
-    fun useV3() = MowanSettings.setStoryCard(context, true)
-
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         WeatherService.setFakeMood(context, null)
     }
 
@@ -50,7 +44,6 @@ class StoryCardTest {
             val a = open(14)
             assertEquals("$mood", MowanSettings.weatherOf(mood), a.mowan.weather)
             assertEquals(View.VISIBLE, a.mowan.visibility)
-            assertEquals(View.GONE, a.findViewById<StickmanView>(R.id.story_stickman).visibility)
         }
     }
 
@@ -113,12 +106,6 @@ class StoryCardTest {
         again.bundleRow.performClick()
         assertTrue(MowanSettings.bundleOn(context))
         assertTrue(again.mowan.bundleOn)
-    }
-
-    @Test
-    fun oldStickmanCardHasNoBundleToggle() {
-        MowanSettings.setStoryCard(context, false)
-        assertEquals(View.GONE, open(14).bundleRow.visibility)
     }
 
     /** W7：App 到背景時錯過的打雷，回到前景不補播；時鐘也不重來 */

@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.util.SizeF
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RemoteViews
@@ -48,11 +49,9 @@ class WidgetFestivalTest {
     private val eve = LocalDate.of(2027, 2, 5)
     private val spring = LocalDate.of(2027, 2, 6)
     private val fourth = LocalDate.of(2027, 2, 9)
-    private val frameIds = listOf(R.id.frame0, R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4, R.id.frame5)
 
     @Before
     fun setUp() {
-        MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, Mood.RAIN)
         today(spring)
         StoryBook(context).jumpTo(14, spring)
@@ -60,7 +59,6 @@ class WidgetFestivalTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         MowanSettings.resetEquipment(context)
         MowanSettings.setFestivalHeadwear(context, true)
         WeatherService.setFakeMood(context, null)
@@ -81,7 +79,7 @@ class WidgetFestivalTest {
     /** 照 App 的共同狀態直接畫：小工具應該就是這張 */
     private fun expected(layout: PageLayout, festival: Festival?) = MowanBitmap.still(
         Mowan.partsOf(StoryBook(context).parts), MowanSettings.hatOn(context), MowanSettings.bundleOn(context), weather(),
-        (layout.stickmanDp * density).toInt(), (layout.stickmanDp * 4 / 3 * density).toInt(), density,
+        (layout.characterDp * density).toInt(), (layout.characterDp * 4 / 3 * density).toInt(), density,
         festival, MowanSettings.art(context).copy(smallEnv = CalendarWidget.smallEnvFor(layout)),
     )
 
@@ -98,7 +96,7 @@ class WidgetFestivalTest {
             CalendarWidget.refreshAll(context)
             val got = manager.getViewFor(id).still()
             // Android 12 以上由系統照大小挑版面：看圖的寬度是哪一個版面的
-            val layout = PageLayout.entries.single { (it.stickmanDp * density).toInt() == got.width }
+            val layout = PageLayout.entries.single { (it.characterDp * density).toInt() == got.width }
             assertTrue("$d ${layout.name}", got.sameAs(expected(layout, f)))
             if (f != null) assertFalse("$d 節日外觀", got.sameAs(expected(layout, null)))
         }
@@ -147,15 +145,9 @@ class WidgetFestivalTest {
         val page5 = tall()
         assertTrue(page5.sameAs(expected(PageLayout.TALL, Festival.SPRING)))
         assertFalse("頁數", page5.sameAs(snow))
-        // V3 關閉：舊火柴人
-        MowanSettings.setStoryCard(context, false)
-        val v = applied(PageLayout.TALL)
-        assertEquals(View.VISIBLE, v.findViewById<View>(R.id.stickman).visibility)
-        assertEquals(View.GONE, v.findViewById<View>(R.id.mowan_still).visibility)
-        assertNull(v.findViewById<ImageView>(R.id.mowan_still).drawable)
     }
 
-    /** 節日當天也是一張靜態圖：ViewFlipper 隱藏、沒有圖、輪播間隔一天（不重新引入輪播） */
+    /** 節日當天也是一張靜態圖（不重新引入輪播；P7-1 起版面裡沒有 ViewFlipper） */
     @Test
     fun staticOnFestivalDays() {
         for (f in listOf(spring, LocalDate.of(2027, 9, 15), LocalDate.of(2027, 12, 25))) {
@@ -164,26 +156,9 @@ class WidgetFestivalTest {
                 val v = applied(layout)
                 val at = "$f ${layout.name}"
                 assertEquals(at, View.VISIBLE, v.findViewById<View>(R.id.mowan_still).visibility)
-                val flipper = v.findViewById<android.widget.ViewFlipper>(R.id.stickman)
-                assertEquals(at, View.GONE, flipper.visibility)
-                assertEquals(at, CalendarWidget.STILL_FLIP_MS, flipper.flipInterval)
-                frameIds.forEach { assertNull(at, v.findViewById<ImageView>(it).drawable) }
+                fun all(x: View): List<View> = listOf(x) + ((x as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
+                assertTrue(at, all(v).none { it is android.widget.ViewFlipper })
             }
-        }
-    }
-
-    /** V3 關閉：節日當天的舊火柴人跟平常一模一樣（D-47） */
-    @Test
-    fun oldStickmanIsTheSameOnFestivalDays() {
-        MowanSettings.setStoryCard(context, false)
-        fun frames(d: LocalDate, layout: PageLayout): List<Bitmap> {
-            today(d)
-            return applied(layout).let { v -> frameIds.map { (v.findViewById<ImageView>(it).drawable as BitmapDrawable).bitmap } }
-        }
-        for (layout in PageLayout.entries) {
-            val festive = frames(spring, layout)
-            val plain = frames(fourth, layout)
-            festive.zip(plain).forEachIndexed { i, (a, b) -> assertTrue("${layout.name} 第 $i 張", a.sameAs(b)) }
         }
     }
 

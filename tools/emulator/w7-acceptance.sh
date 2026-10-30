@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # W7 驗收：在 Android Emulator 上實際打開 App，截圖、錄影、量重畫的影格數。
 # 用法：tools/emulator/w7-acceptance.sh <APK> <輸出資料夾>
-# 狀態（頁數、假天氣、故事卡用 V3、包袱）直接寫進 App 的 SharedPreferences（debug 版才能 run-as）。
+# 狀態（頁數、假天氣、包袱、紙帽）直接寫進 App 的 SharedPreferences（debug 版才能 run-as）。墨丸 V3 是唯一的角色（P7-1）。
 set -u
 APK=$1
 OUT=$2
@@ -76,8 +76,7 @@ setup() {
   write_prefs story "  <int name=\"page\" value=\"$1\" />
   <string name=\"lastTornDate\">$YESTERDAY</string>
   <string name=\"lastText\">$(story_text "$1")</string>"
-  write_prefs mowan "  <boolean name=\"storyCard\" value=\"true\" />
-  <boolean name=\"paperHatOn\" value=\"true\" />
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
   <boolean name=\"bundleOn\" value=\"${3:-true}\" />"
   write_prefs weather "  <string name=\"fakeMood\">$2</string>"
   adb shell am start -W -n $PKG/.MainActivity >/dev/null
@@ -269,20 +268,13 @@ shot reduced-2
 diff=$(compare -metric AE "$OUT/shots/reduced-1.png" "$OUT/shots/reduced-2.png" null: 2>&1 | awk '{print $1}')
 check "關閉動畫時故事卡不動" "$([ "${diff%.*}" = 0 ] && echo 0 || echo 1)" "相隔 3 秒的兩張故事卡差 $diff 個像素"
 f=$(frames_in 10 reduced)
-# P5-1：日曆頁的 ViewFlipper 關閉動畫時也停住，整個 App 應該幾乎不重畫（W7 M7）
+# 整個 App 應該幾乎不重畫（W7 M7；P7-1 起日曆頁沒有輪播，不再跟舊火柴人對照，只看 V3 自己的門檻）
 check "關閉動畫時整個 App 幾乎不重畫" "$([ "${f%% *}" -le 10 ] 2>/dev/null && echo 0 || echo 1)" "V3 故事卡：10 秒內畫了 $f 張"
 for m in HOT CLOUDY FOG RAIN THUNDER COLD SNOW; do
   setup 14 $m
   sleep 1
   shot "reduced-$m"
 done
-# 對照組：舊火柴人故事卡也關閉動畫
-adb shell am force-stop $PKG
-write_prefs mowan "  <boolean name=\"storyCard\" value=\"false\" />"
-adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
-g=$(frames_in 10 reduced-stickman)
-log "  INFO  關閉動畫、舊火柴人故事卡（對照組）：10 秒內畫了 $g 張"
-check "關閉動畫時 V3 不比舊火柴人多畫" "$([ "${f%% *}" -le $(( ${g%% *} + 3 )) ] 2>/dev/null && echo 0 || echo 1)" "V3 ${f%% *} 張、舊火柴人 ${g%% *} 張"
 # 從背景回來時打開動畫
 setup 14 SUNNY
 adb shell input keyevent KEYCODE_HOME
@@ -339,25 +331,18 @@ adb shell wm density reset
 adb shell settings put system font_scale 1.0
 
 log ""
-log "== 9. 舊火柴人故事卡 =="
-adb shell am force-stop $PKG
-write_prefs mowan "  <boolean name=\"storyCard\" value=\"false\" />"
-adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
-shot stickman
-dump_ui stickman
-check "舊火柴人沒有包袱入口" "$([ -f "$OUT/ui/stickman.txt" ] && [ -z "$(bounds_of stickman story_bundle)" ] && echo 0 || echo 1)" ""
+# 第 9 段（舊火柴人故事卡）P7-1 拿掉：舊火柴人已移除
 
 log ""
 log "== 10. 小工具（P5-4）=="
 # 狀態：關掉 App、寫設定（關掉才不會被 App 記憶體裡的舊設定蓋掉）
-state() { # state <頁數> <天氣> <V3 true/false> [包袱] [紙帽]
+state() { # state <頁數> <天氣> [包袱] [紙帽]
   adb shell am force-stop $PKG
   write_prefs story "  <int name=\"page\" value=\"$1\" />
   <string name=\"lastTornDate\">$YESTERDAY</string>
   <string name=\"lastText\">$(story_text "$1")</string>"
-  write_prefs mowan "  <boolean name=\"storyCard\" value=\"$3\" />
-  <boolean name=\"paperHatOn\" value=\"${5:-true}\" />
-  <boolean name=\"bundleOn\" value=\"${4:-true}\" />"
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"${4:-true}\" />
+  <boolean name=\"bundleOn\" value=\"${3:-true}\" />"
   write_prefs weather "  <string name=\"fakeMood\">$2</string>"
 }
 # 測試用宿主（debug APK 的 WidgetHostActivity）：用系統的 AppWidgetHost 掛 5 個不同大小的小工具
@@ -397,47 +382,37 @@ static_check() {
 }
 
 if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
-  # V3：5 種大小都套用成功、ViewFlipper 隱藏、靜態圖顯示、角色整個在小工具裡
-  state 14 RAIN true
+  # V3：5 種大小都套用成功、程式畫的墨丸顯示（不是預覽用的預設圖）、角色整個在小工具裡
+  state 14 RAIN
   host_run v3
   for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
     r=$(host_line v3 $L)
-    ok=$(echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=GONE" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" && echo 0 || echo 1)
+    ok=$(echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" && echo 0 || echo 1)
     check "小工具 $L（V3）" "$ok" "${r#*report }"
   done
   # 綁定後的幾秒內還會陸續收到 onUpdate／尺寸變更（每次都重新套用一次），模擬器的 GPU 也偶爾卡住後補畫；
-  # 所以先量一段只記錄，再量第二段（綁定後約 17 秒起）當作穩定狀態檢查。會輪播的話兩段都會很多（舊火柴人約 170 張）。
+  # 所以先量一段只記錄，再量第二段（綁定後約 17 秒起）當作穩定狀態檢查。
   f0=$(frames_in 10 widget-v3-settle)
   log "  INFO  V3 小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
   static_check "V3 小工具真的靜止（宿主畫面不重畫）" v3
   # P6-4c：節日當天（假日期春節初一）的 V3 小工具：5 種大小都套用成功、一樣是一張靜態圖、不重畫
-  state 14 RAIN true
+  state 14 RAIN
   write_prefs debug "  <string name=\"fakeToday\">2027-02-06</string>"
   host_run v3-spring
   bad=0
   for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
     r=$(host_line v3-spring $L)
-    echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=GONE" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" || { bad=$((bad + 1)); log "  春節：$r"; }
+    echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" || { bad=$((bad + 1)); log "  春節：$r"; }
   done
   check "節日小工具（春節）5 種大小" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對"
   f0=$(frames_in 10 widget-spring-settle)
   log "  INFO  節日小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
   static_check "節日小工具真的靜止（宿主畫面不重畫）" v3-spring
   write_prefs debug ""
-  # 舊火柴人：ViewFlipper 顯示、V3 的圖隱藏（對照組會一直重畫）
-  state 14 RAIN false
-  host_run old
-  bad=0
-  for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
-    r=$(host_line old $L)
-    echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "flipper=VISIBLE" && echo "$r" | grep -q "still=GONE" && echo "$r" | grep -q "characterInside=true" || bad=$((bad + 1))
-  done
-  g=$(frames_in 10 widget-old)
-  check "小工具（舊火柴人）不受影響" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對；10 秒內畫了 $g 張（輪播）"
   # 密度
   for d in 320 560; do
     adb shell wm density $d
-    state 14 RAIN true
+    state 14 RAIN
     host_run v3-$d
     bad=0
     for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
@@ -448,7 +423,7 @@ if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
   done
   adb shell wm density reset
 else
-  for _ in 1 2 3 4 5 6 7 8 9 10 11; do check "小工具宿主" 1 "appwidget grantbind 失敗，沒辦法綁定小工具"; done
+  for _ in 1 2 3 4 5 6 7 8 9 10; do check "小工具宿主" 1 "appwidget grantbind 失敗，沒辦法綁定小工具"; done
 fi
 
 # 真正的桌面 launcher：用 App 的「把小工具放到桌面」，在 launcher 的對話框按加入。
@@ -480,7 +455,7 @@ for block in re.split(r'\n\s+\[\d+\]', w):
             n += 1
 print(n)
 "; }
-state 14 RAIN true
+state 14 RAIN
 adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
 dump_ui pin
 p=$(bounds_of pin pin)
@@ -535,12 +510,12 @@ if [ $placed = 1 ]; then
     PREV="launcher-$name"
   }
   PREV=launcher-1-v3
-  update_case 2-bundle-off "卸下包袱後更新" 14 RAIN true false
-  update_case 3-hat-off "脫下紙帽後更新" 14 RAIN true false false
-  update_case 4-page5 "換成第 5 頁後更新" 5 RAIN true
-  update_case 5-snow "天氣換成雪後更新" 5 SNOW true
-  update_case 6-old "關掉 V3 後換回舊火柴人" 5 SNOW false
-  update_case 7-v3 "打開 V3 後換回墨丸" 14 RAIN true
+  update_case 2-bundle-off "卸下包袱後更新" 14 RAIN false
+  update_case 3-hat-off "脫下紙帽後更新" 14 RAIN false false
+  update_case 4-page5 "換成第 5 頁後更新" 5 RAIN
+  update_case 5-snow "天氣換成雪後更新" 5 SNOW
+  # 第 6 個（關掉 V3 換回舊火柴人）P7-1 拿掉；回到第 14 頁、雨天（下面在 App 點包袱要第 14 頁）
+  update_case 7-page14 "回到第 14 頁、雨天後更新" 14 RAIN
   # 在 App 裡點「卸下包袱」：App 自己叫 refreshAll
   adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
   dump_ui launcher-app; sleep 1; dump_ui launcher-app
@@ -549,7 +524,7 @@ if [ $placed = 1 ]; then
     set -- $b
     adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 2
     home_shot launcher-8-app-toggle
-    diff=$(screen_diff launcher-7-v3 launcher-8-app-toggle)
+    diff=$(screen_diff launcher-7-page14 launcher-8-app-toggle)
     check "在 App 卸下包袱後，桌面小工具跟著換" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
   else
     warn "找不到 App 的包袱入口，沒測 App 觸發的更新"
@@ -557,19 +532,19 @@ if [ $placed = 1 ]; then
   # P6-4c：節日小工具（假日期）。換日用午夜那次的廣播（NEW_DAY），跟真的換頁走同一條路
   fest_day() { write_prefs debug "  <string name=\"fakeToday\">$1</string>"; }
   fest_day 2027-02-05
-  update_case 9-eve "換到除夕（不是節日，對照）" 14 RAIN true
+  update_case 9-eve "換到除夕（不是節日，對照）" 14 RAIN
   fest_day 2027-02-06
-  update_case 10-spring "換到春節初一（節日外觀）" 14 RAIN true
-  update_case 11-spring-bundle "節日當天卸下包袱" 14 RAIN true false
-  update_case 12-spring-snow "節日當天天氣換成雪" 14 SNOW true false
-  update_case 13-spring-page5 "節日當天換成第 5 頁" 5 SNOW true false
-  update_case 14-spring-old "節日當天關掉 V3（舊火柴人）" 5 SNOW false
-  update_case 15-spring-v3 "節日當天打開 V3" 14 RAIN true
+  update_case 10-spring "換到春節初一（節日外觀）" 14 RAIN
+  update_case 11-spring-bundle "節日當天卸下包袱" 14 RAIN false
+  update_case 12-spring-snow "節日當天天氣換成雪" 14 SNOW false
+  update_case 13-spring-page5 "節日當天換成第 5 頁" 5 SNOW false
+  # 第 14 個（節日當天關掉 V3）P7-1 拿掉
+  update_case 15-spring-page14 "節日當天回到第 14 頁、雨天" 14 RAIN
   fest_day 2027-02-09
-  update_case 16-after "離開春節（初四）" 14 RAIN true
+  update_case 16-after "離開春節（初四）" 14 RAIN
   # 中秋、聖誕只截圖
   for d in 2027-09-15:moon 2027-12-25:xmas; do
-    fest_day "${d%%:*}"; state 14 SUNNY true
+    fest_day "${d%%:*}"; state 14 SUNNY
     adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null; sleep 4
     home_shot "launcher-17-${d##*:}"
   done
@@ -594,8 +569,7 @@ fest() {
   write_prefs story "  <int name=\"page\" value=\"14\" />
   <string name=\"lastTornDate\">$last</string>
   <string name=\"lastText\">$(story_text 14)</string>"
-  write_prefs mowan "  <boolean name=\"storyCard\" value=\"true\" />
-  <boolean name=\"paperHatOn\" value=\"true\" />
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
   <boolean name=\"bundleOn\" value=\"true\" />
   $played"
   write_prefs weather "  <string name=\"fakeMood\">$3</string>"

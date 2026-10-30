@@ -50,7 +50,7 @@ class V3GoldenTest {
             Surface("page", still = true, widthDp = pageDp, smallEnv = ArtConfig.SmallEnv.CUE) +
             PageLayout.entries.map {
                 Surface(
-                    "widget-${it.name.lowercase()}", still = true, widthDp = it.stickmanDp,
+                    "widget-${it.name.lowercase()}", still = true, widthDp = it.characterDp,
                     smallEnv = if (it == PageLayout.COMPACT) ArtConfig.SmallEnv.MINIMAL else ArtConfig.SmallEnv.CUE,
                 )
             }

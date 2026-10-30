@@ -32,39 +32,22 @@ enum class Sky(val label: String) {
 }
 
 /**
- * 火柴人看到天氣的反應：一個動作加幾樣道具。
- * [keyword] 也是故事片段 `"weather"` 條件用的字。
+ * 今天的天氣分類。[keyword] 也是故事片段 `"weather"` 條件用的字；墨丸的天氣姿勢見 `MowanSettings.weatherOf`。
  */
 enum class Mood(
     val keyword: String,
-    val action: String,
-    val props: Set<String>,
     /** 點天氣時故事卡上的那句話 */
     val line: String,
 ) {
-    // D-17：V3 晴天是伸懶腰、沒有草帽，文案改成配合伸懶腰（舊火柴人的草帽道具不動）
-    SUNNY("晴", "wave", setOf(Props.SUN, Props.STRAW_HAT), "太陽暖暖的，伸伸懶腰再出門。"),
-    HOT("熱", "wipe", setOf(Props.SUN, Props.STRAW_HAT, Props.SWEAT), "好熱……一直擦汗。"),
-    CLOUDY("陰", "gaze", setOf(Props.CLOUD), "抬頭看看，雲飄過去了。"),
-    FOG("霧", "gaze", setOf(Props.MIST), "起霧了，前面看不太清楚。"),
-    RAIN("雨", "umbrella", setOf(Props.UMBRELLA, Props.RAIN), "下雨了，撐起小傘。"),
-    THUNDER("雷雨", "umbrella", setOf(Props.UMBRELLA, Props.RAIN, Props.CLOUD, Props.LIGHTNING), "轟隆隆！抱緊傘不要怕。"),
-    COLD("冷", "shiver", setOf(Props.SHIVER), "好冷，抱緊自己發抖。"),
-    SNOW("雪", "shiver", setOf(Props.SNOW, Props.SHIVER), "下雪了！冷得一直發抖。"),
-}
-
-/** 天氣道具，名字跟火柴人的配件分開。 */
-object Props {
-    const val SUN = "sun"
-    const val STRAW_HAT = "strawHat"
-    const val SWEAT = "sweat"
-    const val CLOUD = "cloud"
-    const val MIST = "mist"
-    const val UMBRELLA = "umbrella"
-    const val RAIN = "rain"
-    const val LIGHTNING = "lightning"
-    const val SHIVER = "shiver"
-    const val SNOW = "snow"
+    // D-17：V3 晴天是伸懶腰、沒有草帽，文案配合伸懶腰
+    SUNNY("晴", "太陽暖暖的，伸伸懶腰再出門。"),
+    HOT("熱", "好熱……一直擦汗。"),
+    CLOUDY("陰", "抬頭看看，雲飄過去了。"),
+    FOG("霧", "起霧了，前面看不太清楚。"),
+    RAIN("雨", "下雨了，撐起小傘。"),
+    THUNDER("雷雨", "轟隆隆！抱緊傘不要怕。"),
+    COLD("冷", "好冷，抱緊自己發抖。"),
+    SNOW("雪", "下雪了！冷得一直發抖。"),
 }
 
 data class Weather(

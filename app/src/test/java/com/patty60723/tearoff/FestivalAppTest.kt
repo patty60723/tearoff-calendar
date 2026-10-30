@@ -12,7 +12,6 @@ import com.patty60723.tearoff.mowan.Festival
 import com.patty60723.tearoff.mowan.FestivalSession.Mode
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
-import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
@@ -49,14 +48,12 @@ class FestivalAppTest {
     private val log get() = MowanSettings.FestivalLog(context)
 
     @Before
-    fun useV3() {
-        MowanSettings.setStoryCard(context, true)
+    fun sunny() {
         WeatherService.setFakeMood(context, Mood.SUNNY)
     }
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         MowanSettings.setFestivalHeadwear(context, true)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
@@ -123,51 +120,20 @@ class FestivalAppTest {
         assertEquals(listOf("2027-02-06:SPRING", "2027-02-07:SPRING"), log.keys())
     }
 
-    // ---------- V3 開關（D-42、D-47） ----------
+    // ---------- V3 是唯一的角色（P7-1） ----------
 
+    /** 新安裝（沒有任何設定）：故事卡、日曆頁都是墨丸 V3，節日第一次看到就演、記錄 */
     @Test
-    fun v3OffHasNoFestivalAndTurningItOnPlaysOnFirstLook() {
-        MowanSettings.setStoryCard(context, false)
+    fun v3IsTheOnlyCharacterFromAFreshInstall() {
         val c = open(spring)
         val a = c.get()
-        assertEquals(View.GONE, a.mowan.visibility)
-        assertNull("V3 關閉：不判斷節日", a.mowan.today)
-        assertNull(a.mowan.festival)
-        // 就算墨丸那一塊在畫面上、視窗有焦點，V3 關閉（墨丸隱藏）也不觸發
-        a.lookAtStoryCard()
-        assertTrue("V3 關閉：不記錄", log.keys().isEmpty())
-        // 日曆頁是舊火柴人
-        val page = a.findViewById<TearPageView>(R.id.page)
-        assertEquals(View.VISIBLE, page.findViewById<View>(R.id.stickman).visibility)
-        assertEquals(View.GONE, page.findViewById<View>(R.id.mowan_still).visibility)
-        // 打開 V3、回到 App：故事卡在畫面上、有焦點，就是打開後第一次看到，這時才演、才記錄
-        MowanSettings.setStoryCard(context, true)
-        c.pause()
-        assertTrue(log.keys().isEmpty())
-        c.resume()
+        assertEquals(View.VISIBLE, a.mowan.visibility)
         assertEquals(spring, a.mowan.today)
+        val page = a.findViewById<TearPageView>(R.id.page)
+        assertEquals(View.VISIBLE, page.findViewById<View>(R.id.mowan_still).visibility)
+        a.lookAtStoryCard()
         assertEquals(Mode.MAIN, a.mowan.session.mode)
         assertEquals(listOf("2027-02-06:SPRING"), log.keys())
-    }
-
-    @Test
-    fun oldStickmanIsTheSameOnFestivalDays() {
-        MowanSettings.setStoryCard(context, false)
-        // 故事進度固定（撕頁的故事會看日期挑，所以只換「今天」，不重新跳頁）
-        StoryBook(context).jumpTo(14, plain)
-        fun snapshot(day: LocalDate): Pair<List<Any?>, List<Bitmap>> {
-            AppClock.setFakeToday(context, day)
-            val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
-            val s = a.findViewById<StickmanView>(R.id.story_stickman)
-            val page = a.findViewById<TearPageView>(R.id.page)
-            val frames = listOf(R.id.frame0, R.id.frame1, R.id.frame2).map { (page.findViewById<ImageView>(it).drawable as BitmapDrawable).bitmap }
-            return listOf(s.visibility, s.parts, s.action, s.props) to frames
-        }
-        val (springCard, springFrames) = snapshot(spring)
-        val (plainCard, plainFrames) = snapshot(plain)
-        assertEquals("故事卡的火柴人一樣", plainCard, springCard)
-        springFrames.zip(plainFrames).forEachIndexed { i, (x, y) -> assertTrue("日曆頁的火柴人第 $i 張一樣", x.sameAs(y)) }
-        assertTrue(log.keys().isEmpty())
     }
 
     // ---------- 日曆頁：只有今天那頁（D-41） ----------
@@ -180,8 +146,8 @@ class FestivalAppTest {
     private fun expected(a: MainActivity, day: LocalDate, festivalLook: Boolean): Bitmap {
         val metrics = a.resources.displayMetrics
         val pageWidthPx = metrics.widthPixels - (56 * metrics.density).toInt()
-        val stickmanDp = (pageWidthPx * 0.17f).toInt() / metrics.density
-        val views = CalendarWidget.build(context, Almanac.page(day), PageLayout.TALL, stickmanDp, festivalLook = festivalLook)
+        val characterDp = (pageWidthPx * 0.17f).toInt() / metrics.density
+        val views = CalendarWidget.build(context, Almanac.page(day), PageLayout.TALL, characterDp, festivalLook = festivalLook)
         val v = views.apply(context, FrameLayout(context))
         return (v.findViewById<ImageView>(R.id.mowan_still).drawable as BitmapDrawable).bitmap
     }
@@ -222,17 +188,13 @@ class FestivalAppTest {
     fun debugReplayKeepsTheDailyRecord() {
         val a = open(spring).get()
         a.lookAtStoryCard()
-        debugItem(a, 12)
+        debugItem(a, 10)
         assertEquals("重播", 2, mains(a))
         assertEquals(Mode.MAIN, a.mowan.session.mode)
         assertEquals("不改紀錄", listOf("2027-02-06:SPRING"), log.keys())
         val p = open(plain).get()
-        debugItem(p, 12)
+        debugItem(p, 10)
         assertEquals("今天不是節日", ShadowToast.getTextOfLatestToast())
-        MowanSettings.setStoryCard(context, false)
-        val off = open(spring).get()
-        debugItem(off, 12)
-        assertEquals("故事卡沒有用墨丸 V3", ShadowToast.getTextOfLatestToast())
     }
 
     @Test
@@ -240,12 +202,12 @@ class FestivalAppTest {
         val a = open(spring, tornToday = true).get()
         val withHeadwear = pageStill(a)
         assertTrue(a.mowan.art.festivalHeadwear)
-        debugItem(a, 13)
+        debugItem(a, 11)
         assertFalse(MowanSettings.festivalHeadwear(context))
         assertFalse("故事卡跟著換", a.mowan.art.festivalHeadwear)
         assertFalse("日曆頁跟著換", pageStill(a).sameAs(withHeadwear))
         assertTrue(pageStill(a).sameAs(expected(a, spring, true)))
-        debugItem(a, 13)
+        debugItem(a, 11)
         assertTrue(MowanSettings.festivalHeadwear(context))
         assertTrue(pageStill(a).sameAs(withHeadwear))
     }

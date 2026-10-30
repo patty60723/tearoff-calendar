@@ -64,29 +64,6 @@ class ScreenshotTest {
         save("widget-tall-june", widget(PageLayout.TALL, LocalDate.of(2026, 6, 19)), 170, 255)
     }
 
-    /** 每種天氣三格：火柴人全身＋道具 */
-    @Test
-    fun weatherMoods() {
-        val moods = com.patty60723.tearoff.weather.Mood.entries
-        val cell = 180
-        val bitmap = Bitmap.createBitmap(cell * 3, cell * 4 / 3 * moods.size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(Palettes.PAPER)
-        moods.forEachIndexed { row, mood ->
-            for (col in 0 until 3) {
-                canvas.save()
-                canvas.translate(col * cell.toFloat(), row * cell * 4 / 3f)
-                com.patty60723.tearoff.stickman.StickmanRenderer.draw(
-                    canvas, com.patty60723.tearoff.stickman.Parts.everything,
-                    com.patty60723.tearoff.stickman.Actions.get(mood.action), col / 3f,
-                    cell.toFloat(), cell * 4 / 3f, mood.props,
-                )
-                canvas.restore()
-            }
-        }
-        File(out, "weather-moods.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-    }
-
     @Test
     fun cover() {
         StoryBook(context).reset()
@@ -157,28 +134,24 @@ class ScreenshotTest {
         File(out, "mowan-pages.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    /** 除錯選單打開「故事卡用墨丸 V3」的樣子 */
+    /** 第 14 頁的整個 App（墨丸 V3） */
     @Test
     fun appWithMowan() {
-        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, true)
         StoryBook(context).jumpTo(14, AppClock.today(context))
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         val root = activity.window.decorView
         save("app-mowan", root, root.width, root.height, background = false)
-        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
     }
 
-    /** 故事卡用 V3 時，第 1–14 頁各一張（看故事文字和墨丸長到哪裡對不對得上） */
+    /** 故事卡第 1–14 頁各一張（看故事文字和墨丸長到哪裡對不對得上） */
     @Test
     fun storyCardPages() {
-        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, true)
         val cards = (1..14).map { page ->
             StoryBook(context).jumpTo(page, AppClock.today(context))
             val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
             val card = activity.findViewById<View>(R.id.story_mowan).parent as View
             Bitmap.createBitmap(card.width, card.height, Bitmap.Config.ARGB_8888).also { card.draw(Canvas(it)) }
         }
-        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
         val scale = 0.5f
         val w = (cards.maxOf { it.width } * scale).toInt()
         val h = (cards.maxOf { it.height } * scale).toInt()
@@ -288,12 +261,11 @@ class ScreenshotTest {
     }
 
     /**
-     * W6：故事卡用 V3 時的 8 種天氣（第 14 頁），加上第 13 頁、第 14 頁卸下包袱。
+     * W6：故事卡的 8 種天氣（第 14 頁），加上第 13 頁、第 14 頁卸下包袱。
      * 故事卡下方的「卸下包袱 ›／背上包袱 ›」就是包袱的切換入口（第 14 頁才出現）。
      */
     @Test
     fun storyCardWeathers() {
-        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, true)
         val moods = com.patty60723.tearoff.weather.Mood.entries
         fun card(page: Int, mood: com.patty60723.tearoff.weather.Mood, bundleOn: Boolean = true): Bitmap {
             com.patty60723.tearoff.mowan.MowanSettings.setBundleOn(context, bundleOn)
@@ -306,7 +278,6 @@ class ScreenshotTest {
         val cards = moods.map { card(14, it) } +
             card(13, com.patty60723.tearoff.weather.Mood.SUNNY) +
             card(14, com.patty60723.tearoff.weather.Mood.SUNNY, bundleOn = false)
-        com.patty60723.tearoff.mowan.MowanSettings.setStoryCard(context, false)
         com.patty60723.tearoff.mowan.MowanSettings.setBundleOn(context, true)
         com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, null)
         val scale = 0.5f

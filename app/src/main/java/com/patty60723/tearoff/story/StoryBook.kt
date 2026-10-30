@@ -5,7 +5,6 @@ import android.content.res.AssetManager
 import com.patty60723.tearoff.Almanac
 import com.patty60723.tearoff.AppClock
 import com.patty60723.tearoff.weather.WeatherService
-import com.patty60723.tearoff.stickman.Parts
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -26,9 +25,6 @@ class StoryBook(context: Context) {
         set(value) = prefs.edit().putString(KEY_NAME, value).apply()
 
     val lastText: String? get() = prefs.getString(KEY_TEXT, null)
-    val lastAction: String? get() = prefs.getString(KEY_ACTION, null)
-    /** 天氣片段的道具（傘、草帽……），讓火柴人的動作配得起來 */
-    val lastProps: Set<String> get() = prefs.getStringSet(KEY_PROPS, null).orEmpty()
 
     /** 目前長出來的部位和配件 */
     val parts: Set<String> get() = StoryEngine.unlocked(beats, page)
@@ -60,9 +56,8 @@ class StoryBook(context: Context) {
         val beat = StoryEngine.pick(beats, ctx)
         val text = beat?.let { StoryEngine.render(it, ctx) } ?: ""
         val recent = (listOfNotNull(beat?.id) + recent()).take(RECENT)
-        val props = if (beat?.weather != null) WeatherService.current(appContext)?.mood?.props.orEmpty() else emptySet()
         prefs.edit()
-            .putStringSet(KEY_PROPS, props)
+            // 故事片段的 action（D-50：欄位保留，之後設計成長故事動作時可能用；P7-1 起沒有人讀）
             .putInt(KEY_PAGE, newPage)
             .putString(KEY_LAST_DATE, date.toString())
             .putString(KEY_TEXT, text)
@@ -92,7 +87,6 @@ class StoryBook(context: Context) {
             .putString(KEY_LAST_DATE, date.toString())
             .putString(KEY_TEXT, beat?.let { StoryEngine.render(it, ctx) })
             .putString(KEY_ACTION, beat?.action)
-            .remove(KEY_PROPS)
             .remove(KEY_RECENT)
             .apply()
     }
@@ -153,7 +147,6 @@ class StoryBook(context: Context) {
         const val KEY_NAME = "name"
         const val KEY_TEXT = "lastText"
         const val KEY_ACTION = "lastAction"
-        const val KEY_PROPS = "lastProps"
         const val KEY_LAST_DATE = "lastTornDate"
         const val KEY_RECENT = "recent"
     }

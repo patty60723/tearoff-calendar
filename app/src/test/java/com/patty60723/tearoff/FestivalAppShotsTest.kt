@@ -43,7 +43,6 @@ class FestivalAppShotsTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         MowanSettings.setFestivalHeadwear(context, true)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
@@ -63,8 +62,7 @@ class FestivalAppShotsTest {
 
     private fun shoot(v: View) = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(paper); v.draw(this) } }
 
-    private fun open(today: LocalDate, mood: Mood, tornToday: Boolean = true, v3: Boolean = true): MainActivity {
-        MowanSettings.setStoryCard(context, v3)
+    private fun open(today: LocalDate, mood: Mood, tornToday: Boolean = true): MainActivity {
         WeatherService.setFakeMood(context, mood)
         AppClock.setFakeToday(context, today)
         StoryBook(context).apply {
@@ -164,8 +162,5 @@ class FestivalAppShotsTest {
         val off = open(spring, Mood.SUNNY)
         row("rule-2-headwear-off", listOf("故事卡" to draw(off.card), "日曆頁" to draw(off.page)))
         MowanSettings.setFestivalHeadwear(context, true)
-        // V3 關閉：舊火柴人，沒有任何節日東西
-        val old = open(spring, Mood.SUNNY, v3 = false)
-        row("rule-3-v3-off", listOf("故事卡（舊火柴人）" to draw(old.card), "日曆頁（舊火柴人）" to draw(old.page)))
     }
 }

@@ -19,7 +19,6 @@ import android.widget.LinearLayout
 import android.widget.RemoteViews
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.ViewFlipper
 
 /**
  * 模擬器驗收用（P5-4，只在 debug APK）：用系統的 AppWidgetHost 掛 4 個小工具，大小照 4 種版面，
@@ -96,12 +95,15 @@ class WidgetHostActivity : Activity() {
         window.decorView.postDelayed({ report() }, 3000)
     }
 
-    /** 每個小工具：有沒有套用成功、用哪一種畫法、ViewFlipper 的狀態、內容有沒有超出小工具 */
+    /**
+     * 每個小工具：有沒有套用成功、墨丸有沒有畫上去、內容有沒有超出小工具。
+     * stillImage 是「程式畫上去的墨丸」：版面的預設圖（給 launcher 預覽用的 mowan_preview）不算（P7-1）。
+     */
     private fun report() {
+        val preview = (resources.getDrawable(R.drawable.mowan_preview, null) as? android.graphics.drawable.BitmapDrawable)?.bitmap
         for ((name, v) in views) {
             val content = (0 until v.childCount).map { v.getChildAt(it) }.firstOrNull()
             val day = v.findViewById<TextView>(R.id.day)
-            val flipper = v.findViewById<ViewFlipper>(R.id.stickman)
             val still = v.findViewById<ImageView>(R.id.mowan_still)
             val ok = day != null && content != null
             fun vis(x: View?) = when (x?.visibility) { View.VISIBLE -> "VISIBLE"; View.GONE -> "GONE"; View.INVISIBLE -> "INVISIBLE"; else -> "none" }
@@ -115,7 +117,7 @@ class WidgetHostActivity : Activity() {
                 if (x is ViewGroup) for (i in 0 until x.childCount) walk(x.getChildAt(i), l - x.scrollX, t - x.scrollY)
             }
             if (content != null) walk(content, 0, 0)
-            // 角色（V3 的 mowan_still 或舊火柴人的 ViewFlipper）整個在小工具裡面
+            // 墨丸整個在小工具裡面
             fun inside(x: View?): Boolean {
                 if (x == null || x.visibility != View.VISIBLE) return false
                 val loc = IntArray(2).also { x.getLocationInWindow(it) }
@@ -124,11 +126,11 @@ class WidgetHostActivity : Activity() {
                 val t = loc[1] - box[1]
                 return x.width > 0 && x.height > 0 && l >= 0 && t >= 0 && l + x.width <= v.width + 1 && t + x.height <= v.height + 1
             }
-            val character = if (still?.visibility == View.VISIBLE) still else flipper
+            val image = (still?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+            val drawn = image != null && (preview == null || !image.sameAs(preview))
             Log.i(
                 TAG,
-                "report layout=$name ok=$ok size=${v.width}x${v.height} flipper=${vis(flipper)} flipping=${flipper?.isFlipping} " +
-                    "interval=${flipper?.flipInterval} still=${vis(still)} stillImage=${still?.drawable != null} characterInside=${inside(character)} clipped=$clipped",
+                "report layout=$name ok=$ok size=${v.width}x${v.height} still=${vis(still)} stillImage=$drawn characterInside=${inside(still)} clipped=$clipped",
             )
         }
     }

@@ -21,11 +21,6 @@ class MowanSettingsTest {
     }
 
     @Test
-    fun storyCardUsesOldStickmanByDefault() {
-        assertFalse(MowanSettings.storyCard(context))
-    }
-
-    @Test
     fun bundleIsWornByDefaultAndRemembered() {
         assertTrue(MowanSettings.bundleOn(context))
         MowanSettings.setBundleOn(context, false)

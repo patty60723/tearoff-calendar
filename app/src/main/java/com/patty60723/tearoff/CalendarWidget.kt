@@ -17,8 +17,6 @@ import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanBitmap
 import com.patty60723.tearoff.mowan.MowanSettings
-import com.patty60723.tearoff.stickman.Actions
-import com.patty60723.tearoff.stickman.StickmanRenderer
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.WeatherService
 import kotlin.concurrent.thread
@@ -107,14 +105,14 @@ class CalendarWidget : AppWidgetProvider() {
         }
 
         /**
-         * @param stickmanDp 火柴人畫多大；App 裡的大頁面會傳更大的值，圖才不會糊
+         * @param characterDp 墨丸畫多大；App 裡的大頁面會傳更大的值，圖才不會糊；0 是不畫
          * @param festivalLook 今天那頁的 V3 墨丸畫節日外觀（D-16、D-41）：小工具（P6-4c）與 App 日曆頁（P6-4b）都是 true；
          *   false 只給候選圖、截圖畫「沒有節日」的對照
          * @param wideWidthDp WIDE 小工具的實際寬度（dp），決定右欄文字放多少（[WideText]）；其他版面不用
          * @param art 美術設定；null 是 [MowanSettings.art] 加上這個版面的小尺寸取捨（[smallEnvFor]）。P6-4c 候選圖用來比較
          */
         fun build(
-            context: Context, page: DayPage, layout: PageLayout, stickmanDp: Float = layout.stickmanDp,
+            context: Context, page: DayPage, layout: PageLayout, characterDp: Float = layout.characterDp,
             festivalLook: Boolean = true, art: ArtConfig? = null, wideWidthDp: Float = PageLayout.WIDE.minWidthDp,
         ): RemoteViews {
             val palette = Palettes.forMonth(page.date.monthValue)
@@ -149,9 +147,8 @@ class CalendarWidget : AppWidgetProvider() {
 
                 for (id in intArrayOf(R.id.band, R.id.hills, R.id.rule)) setInt(id, "setColorFilter", palette.main)
                 setOnClickPendingIntent(R.id.widget_root, openApp(context))
-                if (stickmanDp > 0) {
-                    // 故事卡用 V3 時，小工具和 App 日曆頁也用 V3（D-23、D-24）
-                    if (MowanSettings.storyCard(context)) setMowan(context, this, stickmanDp, page.date, festivalLook, art ?: MowanSettings.art(context).copy(smallEnv = smallEnvFor(layout))) else setStickman(context, this, stickmanDp)
+                if (characterDp > 0) {
+                    setMowan(context, this, characterDp, page.date, festivalLook, art ?: MowanSettings.art(context).copy(smallEnv = smallEnvFor(layout)))
                 }
             }
         }
@@ -191,15 +188,9 @@ class CalendarWidget : AppWidgetProvider() {
             "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
         )
 
-        private val FRAME_IDS = intArrayOf(
-            R.id.frame0, R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4, R.id.frame5,
-        )
-
         /**
          * V3 墨丸（P5-3、P5-4）：一張靜態代表姿勢（D-04），跟 App 用同樣的部位、紙帽、包袱、天氣；不播撕頁動作（D-27）。
-         * 畫在版面裡的 `mowan_still`（一般的 ImageView，不會動）；舊火柴人的 ViewFlipper 隱藏、清掉圖。
-         * ViewFlipper 的自動輪播只有 `setFlipInterval` 能透過 RemoteViews 改（`setAutoStart`、`stopFlipping` 不行），
-         * 隱藏的 ViewFlipper 仍會照間隔換頁，所以間隔拉到一天、裡面沒有圖。
+         * 畫在版面裡的 `mowan_still`（一般的 ImageView，不會動；P7-1 起舊火柴人的 6 張輪播已移除）。
          * 天氣只有今天那頁才畫（跟日出日落旁的天氣文字一樣）；節日外觀也只有今天那頁（D-41）。
          * 節日也是同一張靜態圖：不演出、不輪播（D-16）；背景與天氣的取捨照版面（[smallEnvFor]）。
          */
@@ -217,33 +208,8 @@ class CalendarWidget : AppWidgetProvider() {
                 widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(), density = density,
                 festival = if (festivalLook && isToday) FestivalTheme.of(date) else null, art = art,
             )
-            views.setViewVisibility(R.id.stickman, View.GONE)
-            for (id in FRAME_IDS) views.setImageViewResource(id, 0)
-            views.setDisplayedChild(R.id.stickman, 0)
-            views.setInt(R.id.stickman, "setFlipInterval", STILL_FLIP_MS)
             views.setViewVisibility(R.id.mowan_still, View.VISIBLE)
             views.setImageViewBitmap(R.id.mowan_still, bitmap)
-        }
-
-        /** V3 時隱藏的 ViewFlipper 的輪播間隔：一天（裡面沒有圖） */
-        internal const val STILL_FLIP_MS = 24 * 60 * 60 * 1000
-
-        /** 火柴人目前長到哪裡、最近一次撕頁的動作，畫成幾張圖輪播。 */
-        private fun setStickman(context: Context, views: RemoteViews, widthDp: Float) {
-            val book = StoryBook(context)
-            val action = Actions.get(if (book.page == 0) null else book.lastAction)
-            val density = context.resources.displayMetrics.density.coerceAtMost(3f)
-            val frames = StickmanRenderer.frames(
-                book.parts, action, FRAME_IDS.size,
-                widthPx = (widthDp * density).toInt(), heightPx = (widthDp * 4 / 3 * density).toInt(),
-                props = if (book.page == 0) emptySet() else book.lastProps,
-            )
-            frames.forEachIndexed { i, bitmap -> views.setImageViewBitmap(FRAME_IDS[i], bitmap) }
-            // 從 V3 切回來時（同一個版面重新套用）要把 V3 的圖藏起來
-            views.setViewVisibility(R.id.stickman, View.VISIBLE)
-            views.setViewVisibility(R.id.mowan_still, View.GONE)
-            views.setImageViewResource(R.id.mowan_still, 0)
-            views.setInt(R.id.stickman, "setFlipInterval", (action.periodMs / FRAME_IDS.size).toInt())
         }
 
         private fun openApp(context: Context): PendingIntent = PendingIntent.getActivity(

@@ -35,56 +35,8 @@
             android:textColor="@color/ink"
             android:textSize="9sp" />
 
-        <!-- 火柴人站在山丘上：6 張圖輪流播放 -->
-        <ViewFlipper
-            android:id="@+id/stickman"
-            android:layout_width="48dp"
-            android:layout_height="64dp"
-            android:layout_gravity="bottom|right"
-            android:layout_marginRight="14dp"
-            android:layout_marginBottom="24dp"
-            android:autoStart="true"
-            android:flipInterval="160">
 
-            <ImageView
-                android:id="@+id/frame0"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame1"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame3"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame4"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame5"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-        </ViewFlipper>
-
-        <!-- V3 墨丸（P5-3、P5-4）：一張靜態圖，跟上面的 ViewFlipper 同一個位置和大小。
-             用 V3 時 ViewFlipper 隱藏、這張顯示（ViewFlipper 的自動輪播沒辦法用 RemoteViews 停掉） -->
+        <!-- 墨丸 V3：一張靜態圖（P5-3、P5-4；P7-1 起是唯一的角色）。預設圖給 launcher 的小工具預覽用，實際畫面由程式換成當天的墨丸 -->
         <ImageView
             android:id="@+id/mowan_still"
             android:layout_width="48dp"
@@ -92,7 +44,7 @@
             android:layout_gravity="bottom|right"
             android:layout_marginRight="14dp"
             android:layout_marginBottom="24dp"
-            android:visibility="gone" />
+            android:src="@drawable/mowan_preview" />
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -18,8 +18,6 @@ import com.patty60723.tearoff.mowan.MowanBitmap
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanTimeline
 import com.patty60723.tearoff.mowan.MowanPainter
-import com.patty60723.tearoff.stickman.Actions
-import com.patty60723.tearoff.stickman.StickmanRenderer
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
@@ -48,29 +46,26 @@ class WidgetV3Test {
     private val today get() = AppClock.today(context)
     private val page get() = Almanac.page(today)
 
-    private val frameIds = listOf(R.id.frame0, R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4, R.id.frame5)
-
     @Before
     fun setUp() {
         // 固定一個不是節日的日子（節日當天小工具會畫節日外觀，P6-4c；那些在 WidgetFestivalTest）
         AppClock.setFakeToday(context, LocalDate.of(2026, 10, 21))
         StoryBook(context).jumpTo(14, today)
-        MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, Mood.RAIN)
     }
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         MowanSettings.resetEquipment(context)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
     }
 
-    private fun applied(layout: PageLayout, date: LocalDate = today, stickmanDp: Float = layout.stickmanDp): View =
-        CalendarWidget.build(context, Almanac.page(date), layout, stickmanDp).apply(context, FrameLayout(context))
+    private fun applied(layout: PageLayout, date: LocalDate = today, characterDp: Float = layout.characterDp): View =
+        CalendarWidget.build(context, Almanac.page(date), layout, characterDp).apply(context, FrameLayout(context))
 
-    private fun View.frames(): List<Bitmap> = frameIds.map { (findViewById<ImageView>(it).drawable as BitmapDrawable).bitmap }
+    /** 整個版面裡的 View（找有沒有殘留的 ViewFlipper） */
+    private fun View.all(): List<View> = listOf(this) + ((this as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { g.getChildAt(it).all() } } ?: emptyList())
 
     /** V3 的靜態圖（mowan_still） */
     private fun View.still(): Bitmap = (findViewById<ImageView>(R.id.mowan_still).drawable as BitmapDrawable).bitmap
@@ -84,7 +79,7 @@ class WidgetV3Test {
     )
 
     /**
-     * V3：一張靜態圖畫在 mowan_still；ViewFlipper 隱藏、沒有圖、輪播間隔一天。
+     * V3 是唯一的角色（P7-1）：一張靜態圖畫在 mowan_still；版面裡沒有 ViewFlipper（舊火柴人的 6 張輪播已移除）。
      * 「畫面真的不重畫」在 Robolectric 測不出來（視窗一直被當成看不到，舊火柴人也不會輪播），
      * 由模擬器驗收的小工具宿主量重畫次數（tools/emulator/w7-acceptance.sh 第 10 段）。
      */
@@ -94,30 +89,23 @@ class WidgetV3Test {
             val v = applied(layout)
             val at = layout.name
             assertEquals(at, View.VISIBLE, v.findViewById<View>(R.id.mowan_still).visibility)
-            assertTrue("$at 跟 App 的狀態一樣", v.still().sameAs(expected(layout.stickmanDp)))
-            val flipper = v.findViewById<android.widget.ViewFlipper>(R.id.stickman)
-            assertEquals(at, View.GONE, flipper.visibility)
-            assertEquals(at, CalendarWidget.STILL_FLIP_MS, flipper.flipInterval)
-            frameIds.forEach { assertEquals("$at 隱藏的 ViewFlipper 不留圖", null, v.findViewById<ImageView>(it).drawable) }
+            assertTrue("$at 跟 App 的狀態一樣", v.still().sameAs(expected(layout.characterDp)))
+            assertTrue("$at 沒有 ViewFlipper", v.all().none { it is android.widget.ViewFlipper })
+            assertEquals("$at 只有一個圖片角色", 1, v.all().count { it is ImageView && it.id == R.id.mowan_still })
         }
     }
 
-    /** 同一個版面切換 V3／舊火柴人（launcher 重新套用 RemoteViews）：顯示的是對的那一個 */
+    /** launcher 重新套用 RemoteViews（狀態改了）：同一個版面換成新的墨丸 */
     @Test
-    fun switchingReappliesCleanly() {
+    fun reapplyUpdatesTheStill() {
         val parent = FrameLayout(context)
         val page = Almanac.page(today)
         val v = CalendarWidget.build(context, page, PageLayout.TALL).apply(context, parent)
-        MowanSettings.setStoryCard(context, false)
+        assertTrue(v.still().sameAs(expected(PageLayout.TALL.characterDp)))
+        WeatherService.setFakeMood(context, Mood.SNOW)
         CalendarWidget.build(context, page, PageLayout.TALL).reapply(context, v)
-        assertEquals(View.VISIBLE, v.findViewById<View>(R.id.stickman).visibility)
-        assertEquals(View.GONE, v.findViewById<View>(R.id.mowan_still).visibility)
-        assertTrue(v.frames().all { it.width > 0 })
-        MowanSettings.setStoryCard(context, true)
-        CalendarWidget.build(context, page, PageLayout.TALL).reapply(context, v)
-        assertEquals(View.GONE, v.findViewById<View>(R.id.stickman).visibility)
         assertEquals(View.VISIBLE, v.findViewById<View>(R.id.mowan_still).visibility)
-        assertTrue(v.still().sameAs(expected(PageLayout.TALL.stickmanDp)))
+        assertTrue(v.still().sameAs(expected(PageLayout.TALL.characterDp, Mowan.Weather.SNOW)))
     }
 
     /** D-25：小工具（48–64 dp 高）用簡化版；App 日曆頁（約 80 dp 高）用完整版 */
@@ -131,14 +119,14 @@ class WidgetV3Test {
             return Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { MowanPainter(frame).draw(Canvas(it), 0f, 0f, w.toFloat(), h.toFloat()) }
         }
         for (layout in PageLayout.entries) {
-            val h = layout.stickmanDp * 4 / 3 * density
+            val h = layout.characterDp * 4 / 3 * density
             val got = applied(layout).still()
-            assertTrue("${layout.name} 簡化", got.sameAs(direct(layout.stickmanDp, Detail.simplified(h.toDouble()))))
-            assertFalse("${layout.name} 不是完整版", got.sameAs(direct(layout.stickmanDp, Detail.FULL)))
+            assertTrue("${layout.name} 簡化", got.sameAs(direct(layout.characterDp, Detail.simplified(h.toDouble()))))
+            assertFalse("${layout.name} 不是完整版", got.sameAs(direct(layout.characterDp, Detail.FULL)))
         }
         // App 日曆頁：60 dp 寬 → 80 dp 高
         val pageDp = 60f
-        val got = applied(PageLayout.TALL, stickmanDp = pageDp).still()
+        val got = applied(PageLayout.TALL, characterDp = pageDp).still()
         assertTrue("日曆頁完整版", got.sameAs(direct(pageDp, Detail.FULL)))
     }
 
@@ -149,41 +137,22 @@ class WidgetV3Test {
         // 紙帽、包袱
         MowanSettings.setHatOn(context, false)
         val noHat = tall()
-        assertTrue(noHat.sameAs(expected(PageLayout.TALL.stickmanDp)))
+        assertTrue(noHat.sameAs(expected(PageLayout.TALL.characterDp)))
         assertFalse(noHat.sameAs(rain))
         MowanSettings.setHatOn(context, true)
         MowanSettings.setBundleOn(context, false)
         val noBundle = tall()
-        assertTrue(noBundle.sameAs(expected(PageLayout.TALL.stickmanDp)))
+        assertTrue(noBundle.sameAs(expected(PageLayout.TALL.characterDp)))
         assertFalse(noBundle.sameAs(rain))
         MowanSettings.setBundleOn(context, true)
         // 天氣
         WeatherService.setFakeMood(context, Mood.SNOW)
-        assertTrue(tall().sameAs(expected(PageLayout.TALL.stickmanDp, Mowan.Weather.SNOW)))
+        assertTrue(tall().sameAs(expected(PageLayout.TALL.characterDp, Mowan.Weather.SNOW)))
         // 頁數
         StoryBook(context).jumpTo(5, today)
-        assertTrue(tall().sameAs(expected(PageLayout.TALL.stickmanDp, Mowan.Weather.SNOW)))
+        assertTrue(tall().sameAs(expected(PageLayout.TALL.characterDp, Mowan.Weather.SNOW)))
         // 不是今天那頁：不畫天氣
-        assertTrue(applied(PageLayout.TALL, today.plusDays(1)).still().sameAs(expected(PageLayout.TALL.stickmanDp, Mowan.Weather.NONE)))
-    }
-
-    /** 關掉 V3：跟原本的舊火柴人完全一樣（6 張輪播） */
-    @Test
-    fun oldStickmanUnchangedWhenSwitchedOff() {
-        MowanSettings.setStoryCard(context, false)
-        val book = StoryBook(context)
-        for (layout in PageLayout.entries) {
-            val frames = applied(layout).frames()
-            val old = StickmanRenderer.frames(
-                book.parts, Actions.get(book.lastAction), 6,
-                widthPx = (layout.stickmanDp * density).toInt(), heightPx = (layout.stickmanDp * 4 / 3 * density).toInt(),
-                props = book.lastProps,
-            )
-            frames.zip(old).forEachIndexed { i, (a, b) -> assertTrue("${layout.name} 第 $i 張", a.sameAs(b)) }
-            val v = applied(layout)
-            assertEquals(View.VISIBLE, v.findViewById<View>(R.id.stickman).visibility)
-            assertEquals(View.GONE, v.findViewById<View>(R.id.mowan_still).visibility)
-        }
+        assertTrue(applied(PageLayout.TALL, today.plusDays(1)).still().sameAs(expected(PageLayout.TALL.characterDp, Mowan.Weather.NONE)))
     }
 
     private fun texts(v: View): List<String> = when (v) {
@@ -192,15 +161,11 @@ class WidgetV3Test {
         else -> emptyList()
     }
 
-    /** 日期、宜忌、農曆、節日、天氣、日出日落：V3 開或關都一樣 */
+    /** 日期、宜忌、農曆、節日、天氣、日出日落：畫不畫墨丸都一樣（角色不影響文字） */
     @Test
     fun textsAndLayoutUnchanged() {
         for (date in listOf(today, today.plusDays(1), LocalDate.of(2027, 2, 6))) for (layout in PageLayout.entries) {
-            val v3 = texts(applied(layout, date))
-            MowanSettings.setStoryCard(context, false)
-            val old = texts(applied(layout, date))
-            MowanSettings.setStoryCard(context, true)
-            assertEquals("$date ${layout.name}", old, v3)
+            assertEquals("$date ${layout.name}", texts(applied(layout, date, characterDp = 0f)), texts(applied(layout, date)))
         }
     }
 
@@ -225,7 +190,7 @@ class WidgetV3Test {
             val drawn = MowanBitmap.renderCount - renders
             val single = estimate(perLayout.getValue(PageLayout.TALL))
             val all = estimate(RemoteViews(perLayout.entries.associate { (l, v) -> SizeF(l.minWidthDp, l.minHeightDp) to v }))
-            val expectedBytes = PageLayout.entries.sumOf { l -> (l.stickmanDp * d).toInt().toLong() * (l.stickmanDp * 4 / 3 * d).toInt() * 4 }
+            val expectedBytes = PageLayout.entries.sumOf { l -> (l.characterDp * d).toInt().toLong() * (l.characterDp * 4 / 3 * d).toInt() * 4 }
             assertEquals("$q：RemoteViews 裡就是 4 張 V3 圖", expectedBytes, all)
             assertEquals("$q：4 個版面各畫一次", 4, drawn)
             val parcel = android.os.Parcel.obtain().let { p ->
@@ -292,13 +257,10 @@ class WidgetV3Test {
             File("build/screenshots/p5").apply { mkdirs() }.resolve("$name.png").outputStream().use { b.compress(Bitmap.CompressFormat.PNG, 100, it) }
         }
         val layouts = listOf(PageLayout.COMPACT, PageLayout.MEDIUM, PageLayout.WIDE, PageLayout.TALL)
-        MowanSettings.setStoryCard(context, false)
-        val old = layouts.map { shot(it) }
-        MowanSettings.setStoryCard(context, true)
         val v3 = layouts.map { shot(it) }
         WeatherService.setFakeMood(context, Mood.SUNNY)
         val sunny = layouts.map { shot(it) }
-        sheet("widgets-v3", listOf("舊火柴人" to old, "V3 雨" to v3, "V3 晴" to sunny))
+        sheet("widgets-v3", listOf("V3 雨" to v3, "V3 晴" to sunny))
 
         // 8 種天氣（TALL）
         val moods = Mood.entries

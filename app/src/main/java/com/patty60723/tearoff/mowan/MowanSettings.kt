@@ -6,18 +6,10 @@ import com.patty60723.tearoff.weather.Mood
 /** 墨丸 V3 的設定（SharedPreferences "mowan"）。 */
 object MowanSettings {
     private const val PREFS = "mowan"
-    private const val KEY_STORY_CARD = "storyCard"
     private const val KEY_HAT_ON = "paperHatOn"
     private const val KEY_BUNDLE_ON = "bundleOn"
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-
-    /** 故事卡上用 V3 墨丸還是舊火柴人。整合完成（P7）前預設是舊的，只能從除錯選單打開。 */
-    fun storyCard(context: Context): Boolean = prefs(context).getBoolean(KEY_STORY_CARD, false)
-
-    fun setStoryCard(context: Context, on: Boolean) {
-        prefs(context).edit().putBoolean(KEY_STORY_CARD, on).apply()
-    }
 
     /**
      * 紙帽有沒有戴著。「拿到」由故事決定（第 11 頁解鎖，見 [Capabilities.paperHat]），這裡只存「戴著」。

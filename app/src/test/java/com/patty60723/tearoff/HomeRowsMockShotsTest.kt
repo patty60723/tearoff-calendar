@@ -47,7 +47,6 @@ class HomeRowsMockShotsTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
         Cities.select(context, Cities.all.first { it.name == "臺北市" })
@@ -206,7 +205,6 @@ class HomeRowsMockShotsTest {
 
     /** 現在的 App：日曆下方的兩列（實際的 MainActivity） */
     private fun current(mood: Mood): Bitmap {
-        MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, mood)
         AppClock.setFakeToday(context, LocalDate.of(2026, 10, 21))
         StoryBook(context).jumpTo(14, LocalDate.of(2026, 10, 21))

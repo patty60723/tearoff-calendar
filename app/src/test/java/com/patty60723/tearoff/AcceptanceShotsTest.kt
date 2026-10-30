@@ -69,7 +69,6 @@ class AcceptanceShotsTest {
 
     @After
     fun cleanUp() {
-        MowanSettings.setStoryCard(context, false)
         MowanSettings.setBundleOn(context, true)
         WeatherService.setFakeMood(context, null)
         RuntimeEnvironment.setFontScale(1f)
@@ -159,7 +158,6 @@ class AcceptanceShotsTest {
     /** 故事卡在不同螢幕密度、字體大小、窄螢幕下（第 14 頁、晴天）。包袱入口要完整顯示、按得到，這部分是真的檢查 */
     @Test
     fun storyCardDensities() {
-        MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, Mood.SUNNY)
         StoryBook(context).jumpTo(14, AppClock.today(context))
         val configs = listOf(
@@ -197,7 +195,6 @@ class AcceptanceShotsTest {
     /** 故事卡上的包袱入口：第 13 頁、第 14 頁背著、點一下卸下、重開 App */
     @Test
     fun storyCardBundle() {
-        MowanSettings.setStoryCard(context, true)
         MowanSettings.setBundleOn(context, true)
         WeatherService.setFakeMood(context, Mood.SUNNY)
         fun shot(a: MainActivity): Bitmap {

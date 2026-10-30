@@ -11,12 +11,12 @@ enum class PageLayout(
     val minHeightDp: Float,
     /** 「宜」顯示幾項 */
     val yiCount: Int,
-    /** 火柴人的寬（dp），跟版面裡 ViewFlipper 一樣 */
-    val stickmanDp: Float,
+    /** 墨丸的寬（dp），跟版面裡的 `mowan_still` 一樣 */
+    val characterDp: Float,
 ) {
-    /** 日期＋火柴人 */
+    /** 日期＋墨丸 */
     COMPACT(R.layout.widget_compact, 100f, 100f, 1, 36f),
-    /** 日期＋火柴人＋一句宜 */
+    /** 日期＋墨丸＋一句宜 */
     MEDIUM(R.layout.widget_medium, 130f, 170f, 2, 44f),
     WIDE(R.layout.widget_wide, 250f, 110f, 2, 42f),
     /** 全部：農曆、忌、節日、日出日落 */

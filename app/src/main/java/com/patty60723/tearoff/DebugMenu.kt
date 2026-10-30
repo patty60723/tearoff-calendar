@@ -15,21 +15,18 @@ import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
-import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.story.StoryEngine
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
 import java.time.LocalDate
 
-/** 測試版才有的除錯選單：假裝別天、跳頁、重來、看動作。 */
+/** 測試版才有的除錯選單：假裝別天、跳頁、重來、看墨丸。 */
 class DebugMenu(
     private val activity: Activity,
     private val book: StoryBook,
     /** 改完之後讓畫面和小工具重新整理 */
     private val refresh: () -> Unit,
-    /** 在故事卡上播某個動作（全身配件都戴上） */
-    private val preview: (actionId: String) -> Unit,
 ) {
     fun show() {
         val fake = AppClock.fakeToday(activity)
@@ -40,11 +37,9 @@ class DebugMenu(
             "回到真實日期",
             "跳到第幾頁…（現在第 ${book.page} 頁）",
             "重設故事，從第 0 頁開始",
-            "看火柴人的動作…",
             "假裝天氣是…（現在：${WeatherService.fakeMood(activity)?.keyword ?: "真的天氣"}）",
             "測試閃退紀錄（App 會閃退一次）",
             "看墨丸 V3…",
-            "故事卡用墨丸 V3（現在：${if (MowanSettings.storyCard(activity)) "開" else "關"}）",
             "墨丸的紙帽（現在：${hatState()}）",
             "墨丸的包袱（現在：${bundleState()}）",
             "重播節日主演出（今天：${FestivalTheme.of(today)?.let(::festivalName) ?: "不是節日"}）",
@@ -63,24 +58,19 @@ class DebugMenu(
                         MowanSettings.resetEquipment(activity)
                         refresh()
                     }
-                    5 -> pickAction()
-                    6 -> pickWeather()
-                    7 -> throw RuntimeException("除錯選單：測試閃退紀錄")
-                    8 -> showMowan()
-                    9 -> {
-                        MowanSettings.setStoryCard(activity, !MowanSettings.storyCard(activity))
-                        refresh()
-                    }
-                    10 -> {
+                    5 -> pickWeather()
+                    6 -> throw RuntimeException("除錯選單：測試閃退紀錄")
+                    7 -> showMowan()
+                    8 -> {
                         MowanSettings.setHatOn(activity, !MowanSettings.hatOn(activity))
                         refresh()
                     }
-                    11 -> {
+                    9 -> {
                         MowanSettings.setBundleOn(activity, !MowanSettings.bundleOn(activity))
                         refresh()
                     }
-                    12 -> replayFestival()
-                    13 -> {
+                    10 -> replayFestival()
+                    11 -> {
                         MowanSettings.setFestivalHeadwear(activity, !MowanSettings.festivalHeadwear(activity))
                         refresh()
                     }
@@ -93,7 +83,7 @@ class DebugMenu(
     private fun replayFestival() {
         val view = activity.findViewById<MowanView>(R.id.story_mowan)
         val message = when {
-            !MowanSettings.storyCard(activity) || view == null -> "故事卡沒有用墨丸 V3"
+            view == null -> "找不到故事卡"
             view.festival == null -> "今天不是節日"
             view.replayFestival() -> null
             else -> "現在不能重播（故事卡今天還沒出現過）"
@@ -136,14 +126,6 @@ class DebugMenu(
                 }
             }
             .setNegativeButton("取消", null)
-            .show()
-    }
-
-    private fun pickAction() {
-        val ids = Actions.all.keys.toTypedArray()
-        AlertDialog.Builder(activity)
-            .setTitle("看火柴人的動作")
-            .setItems(ids) { _, which -> preview(ids[which]) }
             .show()
     }
 

@@ -1,6 +1,6 @@
-package com.patty60723.tearoff.stickman
+package com.patty60723.tearoff.story
 
-/** 故事解鎖的部位與配件。名稱跟故事檔裡的 `unlock` 一樣。 */
+/** 故事解鎖的部位與配件。名稱跟故事檔裡的 `unlock` 一樣（P7-1 從舊火柴人的套件搬過來；墨丸用 [com.patty60723.tearoff.mowan.Mowan.partsOf] 換算）。 */
 object Parts {
     const val LINE = "line"
     const val HEAD = "head"

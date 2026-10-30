@@ -1,6 +1,5 @@
 package com.patty60723.tearoff
 
-import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
@@ -19,14 +18,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
-import android.widget.ViewFlipper
 import android.widget.Toast
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
-import com.patty60723.tearoff.stickman.Actions
-import com.patty60723.tearoff.stickman.Parts
-import com.patty60723.tearoff.stickman.StickmanView
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.WeatherService
 import kotlin.concurrent.thread
@@ -53,7 +48,6 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.today).setOnClickListener { show(topDate()) }
 
         pad = findViewById(R.id.page)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.registerDurationScaleChangeListener(scaleListener)
         pad.pageBelow = { w, h -> snapshot(pageView(date?.plusDays(1) ?: AppClock.today(this)), w, h) }
         pad.onTorn = { onTorn() }
         pad.onBlocked = {
@@ -73,17 +67,6 @@ class MainActivity : Activity() {
                     showStory()
                     showWeather()
                     CalendarWidget.refreshAll(this@MainActivity)
-                },
-                preview = { id ->
-                    // 在 Button.apply 裡，要明確用 Activity 的 findViewById
-                    this@MainActivity.findViewById<MowanView>(R.id.story_mowan).visibility = View.GONE
-                    this@MainActivity.findViewById<StickmanView>(R.id.story_stickman).apply {
-                        visibility = View.VISIBLE
-                        parts = Parts.everything
-                        action = Actions.get(id)
-                        props = emptySet()
-                    }
-                    this@MainActivity.findViewById<TextView>(R.id.story_title).text = "動作：$id"
                 },
             )
             setOnClickListener { menu.show() }
@@ -161,7 +144,7 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.weather).text =
             if (weather == null) getString(R.string.weather_none) else getString(R.string.weather_row, weather.long)
         // 天氣資料更新：墨丸換成新的天氣；還是同一種天氣就不重來
-        if (MowanSettings.storyCard(this)) findViewById<MowanView>(R.id.story_mowan).weather = currentMowanWeather()
+        findViewById<MowanView>(R.id.story_mowan).weather = currentMowanWeather()
     }
 
     /** 故事卡上墨丸的天氣日常：今天的天氣，沒有資料時是一般站姿 */
@@ -170,35 +153,32 @@ class MainActivity : Activity() {
 
     private val backToStory = Runnable { showStory() }
 
-    /** 除錯選單打開「故事卡用墨丸 V3」時，用 V3 取代火柴人 */
+    /** 故事卡上的墨丸 V3（P7-1 起是唯一的角色） */
     private fun showMowan(weather: Mowan.Weather) {
-        val v3 = MowanSettings.storyCard(this)
-        findViewById<StickmanView>(R.id.story_stickman).visibility = if (v3) View.GONE else View.VISIBLE
         findViewById<MowanView>(R.id.story_mowan).apply {
-            visibility = if (v3) View.VISIBLE else View.GONE
             parts = Mowan.partsOf(book.parts)
             hatOn = MowanSettings.hatOn(this@MainActivity)
             bundleOn = MowanSettings.bundleOn(this@MainActivity)
             art = MowanSettings.art(this@MainActivity)
             this.weather = weather
-            // 節日（P6-4）：外觀都設好了才給今天，主演出開始時鎖定的層級才對。V3 關閉時不判斷節日、不記錄（D-42）
-            today = if (v3) AppClock.today(this@MainActivity) else null
+            // 節日（P6-4）：外觀都設好了才給今天，主演出開始時鎖定的層級才對
+            today = AppClock.today(this@MainActivity)
         }
-        showBundleToggle(v3)
+        showBundleToggle()
     }
 
-    /** 包袱的背上／卸下：用 V3 故事卡、而且第 14 頁拿到包袱以後才出現 */
-    private fun showBundleToggle(v3: Boolean) {
+    /** 包袱的背上／卸下：第 14 頁拿到包袱以後才出現 */
+    private fun showBundleToggle() {
         val unlocked = "bundle" in Mowan.partsOf(book.parts)
         findViewById<TextView>(R.id.story_bundle).apply {
-            visibility = if (v3 && unlocked) View.VISIBLE else View.GONE
+            visibility = if (unlocked) View.VISIBLE else View.GONE
             text = getString(if (MowanSettings.bundleOn(this@MainActivity)) R.string.bundle_take_off else R.string.bundle_put_on)
             setOnClickListener {
                 if ("bundle" !in Mowan.partsOf(book.parts)) return@setOnClickListener
                 MowanSettings.setBundleOn(this@MainActivity, !MowanSettings.bundleOn(this@MainActivity))
                 // 只換外觀，墨丸的動作不重來
                 this@MainActivity.findViewById<MowanView>(R.id.story_mowan).bundleOn = MowanSettings.bundleOn(this@MainActivity)
-                showBundleToggle(MowanSettings.storyCard(this@MainActivity))
+                showBundleToggle()
                 // 日曆頁和桌面小工具上的墨丸也要跟著換（P5-3）
                 show(date)
                 CalendarWidget.refreshAll(this@MainActivity)
@@ -206,15 +186,10 @@ class MainActivity : Activity() {
         }
     }
 
-    /** 點天氣：故事卡上的火柴人演一段，幾秒後回到故事。 */
+    /** 點天氣：故事卡換成天氣的那句話，幾秒後回到故事（V3 的彩蛋動作在 P7-2 以後設計，D-48）。 */
     private fun playWeather() {
         val weather = WeatherService.current(this) ?: return refreshWeather()
         val mood = weather.mood
-        findViewById<StickmanView>(R.id.story_stickman).apply {
-            parts = book.parts
-            action = Actions.get(mood.action)
-            props = mood.props
-        }
         showMowan(MowanSettings.weatherOf(mood))
         findViewById<TextView>(R.id.story_title).text = weather.long
         findViewById<TextView>(R.id.story_text).text = "${book.name}：${mood.line}"
@@ -251,8 +226,7 @@ class MainActivity : Activity() {
         val page = Almanac.page(newDate ?: today)
 
         pad.removeAllViews()
-        pad.addView(if (newDate == null) coverView() else pageView(newDate).also { it.stickmanFlipper()?.isAutoStart = false })
-        updatePageMotion()
+        pad.addView(if (newDate == null) coverView() else pageView(newDate))
         // 只有最上面那張、而且還有沒撕的頁時才能撕
         pad.tearable = newDate == topDate() && book.nextDate(today) != null
 
@@ -303,17 +277,16 @@ class MainActivity : Activity() {
     /** 一頁日曆；還沒到的日子蓋一層薄紙。 */
     private fun pageView(day: LocalDate): View {
         val frame = FrameLayout(this)
-        // App 裡的頁面比小工具大很多，火柴人和山丘照頁寬等比例放大
+        // App 裡的頁面比小工具大很多，墨丸和山丘照頁寬等比例放大
         val metrics = resources.displayMetrics
         val pageWidthPx = metrics.widthPixels - (56 * metrics.density).toInt()
-        val stickmanPx = (pageWidthPx * 0.17f).toInt()
+        val characterPx = (pageWidthPx * 0.17f).toInt()
         // 今天那頁的 V3 墨丸畫節日外觀（D-41）；頁面窄、角色小於 72dp 時跟小工具 TALL 一樣用簡化版的取捨
-        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, stickmanPx / metrics.density)
+        val views = CalendarWidget.build(this, Almanac.page(day), PageLayout.TALL, characterPx / metrics.density)
         val page = views.apply(this, frame).apply { isClickable = false }
-        // 舊火柴人（ViewFlipper）和 V3（mowan_still）用同樣的大小和位置
-        for (id in intArrayOf(R.id.stickman, R.id.mowan_still)) page.findViewById<View>(id)?.layoutParams?.let {
-            it.width = stickmanPx
-            it.height = stickmanPx * 4 / 3
+        page.findViewById<View>(R.id.mowan_still)?.layoutParams?.let {
+            it.width = characterPx
+            it.height = characterPx * 4 / 3
             (it as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin = (pageWidthPx * 0.09f).toInt()
         }
         page.findViewById<View>(R.id.hills)?.layoutParams?.height = (pageWidthPx * 0.26f).toInt()
@@ -343,26 +316,6 @@ class MainActivity : Activity() {
         return frame
     }
 
-    private fun View.stickmanFlipper(): ViewFlipper? = findViewById(R.id.stickman)
-
-    /**
-     * 日曆頁上的小人是小工具的 ViewFlipper（RemoteViews 套出來的），它輪播圖片不看系統的動畫設定。
-     * 系統關閉動畫時停在第一張、不輪播（不然每一兩百毫秒就重畫一次）；打開時才輪播。
-     * 設定改了會再叫一次（Android 13 以上有通知；更舊的版本回到 App 時 onResume 會重建這一頁）。
-     */
-    internal fun updatePageMotion() {
-        val flipper = pad.stickmanFlipper() ?: return
-        // V3 是一張靜態圖（P5-3），不用輪播
-        if (ValueAnimator.areAnimatorsEnabled() && !MowanSettings.storyCard(this)) {
-            flipper.startFlipping()
-        } else {
-            flipper.stopFlipping()
-            flipper.displayedChild = 0
-        }
-    }
-
-    private val scaleListener = ValueAnimator.DurationScaleChangeListener { runOnUiThread { if (::pad.isInitialized) updatePageMotion() } }
-
     /**
      * App 停在前景時跨午夜（或改了時間、時區）：只更新故事卡上墨丸的「今天」與節日（D-44），
      * 不換使用者正在看的日曆頁、不中斷撕頁；日曆頁等回到 App（onResume）時照原本的做法重算。
@@ -373,7 +326,7 @@ class MainActivity : Activity() {
 
     internal fun onDayChanged() {
         if (!::book.isInitialized) return
-        findViewById<MowanView>(R.id.story_mowan).today = if (MowanSettings.storyCard(this)) AppClock.today(this) else null
+        findViewById<MowanView>(R.id.story_mowan).today = AppClock.today(this)
     }
 
     /** 拿回視窗焦點（例如拉下通知欄再收起）：日期改變的廣播萬一沒收到，這裡補一次；只動故事卡 */
@@ -397,11 +350,6 @@ class MainActivity : Activity() {
     override fun onStop() {
         unregisterReceiver(dayChanged)
         super.onStop()
-    }
-
-    override fun onDestroy() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ValueAnimator.unregisterDurationScaleChangeListener(scaleListener)
-        super.onDestroy()
     }
 
     private fun snapshot(view: View, width: Int, height: Int): Bitmap {
@@ -460,11 +408,6 @@ class MainActivity : Activity() {
     }
 
     private fun showStory() {
-        findViewById<StickmanView>(R.id.story_stickman).apply {
-            parts = book.parts
-            action = Actions.get(if (book.page == 0) null else book.lastAction)
-            props = book.lastProps
-        }
         // V3 還沒有故事動作（跳、揮手…）的設計；故事卡平常演今天的天氣（天氣日常），沒有天氣資料時是一般站姿
         showMowan(currentMowanWeather())
         val started = book.page > 0
