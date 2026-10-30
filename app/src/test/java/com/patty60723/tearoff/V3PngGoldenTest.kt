@@ -125,8 +125,14 @@ class V3PngGoldenTest {
         mowan.visibleFraction = { 1f }
         mowan.windowFocused = { true }
         mowan.checkVisible()
-        // 診斷：天氣日常已經走了多久（起點是 App 套上天氣的那一刻）；CI #118、#130 只有雨滴不同，懷疑是這個偶爾差一格
-        timing += "${c.id} checkVisible elapsed=${mowan.timeline.sample(mowan.clock(), false).clockMs} uptime=${mowan.clock()}"
+        // 天氣日常已經走了多久：App 開好時 Robolectric 的時鐘走了幾 ms，偶爾差 1ms（CI #132 記錄：82 或 83、3 或 4），
+        // 雨滴位置跟著不同（CI #118、#130 的 story-moon-rainy 只有雨滴差 28 個像素）。取整到 10ms 讓截圖固定
+        val elapsed = mowan.timeline.sample(mowan.clock(), false).clockMs.toLong()
+        val snapped = elapsed / 10 * 10
+        val weather = mowan.timeline.weather
+        mowan.timeline.setWeather(com.patty60723.tearoff.mowan.Mowan.Weather.NONE, mowan.clock())
+        mowan.timeline.setWeather(weather, mowan.clock() - snapped)
+        timing += "${c.id} checkVisible elapsed=$elapsed → $snapped uptime=${mowan.clock()}"
         if (c.festival != null) {
             if (mowan.session.mode != Mode.MAIN) mowan.replayFestival()
             assertEquals("${c.id} 主演出", Mode.MAIN, mowan.session.mode)
