@@ -273,6 +273,23 @@ class WideLayoutTest {
             report.append("| $name | $w×$h | ${c.joinToString(" | ") { f(it) }} |\n")
         }
         report.append("\n" + if (below.isEmpty()) "**全部 ≥ 4.5（最不利像素）。**\n" else "**未達 4.5：${below.size} 項**\n\n" + below.joinToString("\n") { "- $it" } + "\n")
+
+        // 2026-10-30 補測：其他文字（只記錄，不設門檻讓測試失敗）。日期數字 ≥ 32sp 算大字（WCAG 3:1），其他 4.5:1
+        val others = listOf(R.id.month to "中文月份", R.id.month_en to "英文月份", R.id.day to "日期數字", R.id.label to "節日名稱")
+        report.append("\n## 其他文字（補測，只記錄）\n\n日期數字是大字（≥ 18pt），目標 3:1；其他一般文字 4.5:1。\n\n")
+        report.append("| 日子 | 大小 | " + others.joinToString(" | ") { it.second } + " |\n|---|---|" + "---|".repeat(others.size) + "\n")
+        val otherBelow = mutableListOf<String>()
+        val sp = context.resources.displayMetrics.scaledDensity
+        for ((day, name) in days) for ((w, h) in sizes) {
+            val v = widget(day, w, h, mowan = true)
+            val c = others.map { (id, label) ->
+                val tv = v.findViewById<TextView>(id)
+                val target = if (tv.textSize / sp >= 24) 3.0 else 4.5
+                contrast(v, id).also { r -> if (r != null && r.second < target) otherBelow += "$name $w×$h $label（%.0fsp，目標 %.1f）最差 %.2f".format(tv.textSize / sp, target, r.second) }
+            }
+            report.append("| $name | $w×$h | ${c.joinToString(" | ") { f(it) }} |\n")
+        }
+        report.append("\n" + if (otherBelow.isEmpty()) "**其他文字全部達標（最不利像素）。**\n" else "**其他文字未達標：${otherBelow.size} 項**\n\n" + otherBelow.joinToString("\n") { "- $it" } + "\n")
         File(out, "2-contrast.md").writeText(report.toString())
 
         val cells = samples.map { (day, _) -> sizes.map { (w, h) -> draw(widget(day, w, h, mowan = true)) } }
