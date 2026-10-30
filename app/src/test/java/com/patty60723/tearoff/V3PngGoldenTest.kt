@@ -125,20 +125,19 @@ class V3PngGoldenTest {
         mowan.visibleFraction = { 1f }
         mowan.windowFocused = { true }
         mowan.checkVisible()
-        // 天氣日常（雨滴、撐傘）從這一刻開始算：起點本來是 App 套上天氣的那一刻，偶爾跟這裡差一格，
-        // 雨滴位置就不固定（CI #118、#130 的 story-moon-rainy、#119 的 story-spring-rainy，只有雨滴不同）
-        mowan.timeline.weather.let { w ->
-            mowan.timeline.setWeather(com.patty60723.tearoff.mowan.Mowan.Weather.NONE, mowan.clock())
-            mowan.timeline.setWeather(w, mowan.clock())
-        }
+        // 診斷：天氣日常已經走了多久（起點是 App 套上天氣的那一刻）；CI #118、#130 只有雨滴不同，懷疑是這個偶爾差一格
+        timing += "${c.id} checkVisible elapsed=${mowan.timeline.sample(mowan.clock(), false).clockMs} uptime=${mowan.clock()}"
         if (c.festival != null) {
             if (mowan.session.mode != Mode.MAIN) mowan.replayFestival()
             assertEquals("${c.id} 主演出", Mode.MAIN, mowan.session.mode)
             ShadowSystemClock.advanceBy(Duration.ofMillis(FestivalScene.spec(c.festival).main.durMs + 100L))
         }
+        timing += "${c.id} shoot elapsed=${mowan.timeline.sample(mowan.clock(), false).clockMs} uptime=${mowan.clock()}"
         val card = mowan.parent as View
         return page to shoot(card)
     }
+
+    private val timing = mutableListOf<String>()
 
     private fun render(): Map<String, Bitmap> {
         val shots = LinkedHashMap<String, Bitmap>()
@@ -218,6 +217,7 @@ class V3PngGoldenTest {
         }
         report.append("\n${if (problems.isEmpty()) "全部一致。" else "不一致：${problems.size} 張。"}\n")
         File(out, "report.md").writeText(report.toString())
+        File(out, "timing.txt").writeText(timing.joinToString("\n") + "\n")
         overview(shots)
         if (LOCKED) assertNull("PNG golden 不一致：$problems", problems.ifEmpty { null })
     }
