@@ -101,7 +101,11 @@ class WideLayoutTest {
 
     /** 上下被切掉：這行字要完整落在每一層外框看得到的範圍裡（有 clipToPadding 的要扣掉內距） */
     private fun clipped(root: View, tv: TextView): String? {
-        if (tv.visibility != View.VISIBLE || tv.text.isEmpty() || tv.height == 0) return null
+        if (tv.visibility != View.VISIBLE || tv.text.isEmpty()) return null
+        // 版面給的高度比字矮（直排 LinearLayout 放不下時，最後一行會被壓扁，字在 TextView 裡面被切掉）
+        val l = tv.layout
+        val need = (l?.getLineBottom(l.lineCount - 1) ?: 0) + tv.totalPaddingTop + tv.totalPaddingBottom
+        if (need > tv.height + 1) return "上下被切掉（需要 %.1f dp，只有 %.1f dp）".format(need / dp, tv.height / dp)
         val r = rectIn(root, tv)
         var cur = tv.parent as? android.view.ViewGroup
         while (cur != null) {
