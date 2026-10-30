@@ -99,7 +99,26 @@ class WideLayoutTest {
         return if (need > avail + 1) "切掉（需要 %.0f dp，只有 %.0f dp）".format(need / dp, avail / dp) else null
     }
 
-    private fun cuts(v: View) = texts.mapNotNull { (id, name) -> cut(v.findViewById(id))?.let { "$name$it" } }
+    /** 上下被切掉：這行字要完整落在每一層外框看得到的範圍裡（有 clipToPadding 的要扣掉內距） */
+    private fun clipped(root: View, tv: TextView): String? {
+        if (tv.visibility != View.VISIBLE || tv.text.isEmpty() || tv.height == 0) return null
+        val r = rectIn(root, tv)
+        var cur = tv.parent as? android.view.ViewGroup
+        while (cur != null) {
+            val a = if (cur === root) Rect(0, 0, root.width, root.height) else rectIn(root, cur)
+            val top = a.top + if (cur.clipToPadding) cur.paddingTop else 0
+            val bottom = a.bottom - if (cur.clipToPadding) cur.paddingBottom else 0
+            if (r.top < top - 1 || r.bottom > bottom + 1) return "上下被切掉 %.1f dp".format(maxOf(top - r.top, r.bottom - bottom) / dp)
+            if (cur === root) break
+            cur = cur.parent as? android.view.ViewGroup
+        }
+        return null
+    }
+
+    private fun cuts(v: View) = texts.mapNotNull { (id, name) ->
+        val tv = v.findViewById<TextView>(id)
+        (cut(tv) ?: clipped(v, tv))?.let { "$name$it" }
+    }
 
     private fun lum(c: Int): Double {
         fun ch(x: Int): Double { val s = x / 255.0; return if (s <= 0.03928) s / 12.92 else Math.pow((s + 0.055) / 1.055, 2.4) }
@@ -178,7 +197,7 @@ class WideLayoutTest {
             if (v.findViewById<TextView>(R.id.phrase).textSize < 15 * context.resources.displayMetrics.scaledDensity - 0.5f) smaller[w] = smaller.getValue(w) + 1
         }
         val report = StringBuilder("# WIDE 文字（正式版面，Robolectric xxhdpi，字型縮放 1.0）\n\n## 1. 截斷：2027 年每一天 × 四種大小\n\n")
-        report.append("檢查中文月份、英文月份、日期、星期、節日、宜、農曆、忌。")
+        report.append("檢查中文月份、英文月份、日期、星期、節日、宜、農曆、忌：左右（「…」或被切掉）與上下（超出外框看得到的範圍）。")
         report.append(if (problems.isEmpty()) "**${year.size * sizes.size} 次全部沒有截斷。**\n" else "**有 ${problems.size} 次截斷：**\n\n" + problems.joinToString("\n") { "- $it" } + "\n")
         report.append("\n## 2. 精簡了幾天（內容跟原本完整的不一樣）\n\n| 寬度 | 精簡的天數（共 ${year.size} 天） | 宜的字縮小的天數 |\n|---|---|---|\n")
         for ((w, _) in sizes) report.append("| $w dp | ${notFull[w]} | ${smaller[w]} |\n")
