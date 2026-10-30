@@ -174,7 +174,7 @@
                     android:orientation="vertical"
                     android:paddingLeft="8dp"
                     android:paddingRight="46dp"
-                    android:paddingBottom="6dp">
+                    android:paddingBottom="4dp">
 
                     <TextView
                         android:id="@+id/label"
@@ -203,8 +203,8 @@
                         android:layout_width="20dp"
                         android:layout_height="1dp"
                         android:layout_gravity="left"
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="6dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp"
                         android:scaleType="fitXY"
                         android:src="@drawable/rule" />
                     <TextView
