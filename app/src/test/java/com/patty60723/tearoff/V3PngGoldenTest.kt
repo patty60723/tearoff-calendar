@@ -125,6 +125,12 @@ class V3PngGoldenTest {
         mowan.visibleFraction = { 1f }
         mowan.windowFocused = { true }
         mowan.checkVisible()
+        // 天氣日常（雨滴、撐傘）從這一刻開始算：起點本來是 App 套上天氣的那一刻，偶爾跟這裡差一格，
+        // 雨滴位置就不固定（CI #118、#130 的 story-moon-rainy、#119 的 story-spring-rainy，只有雨滴不同）
+        mowan.timeline.weather.let { w ->
+            mowan.timeline.setWeather(com.patty60723.tearoff.mowan.Mowan.Weather.NONE, mowan.clock())
+            mowan.timeline.setWeather(w, mowan.clock())
+        }
         if (c.festival != null) {
             if (mowan.session.mode != Mode.MAIN) mowan.replayFestival()
             assertEquals("${c.id} 主演出", Mode.MAIN, mowan.session.mode)
