@@ -36,7 +36,7 @@ import java.time.LocalDate
  * 用 Robolectric（NATIVE 繪圖，411dp xxhdpi）畫出來，跟 `src/test/resources/v3-png/` 的基準逐像素比。
  *
  * - 輸出：`build/screenshots/p7-golden/`（actual／diff／overview.png／report.md），CI 會推到截圖分支。
- * - [LOCKED] 是 false 時基準只是「候選」：不一致或缺少只寫進報告、不讓測試失敗。美術審核通過後才改成 true（不自行批准）。
+ * - [LOCKED]：2026-10-30 審核通過後是 true，不一致或缺少基準就失敗（之前是候選，只寫報告）。要改基準必須再經美術審核。
  * - 這是 Robolectric 的繪圖（字型、抗鋸齒跟實機不同），只當回歸基準，不代表實機長相。
  */
 @RunWith(RobolectricTestRunner::class)
@@ -44,8 +44,8 @@ import java.time.LocalDate
 @Config(qualifiers = "w411dp-h891dp-xxhdpi")
 class V3PngGoldenTest {
     companion object {
-        /** 人工審核通過前是 false（候選）；通過後改成 true，不一致就失敗 */
-        const val LOCKED = false
+        /** 2026-10-30 人工審核通過（54 張，含 WIDE 正式修正）後鎖定：不一致就失敗 */
+        const val LOCKED = true
 
         /** 每個顏色通道容許的差距（壓縮、四捨五入）；超過就算這個像素不同 */
         const val CHANNEL_TOLERANCE = 2
