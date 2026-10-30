@@ -55,6 +55,7 @@ case "$*" in
       [ "$(get state)" = true ] && echo false >"$F/state" || echo true >"$F/state"
     fi ;;
   shell\ am\ start*) echo ours >"$F/focus" ;;
+  "shell dumpsys input") echo "  FocusedWindow: name='Window{2 u0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}'" ;;
   *) echo "假的 adb 不認得：$*" >&2; exit 1 ;;
 esac
 EOF
@@ -141,6 +142,8 @@ tap_toggle t "入口" story_bundle state; rc=$?
 n=$(grep -c . <<<"$(taps | tr ',' '\n')")
 [[ $rc = 1 && $(state) = true && $n = 3 ]] \
   && pass "點 3 次都沒切換 → 回傳 1" || fail "rc=$rc state=$(state) taps=$(taps)"
+grep -q "FocusedWindow" "$OUT/ui/t-miss-3.txt" && grep -q "mCurrentFocus" "$OUT/ui/t-miss-3.txt" \
+  && pass "每次沒反應都留下焦點與觸控視窗的紀錄" || fail "沒反應的紀錄不完整：$(cat "$OUT/ui/t-miss-3.txt" 2>&1)"
 
 echo
 [ "$failed" = 0 ] && echo "全部通過" || echo "有測試失敗"

@@ -60,8 +60,10 @@ tap_toggle() { # tap_toggle <檔名用的名稱> <記錄用的名稱> <元件 id
     adb shell input tap $TAP_X $TAP_Y; sleep "$RECOVER_WAIT"
     after=$($get)
     if [ "$before" != "$after" ]; then log "  $label：$before → $after（第 $try 次點擊，位置 $TAP_X $TAP_Y）"; return 0; fi
-    warn "$label第 $try 次沒有反應（$before，位置 $TAP_X $TAP_Y），重新確認畫面再點"
+    warn "$label第 $try 次沒有反應（$before，位置 $TAP_X $TAP_Y），重新確認畫面再點；證據 shots/$name-miss-$try、ui/$name-miss-$try.txt"
     shot "$name-miss-$try"
+    # 點了沒反應時，誰拿到焦點、觸控送到哪個視窗（#68：關掉 launcher 的對話框後 9 下都沒反應，原因不明）
+    { adb shell dumpsys window | tr -d '\r' | grep -E "mCurrentFocus|mFocusedApp"; adb shell dumpsys input | tr -d '\r' | grep -iE "FocusedWindow|TouchedWindow|touchedWindows|name='" | head -40; } > "$OUT/ui/$name-miss-$try.txt" 2>&1
   done
   log "  $label：$before → $after（3 次都沒有切換）"
   return 1
