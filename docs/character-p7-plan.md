@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7 計畫：正式化、首頁 UI/UX、相容性與 QA
 
 > 日期：2026-10-29　分支：`feature/mowan-weather-poses`
-> **狀態：計畫已審核（2026-10-29，D-15、D-48～D-52 定案）。目前執行 P7-0 與 P7-1 第一停點，完成後停下等待審核**。不開 PR、不合併 main；V3 在 P7-1 第二停點（第一停點核准後）才成為預設。
+> **狀態：P7-0 通過；P7-1 第一停點（golden，2026-10-30 鎖定）與第二停點（移除舊火柴人，見 [清理報告](character-p7-1-cleanup.md)）完成，等待審核後進 P7-2**。不開 PR、不合併 main；V3 是唯一的角色。
 > 相關文件：[實作計畫 P7](character-implementation-plan.md#p7--整合效能qa)・[P6 結案報告](character-p6-acceptance.md)・[未定案事項](character-open-decisions.md)
 
 ## 0. 前提（2026-10-29 確認）
