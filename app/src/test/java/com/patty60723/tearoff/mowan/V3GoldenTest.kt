@@ -20,10 +20,8 @@ class V3GoldenTest {
     private val file = File("src/test/resources/mowan/golden-v3.json")
     private val tol = 1e-4
 
-    /** 第 14 頁（全部部位）、紙帽戴著、包袱背著：新安裝撕到最後的樣子 */
-    private val parts = FestivalFixtures.parts(14)
-
-    data class Condition(val id: String, val weather: Mowan.Weather, val festival: Festival?)
+    /** [page] 撕到第幾頁（預設第 14 頁、全部部位），紙帽戴著，[bundle] 包袱背著 */
+    data class Condition(val id: String, val weather: Mowan.Weather, val festival: Festival?, val page: Int = 14, val bundle: Boolean = true)
 
     data class Surface(val id: String, val still: Boolean, val widthDp: Float, val smallEnv: ArtConfig.SmallEnv)
 
@@ -34,6 +32,11 @@ class V3GoldenTest {
             Condition("spring", Mowan.Weather.SUNNY, Festival.SPRING),
             Condition("moon", Mowan.Weather.SUNNY, Festival.MOON),
             Condition("xmas", Mowan.Weather.SUNNY, Festival.XMAS),
+            // 2026-10-30 審核補充（PNG 那邊是候選；這裡的幾何只是現在的輸出）
+            Condition("spring-rainy", Mowan.Weather.RAINY, Festival.SPRING),
+            Condition("moon-rainy", Mowan.Weather.RAINY, Festival.MOON),
+            Condition("page1", Mowan.Weather.SUNNY, null, page = 1),
+            Condition("bundle-off", Mowan.Weather.SUNNY, null, bundle = false),
         )
 
         /** 跟正式程式一樣的密度上限（`CalendarWidget.setMowan`） */
@@ -55,14 +58,15 @@ class V3GoldenTest {
 
     private fun frame(s: Surface, c: Condition): Mowan.Frame {
         val art = ArtConfig.DEFAULT.copy(smallEnv = s.smallEnv)
-        if (!s.still) return Mowan.frame(parts, 0, hatOn = true, weather = c.weather, bundleOn = true, festival = c.festival, art = art)
+        val parts = FestivalFixtures.parts(c.page)
+        if (!s.still) return Mowan.frame(parts, 0, hatOn = true, weather = c.weather, bundleOn = c.bundle, festival = c.festival, art = art)
         // 跟 MowanBitmap.still 同樣的參數
         val w = (s.widthDp * DENSITY).toInt()
         val h = (s.widthDp * 4 / 3 * DENSITY).toInt()
         val drawnHeight = minOf(w / 120.0, h / 160.0) * 160.0
         return Mowan.frame(
             parts, 0, true, c.weather, MowanTimeline.stillClock(c.weather),
-            still = true, bundleOn = true, detail = Detail.of(drawnHeight, DENSITY.toDouble()), festival = c.festival, art = art,
+            still = true, bundleOn = c.bundle, detail = Detail.of(drawnHeight, DENSITY.toDouble()), festival = c.festival, art = art,
         )
     }
 
@@ -105,7 +109,7 @@ class V3GoldenTest {
     }
 
     private fun current() = JSONObject().apply {
-        put("note", "V3 正式幾何 golden（P7-1，D-51）。第 14 頁、紙帽戴著、包袱背著；密度 $DENSITY；由 V3GoldenTest 產生")
+        put("note", "V3 正式幾何 golden（P7-1，D-51）。預設第 14 頁、紙帽戴著、包袱背著；密度 $DENSITY；由 V3GoldenTest 產生")
         for (s in surfaces) for (c in conditions) put("${s.id}/${c.id}", export(frame(s, c)))
     }
 
@@ -145,14 +149,21 @@ class V3GoldenTest {
         for (i in 0 until e.length()) assertEquals("$at[$i]", e.getDouble(i), a.getDouble(i), tol)
     }
 
-    /** 這份 golden 涵蓋的東西本身要有意義：節日有節日的部位、雨天有傘、COMPACT 是極簡 */
+    /** 這份 golden 涵蓋的東西本身要有意義：節日有節日的部位、雨天有傘、中秋雨天沒有月亮、第 1 頁部位少、卸下包袱沒有包袱 */
     @Test
     fun theGoldenCoversWhatItClaims() {
-        val parts = { s: Surface, c: Condition -> frame(s, c).ops.map { it.part }.toSet() }
+        val c = conditions.associateBy { it.id }
+        val parts = { s: Surface, id: String -> frame(s, c.getValue(id)).ops.map { it.part }.toSet() }
         for (s in surfaces) {
-            assertTrue("${s.id} 雨天有傘", frame(s, conditions[1]).canopy != null)
-            assertEquals("${s.id} 晴天沒有傘", null, frame(s, conditions[0]).canopy)
-            for (c in conditions.drop(2)) assertTrue("${s.id} ${c.id} 跟平常不一樣", parts(s, c) != parts(s, conditions[0]))
+            for (id in listOf("normal-rainy", "spring-rainy", "moon-rainy")) assertTrue("${s.id} $id 有傘", frame(s, c.getValue(id)).canopy != null)
+            assertEquals("${s.id} 晴天沒有傘", null, frame(s, c.getValue("normal-sunny")).canopy)
+            for (id in listOf("normal-rainy", "spring", "moon", "xmas", "page1", "bundle-off")) assertTrue("${s.id} $id 跟平常不一樣", parts(s, id) != parts(s, "normal-sunny"))
+            assertTrue("${s.id} 春節雨天有紅包", "envelope" in parts(s, "spring-rainy"))
+            // COMPACT 是極簡（D-16），本來就不畫月亮
+            if (s.smallEnv != ArtConfig.SmallEnv.MINIMAL) assertTrue("${s.id} 中秋晴天有月亮", "moon" in parts(s, "moon"))
+            assertTrue("${s.id} 中秋雨天沒有月亮（D-37）", "moon" !in parts(s, "moon-rainy"))
+            assertTrue("${s.id} 卸下包袱", "bundle" in parts(s, "normal-sunny") && "bundle" !in parts(s, "bundle-off"))
+            assertTrue("${s.id} 第 1 頁部位比較少", parts(s, "page1").size < parts(s, "normal-sunny").size)
         }
     }
 }

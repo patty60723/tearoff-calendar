@@ -32,7 +32,7 @@ import java.time.Duration
 import java.time.LocalDate
 
 /**
- * P7-1：V3 代表組合的 PNG golden（D-51）。故事卡、App 日曆頁、小工具 4 種版面 × 一般日子（晴、雨）與 3 個節日（晴），
+ * P7-1：V3 代表組合的 PNG golden（D-51）。故事卡、App 日曆頁、小工具 4 種版面 × 一般日子（晴、雨）、3 個節日（晴）、春節雨、中秋雨、第 1 頁、卸下包袱，
  * 用 Robolectric（NATIVE 繪圖，411dp xxhdpi）畫出來，跟 `src/test/resources/v3-png/` 的基準逐像素比。
  *
  * - 輸出：`build/screenshots/p7-golden/`（actual／diff／overview.png／report.md），CI 會推到截圖分支。
@@ -59,11 +59,16 @@ class V3PngGoldenTest {
     @After
     fun cleanUp() {
         MowanSettings.setStoryCard(context, false)
+        MowanSettings.setBundleOn(context, true)
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
     }
 
-    data class Condition(val id: String, val label: String, val day: LocalDate, val mood: Mood, val festival: Festival?)
+    /** [page] 撕到第幾頁、[bundle] 包袱背著（預設第 14 頁、背著） */
+    data class Condition(
+        val id: String, val label: String, val day: LocalDate, val mood: Mood, val festival: Festival?,
+        val page: Int = 14, val bundle: Boolean = true,
+    )
 
     private fun firstDay(f: Festival) = generateSequence(LocalDate.of(2027, 1, 1)) { it.plusDays(1) }.first { FestivalTheme.of(it) == f }
 
@@ -75,17 +80,23 @@ class V3PngGoldenTest {
         Condition("spring", "春節・晴", firstDay(Festival.SPRING), Mood.SUNNY, Festival.SPRING),
         Condition("moon", "中秋・晴", firstDay(Festival.MOON), Mood.SUNNY, Festival.MOON),
         Condition("xmas", "聖誕・晴", firstDay(Festival.XMAS), Mood.SUNNY, Festival.XMAS),
+        // 2026-10-30 審核補充（候選）：放在最後，前面 30 張的畫法與順序不變
+        Condition("spring-rainy", "春節・雨", firstDay(Festival.SPRING), Mood.RAIN, Festival.SPRING),
+        Condition("moon-rainy", "中秋・雨", firstDay(Festival.MOON), Mood.RAIN, Festival.MOON),
+        Condition("page1", "第 1 頁・晴", normal, Mood.SUNNY, null, page = 1),
+        Condition("bundle-off", "卸下包袱・晴", normal, Mood.SUNNY, null, bundle = false),
     )
     private val surfaces = listOf("story" to "故事卡", "page" to "日曆頁") +
         PageLayout.entries.map { "widget-${it.name.lowercase()}" to "小工具 ${it.name}" }
 
     private fun shoot(v: View) = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(paper); v.draw(this) } }
 
-    /** 實際的小工具（版面的最小尺寸），撕到第 14 頁 */
+    /** 實際的小工具（版面的最小尺寸），撕到 [Condition.page] 頁 */
     private fun widget(c: Condition, layout: PageLayout): Bitmap {
         MowanSettings.setStoryCard(context, true)
         AppClock.setFakeToday(context, c.day)
-        StoryBook(context).jumpTo(14, c.day)
+        StoryBook(context).jumpTo(c.page, c.day)
+        MowanSettings.setBundleOn(context, c.bundle)
         WeatherService.setFakeMood(context, c.mood)
         val d = context.resources.displayMetrics.density
         val v = CalendarWidget.build(context, Almanac.page(c.day), layout).apply(context, FrameLayout(context)).apply {
@@ -98,12 +109,13 @@ class V3PngGoldenTest {
         return shoot(v)
     }
 
-    /** App 的日曆頁與故事卡：今天撕完，第 14 頁；故事卡在節日當天是主演出結束後的站姿 */
+    /** App 的日曆頁與故事卡：今天撕完，到 [Condition.page] 頁；故事卡在節日當天是主演出結束後的站姿（同一天第二種天氣用除錯重播） */
     private fun app(c: Condition): Pair<Bitmap, Bitmap> {
         MowanSettings.setStoryCard(context, true)
         WeatherService.setFakeMood(context, c.mood)
         AppClock.setFakeToday(context, c.day)
-        StoryBook(context).apply { jumpTo(13, c.day); tear(c.day) }
+        MowanSettings.setBundleOn(context, c.bundle)
+        StoryBook(context).apply { jumpTo(c.page - 1, c.day); tear(c.day) }
         val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         val page = shoot(a.findViewById(R.id.page))
         val mowan = a.findViewById<MowanView>(R.id.story_mowan)
@@ -111,6 +123,7 @@ class V3PngGoldenTest {
         mowan.windowFocused = { true }
         mowan.checkVisible()
         if (c.festival != null) {
+            if (mowan.session.mode != Mode.MAIN) mowan.replayFestival()
             assertEquals("${c.id} 主演出", Mode.MAIN, mowan.session.mode)
             ShadowSystemClock.advanceBy(Duration.ofMillis(FestivalScene.spec(c.festival).main.durMs + 100L))
         }
