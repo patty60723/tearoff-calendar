@@ -115,7 +115,8 @@ class HomeCandidatesShotsTest {
             contentDescription = "地點：$city。天氣與日出日落依這個城市計算。按兩下可以換城市"
             val soft = c.getColor(R.color.ink_soft)
             addView(Icon(c, icon, soft, ::pin))
-            addView(View(c).apply { minimumWidth = dp(4f).toInt() })
+            // 間隔要給固定大小：一般 View 用 wrap_content 會把剩下的寬度全部吃掉
+            addView(View(c), LinearLayout.LayoutParams(dp(4f).toInt(), 1))
             addView(text)
             addView(Icon(c, (icon * 0.9f).toInt(), soft, ::chevron))
         }
