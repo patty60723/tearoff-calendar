@@ -56,7 +56,8 @@
         </LinearLayout>
 
         <!-- 城市入口（P7-2 方案 A，D-53）：日曆上方靠右，「⌖ 臺北市 ⌄」。天氣、溫度、日出日落在日曆裡。
-             整塊可以點（至少 48×48dp），只有系統的淡漣漪，不加卡片、底色或外框；圖示在程式裡跟著字的大小設定 -->
+             整塊可以點（至少 48×48dp），只有系統的淡漣漪，不加卡片、底色或外框；圖示在程式裡跟著字的大小設定。
+             右內距 8dp：下拉符號在程式裡往左貼齊城市名，留下的 4dp 加上這 8dp，跟參考圖一樣是 12dp -->
         <TextView
             android:id="@+id/city"
             android:layout_width="wrap_content"
@@ -70,7 +71,7 @@
             android:minWidth="48dp"
             android:minHeight="48dp"
             android:paddingLeft="12dp"
-            android:paddingRight="12dp"
+            android:paddingRight="8dp"
             android:textColor="@color/ink"
             android:textSize="14sp" />
 

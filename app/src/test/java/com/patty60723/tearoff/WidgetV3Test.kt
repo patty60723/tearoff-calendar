@@ -52,6 +52,10 @@ class WidgetV3Test {
         AppClock.setFakeToday(context, LocalDate.of(2026, 10, 21))
         StoryBook(context).jumpTo(14, today)
         WeatherService.setFakeMood(context, Mood.RAIN)
+        // 標成剛抓過天氣：這個類別有開 App 的測試，App 會在背景真的下載天氣，抓到時重畫日曆頁，
+        // 如果剛好落在下一個測試裡，bitmapBudget 數到的張數就會多（CI #148：4 → 7）
+        context.getSharedPreferences("weather", android.content.Context.MODE_PRIVATE).edit()
+            .putString("city", Cities.selected(context).name).putLong("fetchedAt", System.currentTimeMillis()).commit()
     }
 
     @After
