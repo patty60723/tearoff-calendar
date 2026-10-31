@@ -1,0 +1,18 @@
+normal-sunny checkVisible elapsed=3 → 0 uptime=103
+normal-sunny shoot elapsed=0.0 uptime=103
+normal-rainy checkVisible elapsed=82 → 80 uptime=186
+normal-rainy shoot elapsed=80.0 uptime=186
+spring checkVisible elapsed=82 → 80 uptime=269
+spring shoot elapsed=4380.0 uptime=4569
+moon checkVisible elapsed=82 → 80 uptime=4652
+moon shoot elapsed=4780.0 uptime=9352
+xmas checkVisible elapsed=82 → 80 uptime=9435
+xmas shoot elapsed=4580.0 uptime=13935
+spring-rainy checkVisible elapsed=82 → 80 uptime=14018
+spring-rainy shoot elapsed=4380.0 uptime=18318
+moon-rainy checkVisible elapsed=82 → 80 uptime=18401
+moon-rainy shoot elapsed=4780.0 uptime=23101
+page1 checkVisible elapsed=82 → 80 uptime=23184
+page1 shoot elapsed=80.0 uptime=23184
+bundle-off checkVisible elapsed=3 → 0 uptime=23187
+bundle-off shoot elapsed=0.0 uptime=23187
