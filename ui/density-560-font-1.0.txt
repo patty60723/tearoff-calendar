@@ -1,0 +1,853 @@
+TASK null id=7 userId=0 displayId=0(type=INTERNAL)
+  ACTIVITY com.google.android.apps.nexuslauncher/.NexusLauncherActivity e68301a pid=1095 userId=0 uid=10169 displayId=0(type=INTERNAL)
+    Local Activity 6f9a9e4 State:
+      mResumed=false mStopped=true mFinished=false
+      mIsInMultiWindowMode=false mIsInPictureInPictureMode=false
+      mChangingConfigurations=false
+      mCurrentConfig={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=home mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.23 fontWeightAdjustment=0}
+      mLoadersStarted=true
+      FragmentManager misc state:
+        mHost=android.app.Activity$HostCallbacks@19ee4ed
+        mContainer=android.app.Activity$HostCallbacks@19ee4ed
+        mCurState=3 mStateSaved=true mDestroyed=false
+    ViewRoot:
+      mAdded=true
+      mRemoved=false
+      mStopped=true
+      mPausedForTransition=false
+      mConsumeBatchedInputScheduled=false
+      mConsumeBatchedInputImmediatelyScheduled=false
+      mPendingInputEventCount=0
+      mProcessInputEventsScheduled=false
+      mTraversalScheduled=false
+      mReportNextDraw=false
+      mLastPerformTraversalsFailedReason=view_not_visible
+      mLastReportedMergedConfiguration={mGlobalConfig={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.751 fontWeightAdjustment=0} mOverrideConfig={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=home mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.23 fontWeightAdjustment=0}}
+      mLastConfigurationFromResources={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=home mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.23 fontWeightAdjustment=0}
+      mIsAmbientMode=false
+      mUnbufferedInputSource=0
+      mAttachInfo=       AttachInfo:
+        mHasWindowFocus=false
+        mWindowVisibility=4
+        mInTouchMode=true
+        mUnbufferedDispatchRequested=false
+      android.view.ViewRootImpl$NativePreImeInputStage: mQueueLength=0
+      android.view.ViewRootImpl$ImeInputStage: mQueueLength=0
+      android.view.ViewRootImpl$NativePostImeInputStage: mQueueLength=0
+      android.view.ViewRootImpl$WindowInputEventReceiver
+       mInputChannel: 96a8464 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (client)
+       mSeqMap: {}
+       mReceiverPtr:
+        mInputConsumer:
+          mResampleTouch = true
+          mChannel = 96a8464 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (client)
+          mMsgDeferred: false
+          Batches:
+              <empty>
+          mSeqChains:
+              <empty>
+          mConsumeTimes:
+              <empty>
+          
+        mBatchedInputEventPending: false
+        mOutboundQueue:
+          <empty>
+        
+    Choreographer:
+      mFrameScheduled=false
+      mLastFrameTime=807448 (1926 ms ago)
+    InsetsController:
+      InsetsState
+        mDisplayFrame=Rect(0, 0 - 1080, 2400)
+        mDisplayCutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+        mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+        mRoundedCornerFrame=Rect(0, 0 - 1080, 2400)
+        mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(744, 0 - 1031, 128) rotation=0}
+        mDisplayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+          InsetsSource id=c7bd0001 type=navigationBars frame=[0,0][0,0] visible=false flags=SUPPRESS_SCRIM insetsRoundedCornerFrame=false
+          InsetsSource id=c7bd0004 type=systemGestures frame=[0,0][0,0] visible=false flags= insetsRoundedCornerFrame=false
+          InsetsSource id=c7bd0005 type=mandatorySystemGestures frame=[0,0][0,0] visible=false flags= insetsRoundedCornerFrame=false
+          InsetsSource id=c7bd0006 type=tappableElement frame=[0,0][0,0] visible=false flags= insetsRoundedCornerFrame=false
+          InsetsSource id=c7bd0024 type=systemGestures frame=[0,0][0,0] visible=false flags= insetsRoundedCornerFrame=false
+          InsetsSource id=27 type=displayCutout frame=[0,0][1080,128] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=6a80000 type=statusBars frame=[0,0][1080,128] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=6a80005 type=mandatorySystemGestures frame=[0,0][1080,160] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=6a80006 type=tappableElement frame=[0,0][1080,128] visible=true flags= insetsRoundedCornerFrame=false
+    WindowOnBackDispatcher:
+        Top Callback: android.view.ViewRootImpl$$ExternalSyntheticLambda17@a9a5a12
+        Callbacks: 
+          Callback: android.view.ViewRootImpl$$ExternalSyntheticLambda17@a9a5a12 Priority=0
+    View Hierarchy:
+      DecorView@6b5df22[NexusLauncherActivity]
+        android.widget.LinearLayout{bb88db3 V.E...... .......D 0,0-1080,2400 aid=1073742090}
+          android.view.ViewStub{4330f70 G.E...... ......I. 0,0-0,0 #10201ca android:id/action_mode_bar_stub}
+          android.widget.FrameLayout{911e2e9 V.E...... .......D 0,0-1080,2400 #1020002 android:id/content aid=1073741826}
+            com.android.launcher3.LauncherRootView{8f6cb6e V.E...... .......D 0,0-1080,2400 #7f0a01e5 app:id/launcher aid=1073741827}
+              com.android.launcher3.dragndrop.DragLayer{824520f V.E...... .......D 0,0-1080,2400 #7f0a0139 app:id/drag_layer aid=1073741828}
+                com.android.launcher3.views.AccessibilityActionsView{f11b29c V.E...... ........ 0,128-1080,2316}
+                com.android.launcher3.Workspace{f9cc4a5 V.ED..... .......D 0,0-1080,2400 #7f0a03fa app:id/workspace aid=1073742091}
+                  com.android.launcher3.CellLayout{648307a V.ED..... .......D 19,128-1061,1691 aid=1073742092}
+                    com.android.launcher3.ShortcutAndWidgetContainer{3de002b V.E...... .......D 40,0-1002,1525 aid=1073742093}
+                      com.google.android.apps.nexuslauncher.qsb.SmartspaceViewContainer{5b77f57 V.E...... ........ 0,0-963,305 #7f0a02cf app:id/search_container_workspace aid=1073741832}
+                        com.google.android.systemui.smartspace.BcSmartspaceView{abded02 V.E...... ........ 56,-29-1138,335 #7f0a00a5 app:id/bc_smartspace_view aid=1073741833}
+                          com.google.android.systemui.smartspace.InterceptingViewPager{5d55c88 VFED...L. ........ 0,0-1082,364 #7f0a0307 app:id/smartspace_card_pager aid=1073741834}
+                            com.google.android.systemui.smartspace.BcSmartspaceCard{73a0621 VFE...C.. ........ 0,0-1082,364 aid=1073742097}
+                              android.widget.RelativeLayout{18da46 V.E...... ........ 0,92-1082,272 #7f0a0378 app:id/text_group aid=1073742058}
+                                com.google.android.systemui.smartspace.IcuDateTextView{53a7407 VFED..C.. ........ 0,0-1082,82 #7f0a010f app:id/date aid=1073742059}
+                                androidx.constraintlayout.widget.ConstraintLayout{da7b934 V.E...... ........ 0,114-28,180 #7f0a030a app:id/smartspace_subtitle_group aid=1073742060}
+                                  com.google.android.systemui.smartspace.DoubleShadowTextView{d0fe35d VFED..C.. ......ID 0,0-0,66 #7f0a0337 app:id/subtitle_text}
+                                  com.google.android.systemui.smartspace.DoubleShadowTextView{df854d2 IFED..C.. ......ID 28,0-28,66 #7f0a00a3 app:id/base_action_icon_subtitle}
+                                android.widget.LinearLayout{90049a3 G.E...... ......I. 0,0-0,0 #7f0a0308 app:id/smartspace_extras_group}
+                                  android.widget.ImageView{2a134a0 G.ED..... ......I. 0,0-0,0 #7f0a006e app:id/alarm_icon}
+                                  com.google.android.systemui.smartspace.DoubleShadowTextView{6c5859 G.ED..... ......I. 0,0-0,0 #7f0a006f app:id/alarm_text}
+                                  com.google.android.systemui.smartspace.DoubleShadowTextView{ee2ec1e G.ED..... ......I. 0,0-0,0 #7f0a033d app:id/supplemental_line_text}
+                                  android.widget.ImageView{7c3dcff G.ED..... ......I. 0,0-0,0 #7f0a012e app:id/dnd_icon}
+                          com.google.android.systemui.smartspace.PageIndicator{7f4facc G.E...... ......I. 0,0-0,0 #7f0a0309 app:id/smartspace_page_indicator}
+                      com.android.launcher3.views.DoubleShadowBubbleTextView{d812115 VFED..CL. ......ID 244,1220-475,1525 #4 aid=1073741842}
+                      com.android.launcher3.views.DoubleShadowBubbleTextView{34dac2a VFED..CL. ......ID 488,1220-719,1525 #5 aid=1073741843}
+                      com.android.launcher3.views.DoubleShadowBubbleTextView{5034a1b VFED..CL. ......ID 732,1220-963,1525 #6 aid=1073741844}
+                com.android.launcher3.Hotseat{edcf7b8 V.ED..... .......D 0,1696-1080,2400 #7f0a01b5 app:id/hotseat aid=1073741845}
+                  com.android.launcher3.ShortcutAndWidgetContainer{7dfb991 V.E...... .......D 59,0-1021,260 aid=1073742105}
+                    com.android.launcher3.views.DoubleShadowBubbleTextView{bf260f6 VFED..CL. ......ID 0,0-231,260 #1 aid=1073742106}
+                    com.android.launcher3.views.DoubleShadowBubbleTextView{4026cf7 VFED..CL. ......ID 244,0-475,260 #2 aid=1073742107}
+                    com.android.launcher3.views.DoubleShadowBubbleTextView{45d764 VFED..CL. ......ID 488,0-719,260 #3 aid=1073742108}
+                    com.android.launcher3.uioverrides.PredictedAppIcon{b55dcd VFED..CL. ......ID 732,0-963,260 aid=1073742109}
+                  com.google.android.apps.nexuslauncher.qsb.SearchDelegateView{c37ea44 VFE...CL. ......ID 58,336-1021,557 #7f0a02ce app:id/search_container_hotseat aid=1073741851}
+                    android.widget.ImageView{95b9682 VFED..C.. ......ID 14,26-182,194 #7f0a0180 app:id/g_icon aid=1073741852}
+                    android.widget.LinearLayout{e66e193 V.E...... .......D 613,0-949,221 #7f0a0153 app:id/end_part aid=1073741853}
+                      com.google.android.apps.nexuslauncher.qsb.AssistantIconView{8eb66b0 V.ED..C.. ......ID 0,0-168,221 #7f0a021e app:id/mic_icon aid=1073741854}
+                      android.widget.ImageButton{53b05d0 VFED..C.. ......ID 168,0-336,221 #7f0a01ea app:id/lens_icon aid=1073741855}
+                com.android.launcher3.pageindicators.PageIndicatorDots{4c709c9 V.ED..... ........ 0,1612-1080,1696 #7f0a0275 app:id/page_indicator}
+                com.android.launcher3.DropTargetBar{83098ce I.E...... ......ID 14,240-1066,436 #7f0a013b app:id/drop_target_bar aid=1073741856}
+                  com.android.launcher3.DeleteDropTarget{89403ef V.ED..... ......ID 58,0-471,196 #7f0a011a app:id/delete_target_text aid=1073741857}
+                  com.android.launcher3.SecondaryDropTarget{a12aefc V.ED..... ......ID 569,0-996,196 #7f0a03b0 app:id/uninstall_target_text aid=1073741858}
+                com.android.launcher3.views.ScrimView{e2d7985 V.ED..... ......ID 0,0-1080,2400 #7f0a02c0 app:id/scrim_view}
+                com.android.quickstep.views.LauncherRecentsView{64173da I.ED..... ......I. 0,0-1080,2400 #7f0a0273 app:id/overview_panel}
+                com.google.android.apps.nexuslauncher.overview.NexusOverviewActionsView{fc6f00b V.E...... ........ 0,1852-1080,2400 #7f0a0272 app:id/overview_actions_view aid=1073741859}
+                  android.widget.LinearLayout{859bee8 I.E...... ......ID 0,84-1080,252 #7f0a0044 app:id/action_buttons aid=1073741860}
+                    android.widget.Space{5d12901 I.ED..... ......I. 0,0-106,4}
+                    android.widget.Button{c52f3a6 VFED..C.. ......ID 106,0-533,168 #7f0a005f app:id/action_screenshot aid=1073741861}
+                    android.widget.Space{df281e7 I.ED..... ......I. 533,0-659,4}
+                    android.widget.Button{37fe194 VFED..C.. ......ID 659,0-974,168 #7f0a0060 app:id/action_select aid=1073741862}
+                    android.widget.Space{a6543d G.ED..... ......I. 0,0-0,0 #7f0a0064 app:id/action_split_space}
+                    android.widget.Button{8aaa432 GFED..C.. ......I. 0,0-0,0 #7f0a0063 app:id/action_split aid=1073741863}
+                    android.widget.Space{f5b5583 I.ED..... ......I. 974,0-1080,4}
+                    android.widget.Space{4438300 G.ED..... ......I. 0,0-0,0 #7f0a0269 app:id/oav_three_button_space}
+                  android.widget.FrameLayout{4a8f739 G.E...... ......I. 0,0-0,0 #7f0a02e8 app:id/select_mode_buttons aid=1073741864}
+                    android.widget.ImageButton{65ad17e VFED..C.. ......I. 0,0-0,0 #7f0a00e2 app:id/close}
+                  com.google.android.apps.nexuslauncher.overview.ShareTargetsView{5f3c6df I.E...... ......I. 0,56-1080,56 #7f0a02f3 app:id/share_targets_view}
+                com.google.android.apps.nexuslauncher.allapps.SearchContainerView{eddcf2c I.ED..... ......ID 0,0-1080,2400 #7f0a0094 app:id/apps_view aid=1073742110}
+                  android.widget.FrameLayout{198cdf5 G.E...... ......I. 0,0-0,0 #7f0a00af app:id/bottom_sheet_background}
+                    android.view.View{d4e878a V.ED..... ......I. 0,0-0,0 #7f0a00b1 app:id/bottom_sheet_handle_area}
+                    android.view.View{677f1fb V.ED..... ......I. 0,0-0,0 #7f0a00b0 app:id/bottom_sheet_handle}
+                  com.android.launcher3.allapps.SearchRecyclerView{feeb218 GFED..... ......I. 0,0-0,0 #7f0a02d7 app:id/search_results_list_view}
+                  com.android.launcher3.allapps.AllAppsRecyclerView{9755471 VFED..... ......ID 0,269-1080,2400 #7f0a0092 app:id/apps_list_view aid=1073741885}
+                    com.android.launcher3.BubbleTextView{7159256 VFED..CL. ......I. 57,654-298,1060 #7f0a01c2 app:id/icon aid=1073742117}
+                    com.android.launcher3.BubbleTextView{b49b2d7 VFED..CL. ......I. 298,654-540,1060 #7f0a01c2 app:id/icon aid=1073742118}
+                    com.android.launcher3.BubbleTextView{c28d7c4 VFED..CL. ......I. 540,654-781,1060 #7f0a01c2 app:id/icon aid=1073742119}
+                    com.android.launcher3.BubbleTextView{4b9c6ad VFED..CL. ......I. 781,654-1023,1060 #7f0a01c2 app:id/icon aid=1073742120}
+                    com.android.launcher3.BubbleTextView{4707de2 VFED..CL. ......I. 57,1060-298,1466 #7f0a01c2 app:id/icon aid=1073742121}
+                    com.android.launcher3.BubbleTextView{90ca573 VFED..CL. ......I. 298,1060-540,1466 #7f0a01c2 app:id/icon aid=1073742122}
+                    com.android.launcher3.BubbleTextView{ebdac30 VFED..CL. ......I. 540,1060-781,1466 #7f0a01c2 app:id/icon aid=1073742123}
+                    com.android.launcher3.BubbleTextView{e5920a9 VFED..CL. ......I. 781,1060-1023,1466 #7f0a01c2 app:id/icon aid=1073742124}
+                    com.android.launcher3.BubbleTextView{f9c962e VFED..CL. ......I. 57,1466-298,1872 #7f0a01c2 app:id/icon aid=1073742125}
+                    com.android.launcher3.BubbleTextView{10225cf VFED..CL. ......I. 298,1466-540,1872 #7f0a01c2 app:id/icon aid=1073742126}
+                    com.android.launcher3.BubbleTextView{2895b5c VFED..CL. ......I. 540,1466-781,1872 #7f0a01c2 app:id/icon aid=1073742127}
+                    com.android.launcher3.BubbleTextView{37a1e65 VFED..CL. ......I. 781,1466-1023,1872 #7f0a01c2 app:id/icon aid=1073742128}
+                    com.android.launcher3.BubbleTextView{75fe73a VFED..CL. ......I. 57,1872-298,2278 #7f0a01c2 app:id/icon aid=1073742129}
+                    com.android.launcher3.BubbleTextView{d254feb VFED..CL. ......I. 298,1872-540,2278 #7f0a01c2 app:id/icon aid=1073742130}
+                    com.android.launcher3.BubbleTextView{1fed148 VFED..CL. ......I. 540,1872-781,2278 #7f0a01c2 app:id/icon aid=1073742131}
+                    com.android.launcher3.BubbleTextView{2f33be1 VFED..CL. ......I. 781,1872-1023,2278 #7f0a01c2 app:id/icon aid=1073742132}
+                  com.android.launcher3.allapps.FloatingHeaderView{7538ee5 V.E...... ......ID 0,269-1080,972 #7f0a0077 app:id/all_apps_header aid=1073741866}
+                    com.android.launcher3.appprediction.PredictionRowView{ed53d06 V.E...... ......ID 57,126-1023,504 #7f0a028a app:id/prediction_row aid=1073741867}
+                      com.android.launcher3.BubbleTextView{206ffc7 VFED..CL. ......ID 0,-14-241,392 #7f0a01c2 app:id/icon aid=1073742111}
+                      com.android.launcher3.BubbleTextView{9d3b9f4 VFED..CL. ......ID 241,-14-482,392 #7f0a01c2 app:id/icon aid=1073742112}
+                      com.android.launcher3.BubbleTextView{886b51d VFED..CL. ......ID 482,-14-724,392 #7f0a01c2 app:id/icon aid=1073742113}
+                      com.android.launcher3.BubbleTextView{df82392 VFED..CL. ......ID 724,-14-966,392 #7f0a01c2 app:id/icon aid=1073742114}
+                    com.android.launcher3.appprediction.AppsDividerView{269d163 V.ED..... ......ID 57,504-1023,654 #7f0a0091 app:id/apps_divider_view}
+                    com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip{a6c8160 G.E...... ......I. 0,0-0,0 #7f0a0348 app:id/tabs aid=1073741872}
+                      android.widget.Button{fde8619 VFED..C.. ......I. 0,0-0,0 #7f0a0345 app:id/tab_personal}
+                      android.widget.Button{ef0e6de VFED..C.. ......I. 0,0-0,0 #7f0a0346 app:id/tab_work}
+                  android.widget.TextView{9e20bf V.ED..... ......ID 750,318-1013,535 #7f0a015f app:id/fast_scroller_popup aid=1073742116}
+                  com.android.launcher3.views.RecyclerViewFastScroller{408538c V.ED..... ......ID 968,318-1171,2400 #7f0a015e app:id/fast_scroller}
+                  com.google.android.apps.nexuslauncher.allapps.UniversalSearchInputView{e3bcdba V.E...... ......ID 71,153-1009,374 #7f0a02cd app:id/search_container_all_apps aid=1073741873}
+                    android.widget.RelativeLayout{b486ad5 V.E...... ......ID 0,15-924,206 aid=1073742115}
+                      android.widget.FrameLayout{42092ea V.E...... ......ID 742,4-924,186 #7f0a0041 app:id/action_btn_container aid=1073741875}
+                        android.widget.ImageButton{99e09db IFED..C.. ......I. 0,0-182,182 #7f0a00db app:id/clear_btn aid=1073741876}
+                        android.widget.ImageButton{9ad1c78 IFED..C.. ......I. 0,0-182,182 #7f0a0216 app:id/menu_btn aid=1073741877}
+                      android.widget.ImageView{a31df51 VFED..C.. ......ID 14,11-182,179 #7f0a0180 app:id/g_icon aid=1073741878}
+                      com.google.android.apps.nexuslauncher.search.TypeAheadSearchInputView{2ecf3b6 V.E...... ......ID 196,0-742,191 #7f0a03ad app:id/typeahead_input aid=1073741879}
+                        android.widget.TextView{5e968b7 I.ED..... ......ID 0,0-546,191 #7f0a01af app:id/hint aid=1073741880}
+                        com.google.android.apps.nexuslauncher.search.SearchEditText{6d38824 VFED..CL. ......ID 0,0-546,191 #7f0a01d9 app:id/input aid=1073741824}
+                      android.widget.LinearLayout{b641f8d V.E...... ......ID 588,11-924,179 #7f0a0151 app:id/end_icons aid=1073741881}
+                        com.google.android.apps.nexuslauncher.qsb.AssistantIconView{70c6c74 V.ED..C.. ......ID 0,0-168,168 #7f0a021e app:id/mic_icon aid=1073741882}
+                        android.widget.ImageButton{f4c9542 VFED..C.. ......ID 168,0-336,168 #7f0a01ea app:id/lens_icon aid=1073741883}
+                    android.view.View{c21d953 V.ED..... ......ID 0,0-938,221 #7f0a02ae app:id/ripple}
+    Looper (main, tid 2) {332b0eb}
+      Message 0: { when=+2s732ms callback=android.view.contentcapture.MainContentCaptureSession$$ExternalSyntheticLambda11 target=android.os.Handler }
+      (Total messages: 1, polling=false, quitting=false)
+    ResourcesManager:
+      total apks: 8
+      resources: 9
+      resource impls: 7
+    2 dumpables:
+    #0: AutofillManager
+        AutofillManager:
+          sessionId: 2147483647
+          state: UNKNOWN
+          context: com.google.android.apps.nexuslauncher.NexusLauncherActivity@6f9a9e4
+          service client: null
+          client: android.view.autofill.AutofillClientController@3d30290 (android.os.BinderProxy@9d50d03)
+          enabled: false
+          enabledAugmentedOnly: false
+          hasService: true
+          hasCallback: false
+          onInvisibleCalled false
+          last autofilled data: null
+          id of last fill UI shown: null
+          tracked views: null
+          fillable ids: null
+          entered ids: null
+          save trigger id: null
+          save on finish(): false
+          options: logLvl=2, compatMode=false, augmented=false, appDisabledExpiration=0
+          compat mode enabled:   fill dialog enabled: false
+          fill dialog enabled hints: [password, passwordAuto, creditCardNumber, creditCardSecurityCode, creditCardExpirationDate]
+        false
+          debug: true verbose: false
+        Autofill Compat Mode: false
+    #1: ContentCaptureManager
+        ContentCaptureManager
+          isContentCaptureEnabled(): true
+          Debug: true Verbose: false
+          Context: com.google.android.apps.nexuslauncher.NexusLauncherActivity@6f9a9e4
+          User: 0
+          Service: android.view.contentcapture.IContentCaptureManager$Stub$Proxy@7002789
+          Flags: 0
+          Options: logLvl=1, bufferSize=500, idle=5000, textIdle=1000, logSize=20, disableFlushForViewTreeAppearing=false
+          Main session:
+            id: 1702938932
+            destroyed: false
+            mContext: com.google.android.apps.nexuslauncher.NexusLauncherActivity@6f9a9e4
+            user: 0
+            mDirectServiceInterface: android.view.contentcapture.IContentCaptureDirectManager$Stub$Proxy@412c38e
+            mDisabled: false
+            isEnabled(): true
+            state: 2 (ACTIVE)
+            app token: android.os.BinderProxy@9d50d03
+            sharable activity token: android.os.BinderProxy@33e74ff
+            component name: com.google.android.apps.nexuslauncher/.NexusLauncherActivity
+            flush history:
+        2026-10-31T10:05:02.586114 - r=VIEW_TREE_APPEARED s=2 m=500 i=5000
+        2026-10-31T10:05:02.586044 - r=VIEW_TREE_APPEARING s=2 m=500 i=5000
+        2026-10-31T10:05:02.497502 - r=TEXT_CHANGE s=5 m=500 i=5000
+        2026-10-31T10:05:00.561011 - r=VIEW_TREE_APPEARED s=18 m=500 i=5000
+        2026-10-31T10:05:00.560942 - r=VIEW_TREE_APPEARING s=1 m=500 i=5000
+        2026-10-31T10:05:00.166019 - r=VIEW_TREE_APPEARED s=61 m=500 i=5000
+        2026-10-31T10:05:00.165893 - r=VIEW_TREE_APPEARING s=2 m=500 i=5000
+        2026-10-31T10:04:59.086906 - r=FORCE_FLUSH s=1 m=500 i=5000
+        2026-10-31T10:04:59.041359 - r=CONNECTED s=1 m=500 i=5000
+        
+            id: 1702938932
+            destroyed: false
+    Misc:
+    	deviceProfile isTransposed=false
+    	orientation=1
+    	mSystemUiController: mStates=[10, 0, 0, 0, 0]
+    	mActivityFlags: 
+    	mForceInvisible: 0
+    	mWorkspaceLoading=false
+    	mPendingRequestArgs=null mPendingActivityResult=null
+    	mRotationHelper: [mStateHandlerRequest=0, mCurrentStateRequest=0, mLastActivityFlags=5, mIgnoreAutoRotateSettings=false, mHomeRotationEnabled=false, mForceAllowRotationForTesting=false]
+    	mAppWidgetHolder.isListening: false
+    DragLayer:
+    	dragLayerAlpha : [1.0]
+    StateManager:
+    	mLastStableState:Normal
+    	mCurrentStableState:Normal
+    	mState:Normal
+    	mRestState:null
+    	isInTransition:false
+    PopupDataProvider:
+    	mPackageUserToDotInfos:{}
+    DeviceProfile:
+    	1 dp = 3.5 px
+    	isTablet:false
+    	isPhone:true
+    	transposeLayoutWithOrientation:true
+    	isGestureMode:true
+    	isLandscape:false
+    	isMultiWindowMode:false
+    	isTwoPanels:false
+    	windowX: 0.0px (0.0dp)
+    	windowY: 0.0px (0.0dp)
+    	widthPx: 1080.0px (308.57144dp)
+    	heightPx: 2400.0px (685.7143dp)
+    	availableWidthPx: 1080.0px (308.57144dp)
+    	availableHeightPx: 2188.0px (625.1429dp)
+    	mInsets.left: 0.0px (0.0dp)
+    	mInsets.top: 128.0px (36.57143dp)
+    	mInsets.right: 0.0px (0.0dp)
+    	mInsets.bottom: 84.0px (24.0dp)
+    	aspectRatio:2.2222223
+    	isResponsiveGrid:false
+    	isScalableGrid:true
+    	inv.numRows: 5
+    	inv.numColumns: 4
+    	inv.numSearchContainerColumns: 4
+    	minCellSize: PointF(80.0, 104.0)dp
+    	cellWidthPx: 231.0px (66.0dp)
+    	cellHeightPx: 305.0px (87.14286dp)
+    	getCellSize().x: 231.0px (66.0dp)
+    	getCellSize().y: 305.0px (87.14286dp)
+    	cellLayoutBorderSpacePx Horizontal: 13.0px (3.7142856dp)
+    	cellLayoutBorderSpacePx Vertical: 0.0px (0.0dp)
+    	cellLayoutPaddingPx.left: 38.0px (10.857142dp)
+    	cellLayoutPaddingPx.top: 0.0px (0.0dp)
+    	cellLayoutPaddingPx.right: 38.0px (10.857142dp)
+    	cellLayoutPaddingPx.bottom: 38.0px (10.857142dp)
+    	iconSizePx: 231.0px (66.0dp)
+    	iconTextSizePx: 49.0px (14.0dp)
+    	iconDrawablePaddingPx: 10.0px (2.857143dp)
+    	inv.numFolderRows: 3
+    	inv.numFolderColumns: 3
+    	folderCellWidthPx: 274.0px (78.28571dp)
+    	folderCellHeightPx: 322.0px (92.0dp)
+    	folderChildIconSizePx: 226.0px (64.57143dp)
+    	folderChildTextSizePx: 48.0px (13.714286dp)
+    	folderChildDrawablePaddingPx: 10.0px (2.857143dp)
+    	folderCellLayoutBorderSpacePx: 55.0px (15.714286dp)
+    	folderContentPaddingLeftRight: 55.0px (15.714286dp)
+    	folderTopPadding: 82.0px (23.428572dp)
+    	folderFooterHeight: 192.0px (54.857143dp)
+    	bottomSheetTopPadding: 166.0px (47.42857dp)
+    	bottomSheetOpenDuration: 267
+    	bottomSheetCloseDuration: 267
+    	bottomSheetWorkspaceScale: 1.0
+    	bottomSheetDepth: 0.0
+    	allAppsShiftRange: 1050.0px (300.0dp)
+    	allAppsTopPadding: 0.0px (0.0dp)
+    	allAppsOpenDuration: 600
+    	allAppsCloseDuration: 300
+    	allAppsIconSizePx: 231.0px (66.0dp)
+    	allAppsIconTextSizePx: 49.0px (14.0dp)
+    	allAppsIconDrawablePaddingPx: 25.0px (7.142857dp)
+    	allAppsCellHeightPx: 406.0px (116.0dp)
+    	allAppsCellWidthPx: 231.0px (66.0dp)
+    	allAppsBorderSpacePxX: 13.0px (3.7142856dp)
+    	allAppsBorderSpacePxY: 42.0px (12.0dp)
+    	numShownAllAppsColumns: 4
+    	allAppsLeftRightPadding: 57.0px (16.285715dp)
+    	allAppsLeftRightMargin: 0.0px (0.0dp)
+    	hotseatBarSizePx: 704.0px (201.14285dp)
+    	inv.hotseatColumnSpan: 4
+    	hotseatCellHeightPx: 260.0px (74.28571dp)
+    	hotseatBarBottomSpacePx: 168.0px (48.0dp)
+    	hotseatBarSidePaddingStartPx: 0.0px (0.0dp)
+    	hotseatBarSidePaddingEndPx: 0.0px (0.0dp)
+    	hotseatBarEndOffset: 0.0px (0.0dp)
+    	hotseatQsbSpace: 126.0px (36.0dp)
+    	hotseatQsbHeight: 221.0px (63.142857dp)
+    	springLoadedHotseatBarTopMarginPx: 266.0px (76.0dp)
+    	getHotseatLayoutPadding(context).top: 0.0px (0.0dp)
+    	getHotseatLayoutPadding(context).bottom: 444.0px (126.85714dp)
+    	getHotseatLayoutPadding(context).left: 58.0px (16.571428dp)
+    	getHotseatLayoutPadding(context).right: 58.0px (16.571428dp)
+    	numShownHotseatIcons: 4
+    	hotseatBorderSpace: 13.0px (3.7142856dp)
+    	isQsbInline: false
+    	hotseatQsbWidth: 963.0px (275.14285dp)
+    	isTaskbarPresent:false
+    	isTaskbarPresentInApps:false
+    	taskbarHeight: 210.0px (60.0dp)
+    	stashedTaskbarHeight: 84.0px (24.0dp)
+    	taskbarBottomMargin: 0.0px (0.0dp)
+    	taskbarIconSize: 169.0px (48.285713dp)
+    	desiredWorkspaceHorizontalMarginPx: 57.0px (16.285715dp)
+    	workspacePadding.left: 19.0px (5.428571dp)
+    	workspacePadding.top: 0.0px (0.0dp)
+    	workspacePadding.right: 19.0px (5.428571dp)
+    	workspacePadding.bottom: 625.0px (178.57143dp)
+    	iconScale: 0.74657536px (0.21330725dp)
+    	cellScaleToFit : 0.74657536px (0.21330725dp)
+    	extraSpace: 1.0px (0.2857143dp)
+    	unscaled extraSpace: 1.3394495px (0.38269988dp)
+    	maxEmptySpace: 77.0px (22.0dp)
+    	workspaceTopPadding: 0.0px (0.0dp)
+    	workspaceBottomPadding: 1.0px (0.2857143dp)
+    	overviewTaskMarginPx: 56.0px (16.0dp)
+    	overviewTaskIconSizePx: 168.0px (48.0dp)
+    	overviewTaskIconDrawableSizePx: 154.0px (44.0dp)
+    	overviewTaskIconDrawableSizeGridPx: 0.0px (0.0dp)
+    	overviewTaskThumbnailTopMarginPx: 224.0px (64.0dp)
+    	overviewActionsTopMarginPx: 84.0px (24.0dp)
+    	overviewActionsHeight: 168.0px (48.0dp)
+    	overviewActionsClaimedSpaceBelow: 84.0px (24.0dp)
+    	overviewActionsButtonSpacing: 126.0px (36.0dp)
+    	overviewPageSpacing: 56.0px (16.0dp)
+    	overviewRowSpacing: 0.0px (0.0dp)
+    	overviewGridSideMargin: 0.0px (0.0dp)
+    	dropTargetBarTopMarginPx: 112.0px (32.0dp)
+    	dropTargetBarSizePx: 196.0px (56.0dp)
+    	dropTargetBarBottomMarginPx: 56.0px (16.0dp)
+    	getCellLayoutSpringLoadShrunkTop(): 492.0px (140.57143dp)
+    	getCellLayoutSpringLoadShrunkBottom(): 1430.0px (408.57144dp)
+    	workspaceSpringLoadedMinNextPageVisiblePx: 84.0px (24.0dp)
+    	getWorkspaceSpringLoadScale(): 0.60012794px (0.17146513dp)
+    	getCellLayoutHeight(): 1563.0px (446.57144dp)
+    	getCellLayoutWidth(): 1042.0px (297.7143dp)
+
+--- logfile: log-0 ---
+10/31/26 9:52 AM DisplayController Unexpected normalizedDisplayInfo found, invalidating cache: CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}
+10/31/26 9:52 AM DisplayController (Invalid Cache) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 0 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 63 - 0, 63), availableSize=Point(1080, 2274), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 63 - 0, 63), availableSize=Point(2400, 954), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 63 - 0, 63), availableSize=Point(1080, 2274), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 63 - 0, 63), availableSize=Point(2400, 954), rotationHint=3}]
+10/31/26 9:52 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=63, right=0, bottom=0} max=Insets{left=0, top=63, right=0, bottom=0} vis=true
+    navigationBars=Insets{left=0, top=0, right=0, bottom=63} max=Insets{left=0, top=0, right=0, bottom=63} vis=true
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=78, top=160, right=78, bottom=84} max=Insets{left=78, top=160, right=78, bottom=84} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=84} max=Insets{left=0, top=160, right=0, bottom=84} vis=true
+    tappableElement=Insets{left=0, top=63, right=0, bottom=0} max=Insets{left=0, top=63, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(827, 0 - 1043, 63) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=navigationBars
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=2.625}]
+10/31/26 9:52 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 63), availableSize=Point(1080, 2209), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 63), availableSize=Point(2272, 943), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 63), availableSize=Point(2272, 943), rotationHint=3}]
+10/31/26 9:52 AM ModelWriter removing items from db . Reason: [removed because the corresponding package or component is removed. mOp=2 removedPackages=[com.android.nfc] removedComponents=[]]
+10/31/26 10:04 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    navigationBars=Insets{left=0, top=0, right=0, bottom=63} max=Insets{left=0, top=0, right=0, bottom=63} vis=true
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=78, top=160, right=78, bottom=84} max=Insets{left=78, top=160, right=78, bottom=84} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=84} max=Insets{left=0, top=160, right=0, bottom=84} vis=true
+    tappableElement=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(827, 0 - 1043, 128) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=navigationBars
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=2.0}]
+10/31/26 10:04 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 48), availableSize=Point(1080, 2224), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 48), availableSize=Point(2272, 958), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 48), availableSize=Point(2272, 958), rotationHint=3}]
+10/31/26 10:04 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    navigationBars=Insets{left=0, top=0, right=0, bottom=48} max=Insets{left=0, top=0, right=0, bottom=48} vis=true
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=60, top=160, right=60, bottom=64} max=Insets{left=60, top=160, right=60, bottom=64} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=64} max=Insets{left=0, top=160, right=0, bottom=64} vis=true
+    tappableElement=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(878, 0 - 1042, 128) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=navigationBars
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=2.625}]
+10/31/26 10:04 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 63), availableSize=Point(1080, 2209), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 63), availableSize=Point(2272, 943), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 63), availableSize=Point(2272, 943), rotationHint=3}]
+10/31/26 10:04 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    navigationBars=Insets{left=0, top=0, right=0, bottom=63} max=Insets{left=0, top=0, right=0, bottom=63} vis=true
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=78, top=160, right=78, bottom=84} max=Insets{left=78, top=160, right=78, bottom=84} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=84} max=Insets{left=0, top=160, right=0, bottom=84} vis=true
+    tappableElement=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(827, 0 - 1043, 128) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=navigationBars
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=2.625}]
+10/31/26 10:04 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 63), availableSize=Point(1080, 2209), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 63), availableSize=Point(2272, 943), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 63), availableSize=Point(2272, 943), rotationHint=3}]
+10/31/26 10:04 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    navigationBars=Insets{left=0, top=0, right=0, bottom=63} max=Insets{left=0, top=0, right=0, bottom=63} vis=true
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=78, top=160, right=78, bottom=84} max=Insets{left=78, top=160, right=78, bottom=84} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=84} max=Insets{left=0, top=160, right=0, bottom=84} vis=true
+    tappableElement=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(827, 0 - 1043, 128) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=navigationBars
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=2.625}]
+10/31/26 10:04 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 63), availableSize=Point(1080, 2209), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 63), availableSize=Point(2272, 943), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 63), availableSize=Point(2272, 943), rotationHint=3}]
+10/31/26 10:04 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    navigationBars=Insets{left=0, top=0, right=0, bottom=63} max=Insets{left=0, top=0, right=0, bottom=63} vis=true
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=78, top=160, right=78, bottom=84} max=Insets{left=78, top=160, right=78, bottom=84} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=84} max=Insets{left=0, top=160, right=0, bottom=84} vis=true
+    tappableElement=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(827, 0 - 1043, 128) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=navigationBars
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=3.5}]
+10/31/26 10:04 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 84), availableSize=Point(1080, 2188), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 84), availableSize=Point(2272, 922), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 84), availableSize=Point(2272, 922), rotationHint=3}]
+10/31/26 10:04 AM b/283944974 possibleMaximumWindowMetrics: [WindowMetrics:{bounds=Rect(0, 0 - 1080, 2400), windowInsets=WindowInsets{
+    statusBars=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    navigationBars=null max=null vis=false
+    captionBar=null max=null vis=false
+    ime=Insets{left=0, top=0, right=0, bottom=0} max=null vis=false
+    systemGestures=Insets{left=0, top=160, right=0, bottom=0} max=Insets{left=0, top=160, right=0, bottom=0} vis=true
+    mandatorySystemGestures=Insets{left=0, top=160, right=0, bottom=0} max=Insets{left=0, top=160, right=0, bottom=0} vis=true
+    tappableElement=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    displayCutout=Insets{left=0, top=128, right=0, bottom=0} max=Insets{left=0, top=128, right=0, bottom=0} vis=true
+    windowDecor=null max=null vis=false
+    systemOverlays=null max=null vis=false
+    cutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+    roundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+    privacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(827, 0 - 1043, 128) rotation=0}
+    displayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+    suppressScrimTypes=
+    compatInsetsTypes=statusBars navigationBars captionBar systemOverlays
+    compatIgnoreVisibility=false
+    systemWindowInsetsConsumed=false
+    stableInsetsConsumed=false
+    displayCutoutConsumed=false
+    }, density=3.5}]
+10/31/26 10:04 AM DisplayController (CHANGE_SUPPORTED_BOUNDS) perDisplayBounds - CachedDisplayInfo{size=Point(1080, 2400), cutout=Rect(0, 128 - 0, 0), rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 84), availableSize=Point(1080, 2188), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(128, 74 - 0, 84), availableSize=Point(2272, 922), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1080, 2400), insets=Rect(0, 128 - 0, 128), availableSize=Point(1080, 2144), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 2400, 1080), insets=Rect(0, 74 - 128, 84), availableSize=Point(2272, 922), rotationHint=3}]
+    Recent BC Smartspace Targets (most recent first)
+       Number of targets: 0
+
+       Number of targets: 0
+
+       Number of targets: 0
+
+       Number of targets: 0
+
+       Number of targets: 0
+
+    Data Model:
+     ---- workspace items 
+    	WorkspaceItemInfo(id=1 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a1bf6a targetComponent=ComponentInfo{com.google.android.dialer/com.google.android.dialer.extensions.GoogleDialtactsActivity} screen=0 cell(0,0) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Phone)
+    	WorkspaceItemInfo(id=2 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a1ca63 targetComponent=ComponentInfo{com.google.android.apps.messaging/com.google.android.apps.messaging.ui.ConversationListActivity} screen=1 cell(1,0) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Messages)
+    	WorkspaceItemInfo(id=3 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a1d55c targetComponent=ComponentInfo{com.android.chrome/com.google.android.apps.chrome.Main} screen=2 cell(2,0) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Chrome)
+    	WorkspaceItemInfo(id=4 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a430db targetComponent=ComponentInfo{com.google.android.gm/com.google.android.gm.ConversationListActivityGmail} screen=0 cell(1,4) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Gmail)
+    	WorkspaceItemInfo(id=5 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a67668 targetComponent=ComponentInfo{com.google.android.apps.photos/com.google.android.apps.photos.home.HomeActivity} screen=0 cell(2,4) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Photos)
+    	WorkspaceItemInfo(id=6 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a8bbf5 targetComponent=ComponentInfo{com.google.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity} screen=0 cell(3,4) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=YouTube)
+     ---- appwidget items 
+     ---- folder items 
+     ---- items id map 
+    	WorkspaceItemInfo(id=1 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a1bf6a targetComponent=ComponentInfo{com.google.android.dialer/com.google.android.dialer.extensions.GoogleDialtactsActivity} screen=0 cell(0,0) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Phone)
+    	WorkspaceItemInfo(id=2 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a1ca63 targetComponent=ComponentInfo{com.google.android.apps.messaging/com.google.android.apps.messaging.ui.ConversationListActivity} screen=1 cell(1,0) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Messages)
+    	WorkspaceItemInfo(id=3 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a1d55c targetComponent=ComponentInfo{com.android.chrome/com.google.android.apps.chrome.Main} screen=2 cell(2,0) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Chrome)
+    	WorkspaceItemInfo(id=4 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a430db targetComponent=ComponentInfo{com.google.android.gm/com.google.android.gm.ConversationListActivityGmail} screen=0 cell(1,4) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Gmail)
+    	WorkspaceItemInfo(id=5 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a67668 targetComponent=ComponentInfo{com.google.android.apps.photos/com.google.android.apps.photos.home.HomeActivity} screen=0 cell(2,4) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=Photos)
+    	WorkspaceItemInfo(id=6 type=APP container=# com.android.launcher3.logger.LauncherAtom$ContainerInfo@1a8bbf5 targetComponent=ComponentInfo{com.google.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity} screen=0 cell(3,4) span(1,1) minSpan(1,1) rank=0 user=UserHandle{0} title=YouTube)
+    DeviceSearchSettings:
+      ShortcutResult:true
+      PixelTipsResult:true
+      WebResult:true
+      PlaySearchResult:true
+      SettingsResult:true
+      PeopleResult:true
+    LauncherClient
+      isConnected: true
+      act.isBound: false
+      app.isBound: true
+      serviceVersion: 11
+      clientVersion: 20
+      isGoogleOverlayDefault: false
+      partnerOverlayProductName: 
+      isPartnerOverlayIconPresent: false
+      mActivityState: 0
+      mServiceStatus: 27
+      mCurrentServiceConnectionOptions: 15
+      Client event history:
+        10:05:02.522+0000  stateChanged : 0
+        10:04:59.082+0000  stateChanged : 1
+        10:04:58.858+0000  attachedToWindow
+        10:04:58.834+0000  stateChanged : 3
+        10:04:58.833+0000  stateChanged : 1
+        10:04:58.832+0000  setPrivateOptions : background_secondary_color_hint,override_bottom_inset,is_background_dark,system_ui_visibility,background_color_hint
+      Service event history:
+        10:04:59.261+0000  onScroll 0, overlay closed
+        10:04:59.261+0000  stateChanged: 0
+    DepthController
+    	mMaxBlurRadius=23
+    	mCrossWindowBlursEnabled=true
+    	mSurface=null
+    	mStateDepth=0.0
+    	mWidgetDepth=0.0
+    	mCurrentBlur=0
+    	mInEarlyWakeUp=false
+    	mIgnoreStateChangesDuringMultiWindowAnimation=false
+    	mPauseBlurs=false
+
+QuickstepLauncher:
+    	mOrientationState: [this=RecentsOrientedState@27560233 mOrientationHandler=PortraitPagedViewHandler@34173127 mDisplayRotation=0 mTouchRotation=0 mRecentsActivityRotation=0 mRecentsRotation=0 isRecentsActivityRotationAllowed=false mSystemRotation=true mStateId=38272 mFlags=299]
+     SplitSelectDataHolder
+    	initialStagePosition= -1
+    	initialTaskId= -1
+    	secondTaskId= -1
+    	initialUser= null
+    	secondUser= null
+    	initialIntent= null
+    	secondIntent= null
+    	secondPendingIntent= null
+    	itemInfo= null
+    	splitEvent= null
+    	initialShortcut= null
+    	secondShortcut= null
+    	RingAppearAnimation	DreamAnimationController event history:
+NexusLauncher
+    OneSearch:
+    		shouldShowSuggest=true
+    		SearchRequestTimeout=200
+    		mEnableOneSearch=true
+    		mUseFallbackAppSearch=false
+    		mShowThreeDotMenuInQsb=false
+    		mLaunchOnDefaultBrowser=false
+    		mUseAppSearchForWeb=true
+    		mEnableQuickSearch=true
+    		mShowSearchEducardQsb=true
+    		mEnableImeLatencyLogger=true
+    		mEnableKeyboardSync=true
+    		mEnablePeekAndMatch=false
+    		mPeekStateCharlen=3
+    		mMatchStateCharlen=6
+    		mPeekBlocklen=4
+    		mEnableRichAnswer=true
+    		mEnableQuickLaunchV2=false
+    		mEnableQuickLaunchV3Qsb=false
+    		mEnableQuickLaunchV3AA=false
+    		mGboardUpdateEnterKey=false
+    		mEnableImpressionLogging=true
+    		mEnableHideGboardHeaderStatic=false
+    		mUninstalledAppsQueryLenLowerBound=2
+    		mUninstalledAppsQueryLenUpperBound=20
+    		mUninstalledAppsCount=2
+    		mIsTrampolineActivityEnabled=false
+    		mIsOpenSrpInBrowserSupported=false
+    		mIsZeroStateDeviceResultsEnabled=true
+    LauncherSmartspace:
+    		mUpdatesPaused=false
+    		mIsAodEnabled=false
+    		mLastReceivedTargetIds={date_card_794317_92634}
+    		mAnimateSmartspaceUpdate=false
+    		mScrollState=0
+    		mCardPosition=0
+    		mPendingTargetIds=[]
+    	RingAppearAnimation	LauncherUnlock event history:
+
+TASK 10192:com.patty60723.tearoff id=51 userId=0 displayId=0(type=INTERNAL)
+  ACTIVITY com.patty60723.tearoff/.MainActivity 8b85c2c pid=13058 userId=0 uid=10192 displayId=0(type=INTERNAL)
+    Local Activity 65894b3 State:
+      mResumed=true mStopped=false mFinished=false
+      mIsInMultiWindowMode=false mIsInPictureInPictureMode=false
+      mChangingConfigurations=false
+      mCurrentConfig={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.4 fontWeightAdjustment=0}
+      mLoadersStarted=true
+      FragmentManager misc state:
+        mHost=android.app.Activity$HostCallbacks@47ffae1
+        mContainer=android.app.Activity$HostCallbacks@47ffae1
+        mCurState=5 mStateSaved=false mDestroyed=false
+    ViewRoot:
+      mAdded=true
+      mRemoved=false
+      mStopped=false
+      mPausedForTransition=false
+      mConsumeBatchedInputScheduled=false
+      mConsumeBatchedInputImmediatelyScheduled=false
+      mPendingInputEventCount=0
+      mProcessInputEventsScheduled=false
+      mTraversalScheduled=false
+      mReportNextDraw=false
+      mLastReportedMergedConfiguration={mGlobalConfig={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.820 fontWeightAdjustment=0} mOverrideConfig={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.4 fontWeightAdjustment=0}}
+      mLastConfigurationFromResources={1.0 310mcc260mnc [en_US] ldltr sw309dp w309dp h625dp 560dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2316) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.2 fontWeightAdjustment=0}
+      mIsAmbientMode=false
+      mUnbufferedInputSource=0
+      mAttachInfo=       AttachInfo:
+        mHasWindowFocus=true
+        mWindowVisibility=0
+        mInTouchMode=true
+        mUnbufferedDispatchRequested=false
+      android.view.ViewRootImpl$NativePreImeInputStage: mQueueLength=0
+      android.view.ViewRootImpl$ImeInputStage: mQueueLength=0
+      android.view.ViewRootImpl$NativePostImeInputStage: mQueueLength=0
+      android.view.ViewRootImpl$WindowInputEventReceiver
+       mInputChannel: 3f642c2 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (client)
+       mSeqMap: {}
+       mReceiverPtr:
+        mInputConsumer:
+          mResampleTouch = true
+          mChannel = 3f642c2 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (client)
+          mMsgDeferred: false
+          Batches:
+              <empty>
+          mSeqChains:
+              <empty>
+          mConsumeTimes:
+              <empty>
+          
+        mBatchedInputEventPending: false
+        mOutboundQueue:
+          <empty>
+        
+    Choreographer:
+      mFrameScheduled=false
+      mLastFrameTime=809332 (47 ms ago)
+    InsetsController:
+      InsetsState
+        mDisplayFrame=Rect(0, 0 - 1080, 2400)
+        mDisplayCutout=DisplayCutout{insets=Rect(0, 128 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(492, 0 - 610, 128), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 physicalDisplayWidth=1080 physicalDisplayHeight=2400 density={2.625} cutoutSpec={M 507,64 a 33,33 0 1 0 66,0 33,33 0 1 0 -66,0 Z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}
+        mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=28, center=Point(28, 28)}, RoundedCorner{position=TopRight, radius=28, center=Point(1052, 28)}, RoundedCorner{position=BottomRight, radius=28, center=Point(1052, 2372)}, RoundedCorner{position=BottomLeft, radius=28, center=Point(28, 2372)}]}
+        mRoundedCornerFrame=Rect(0, 0 - 1080, 2400)
+        mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(744, 0 - 1031, 128) rotation=0}
+        mDisplayShape=DisplayShape{ spec=-1893857183 displayWidth=1080 displayHeight=2400 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}
+          InsetsSource id=3 type=ime frame=[0,0][0,0] visible=false flags= insetsRoundedCornerFrame=false
+          InsetsSource id=27 type=displayCutout frame=[0,0][1080,128] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=6a80000 type=statusBars frame=[0,0][1080,128] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=6a80005 type=mandatorySystemGestures frame=[0,0][1080,160] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=6a80006 type=tappableElement frame=[0,0][1080,128] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=32ad0001 type=navigationBars frame=[0,2316][1080,2400] visible=true flags=SUPPRESS_SCRIM insetsRoundedCornerFrame=false
+          InsetsSource id=32ad0004 type=systemGestures frame=[0,0][105,2400] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=32ad0005 type=mandatorySystemGestures frame=[0,2288][1080,2400] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=32ad0006 type=tappableElement frame=[0,0][0,0] visible=true flags= insetsRoundedCornerFrame=false
+          InsetsSource id=32ad0024 type=systemGestures frame=[975,0][1080,2400] visible=true flags= insetsRoundedCornerFrame=false
+    WindowOnBackDispatcher:
+        Top Callback: android.view.ViewRootImpl$$ExternalSyntheticLambda17@42bcb07
+        Callbacks: 
+          Callback: android.view.ViewRootImpl$$ExternalSyntheticLambda17@42bcb07 Priority=0
+    View Hierarchy:
+      DecorView@3f49006[MainActivity]
+        android.widget.LinearLayout{da756c7 V.E...... ........ 0,0-1080,2316}
+          android.view.ViewStub{19ac4f4 G.E...... ......I. 0,0-0,0 #10201ca android:id/action_mode_bar_stub}
+          android.widget.FrameLayout{fa0641d V.E...... ........ 0,128-1080,2316 #1020002 android:id/content}
+            android.widget.ScrollView{139a692 VFED.V... ........ 0,0-1080,2188}
+              android.widget.LinearLayout{d389863 V.E...... ........ 0,0-1080,5072}
+                android.widget.TextView{f193c60 V.ED..... ........ 98,42-982,174 #7f030007 app:id/hint}
+                android.widget.LinearLayout{642519 V.E...... ........ 98,174-982,453}
+                  android.widget.Button{84799de VFED..C.. ........ 0,55-308,223 #7f030013 app:id/prev}
+                  android.widget.Button{71257bf IFED..C.. ......I. 308,0-576,279 #7f03001b app:id/today}
+                  android.widget.Button{645be8c VFED..C.. ........ 576,55-884,223 #7f03000f app:id/next}
+                com.patty60723.tearoff.TearPageView{808f9d5 V.ED..... ........ 98,453-982,1734 #7f030010 app:id/page}
+                  android.widget.FrameLayout{7af75ea V.E...... ........ 0,0-884,1281}
+                    android.widget.FrameLayout{89eb0db V.E...... ........ 0,0-884,1281 #7f03001e app:id/widget_root}
+                      android.widget.FrameLayout{9d63778 V.E...... ........ 0,0-873,1263}
+                        android.widget.ImageView{3ec5e51 V.ED..... ........ 0,1034-873,1263 #7f030006 app:id/hills}
+                        android.widget.TextView{40706b6 V.ED..... ........ 53,1095-269,1219 #7f030019 app:id/sun}
+                        android.widget.ImageView{1cd7fb7 V.ED..... ........ 674,984-824,1184 #7f03000e app:id/mowan_still}
+                        android.widget.LinearLayout{ff35324 V.E...... ........ 0,0-873,1263}
+                          android.widget.ImageView{fc78e8d V.ED..... ........ 0,0-873,42 #7f030000 app:id/band}
+                          android.widget.LinearLayout{374d842 V.E...... ........ 0,42-873,127}
+                            android.widget.TextView{7b06053 V.ED..... ........ 42,28-128,85 #7f03000c app:id/month}
+                            android.widget.FrameLayout{6a47d90 V.E...... ........ 128,28-702,32}
+                            android.widget.TextView{fab8689 V.ED..... ........ 702,28-831,85 #7f03001d app:id/weekday}
+                          android.widget.TextView{5fc368e V.ED..... ........ 289,134-584,172 #7f03000d app:id/month_en}
+                          android.widget.TextView{4d6aeaf V.ED..... ........ 0,172-873,739 #7f030003 app:id/day}
+                          android.widget.TextView{2fbe2bc G.ED..... ......I. 0,0-0,0 #7f03000a app:id/label}
+                          android.widget.TextView{dbd0245 V.ED..... ........ 189,746-683,818 #7f030011 app:id/phrase}
+                          android.widget.ImageView{6892d9a V.ED..... ........ 401,839-471,843 #7f030014 app:id/rule}
+                          android.widget.TextView{36986cb V.ED..... ........ 263,864-610,913 #7f03000b app:id/lunar}
+                          android.widget.TextView{7026ea8 V.ED..... ........ 327,920-545,969 #7f030008 app:id/ji}
+                          android.widget.FrameLayout{7b07dc1 V.E...... ........ 0,969-873,1263}
+                android.widget.Button{bc8966 VFED..C.. ........ 373,1734-707,1902 #7f03001a app:id/tear}
+                android.widget.TextView{d07c4a7 VFED..C.. ........ 119,1902-961,2036 #7f03001c app:id/weather}
+                android.widget.TextView{a63cd54 VFED..C.. ........ 131,2036-949,2159 #7f030001 app:id/city}
+                android.widget.LinearLayout{80634fd V.E...... ........ 98,2187-982,3458}
+                  com.patty60723.tearoff.mowan.MowanView{777d5f2 V.ED..... ........ 49,411-385,859 #7f030016 app:id/story_mowan}
+                  android.widget.LinearLayout{c620443 V.E...... ........ 427,49-835,1222}
+                    android.widget.TextView{1da6ac0 V.ED..... ........ 0,0-178,62 #7f030018 app:id/story_title}
+                    android.widget.TextView{70623f9 V.ED..... ........ 0,76-408,998 #7f030017 app:id/story_text}
+                    android.widget.TextView{8295f3e VFED..C.. ........ 0,1005-239,1173 #7f030015 app:id/story_bundle}
+                android.widget.TextView{c96a19f V.ED..... ........ 98,3528-158,3616}
+                android.widget.TextView{15b72ec V.ED..... ........ 98,3630-982,3708 #7f03001f app:id/yi_all}
+                android.widget.TextView{f7c06b5 V.ED..... ........ 98,3778-158,3866}
+                android.widget.TextView{6d8314a V.ED..... ........ 98,3880-982,3958 #7f030009 app:id/ji_all}
+                android.widget.TextView{24db8bb V.ED..... ........ 98,4014-982,4092 #7f030005 app:id/details}
+                android.widget.Button{502d1d8 VFED..C.. ........ 98,4190-982,4358 #7f030012 app:id/pin}
+                android.widget.TextView{3335931 V.ED..... ........ 98,4386-982,4692}
+                android.widget.TextView{ef01816 V.ED..... ........ 98,4706-982,4764}
+                android.widget.Button{a952597 VFED..C.. ........ 386,4820-694,4988 #7f030004 app:id/debug}
+        android.view.View{cbf3384 V.ED..... ........ 0,2316-1080,2400 #1020030 android:id/navigationBarBackground}
+        android.view.View{b33576d V.ED..... ........ 0,0-1080,128 #102002f android:id/statusBarBackground}
+    Looper (main, tid 2) {4cd9fa2}
+      Message 0: { when=-3ms callback=com.patty60723.tearoff.mowan.MowanView$$ExternalSyntheticLambda7 target=android.view.ViewRootImpl$ViewRootHandler }
+      (Total messages: 1, polling=false, quitting=false)
+    ResourcesManager:
+      total apks: 3
+      resources: 3
+      resource impls: 2
+    1 dumpables:
+    #0: AutofillManager
+        AutofillManager:
+          sessionId: 2147483647
+          state: UNKNOWN
+          context: com.patty60723.tearoff.MainActivity@65894b3
+          service client: null
+          client: android.view.autofill.AutofillClientController@b7c8433 (android.os.BinderProxy@fe43697)
+          enabled: false
+          enabledAugmentedOnly: false
+          hasService: true
+          hasCallback: false
+          onInvisibleCalled false
+          last autofilled data: null
+          id of last fill UI shown: null
+          tracked views: null
+          fillable ids: null
+          entered ids: null
+          save trigger id: null
+          save on finish(): false
+          options: logLvl=2, compatMode=false, augmented=false, appDisabledExpiration=0
+          compat mode enabled:   fill dialog enabled: false
+          fill dialog enabled hints: [password, passwordAuto, creditCardNumber, creditCardSecurityCode, creditCardExpirationDate]
+        false
+          debug: true verbose: false
+        Autofill Compat Mode: false
