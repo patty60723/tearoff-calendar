@@ -264,8 +264,9 @@ class HomeCandidatesShotsTest {
             val gap = Math.hypot(gapX.toDouble(), gapY.toDouble()) / d
             val screenH = context.resources.displayMetrics.heightPixels
             md.append(
-                "| ${cfg.name} | %.0f×%.0f | %s | %.0f×%.0f | %s | %s | %.0f | %s |\n".format(
-                    m.width() / d, m.height() / d, if (m.width() / d >= 47.5 && m.height() / d >= 47.5) "是" else "**否**",
+                // 設定名稱裡有「%」，要當參數傳，不能直接放進格式字串
+                "| %s | %.0f×%.0f | %s | %.0f×%.0f | %s | %s | %.0f | %s |\n".format(
+                    cfg.name, m.width() / d, m.height() / d, if (m.width() / d >= 47.5 && m.height() / d >= 47.5) "是" else "**否**",
                     b.width() / d, b.height() / d, if (b.height() / d >= 47.5) "是" else "**否**",
                     if (overlap) "**是**" else "否", gap, if (card.top < screenH) "是" else "否（要往下捲）",
                 ),
