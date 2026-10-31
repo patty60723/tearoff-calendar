@@ -24,6 +24,7 @@ import com.patty60723.tearoff.weather.WeatherService
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -215,7 +216,15 @@ class WidgetV3Test {
         CalendarWidget.refreshAll(context)
         fun widgetFrame() = manager.getViewFor(id).still()
         val before = widgetFrame()
+        // CI #149：這裡開 App 時看到閃退記錄（crash.txt），App 顯示閃退畫面、沒有故事卡。
+        // 記錄是背景執行緒寫的；存到截圖分支查原因，這個測試照樣要求 App 本身正常開起來
+        CrashLog.read(context)?.let { stray ->
+            File("build/screenshots/p7-home-final").apply { mkdirs() }.resolve("stray-crash-widgetv3.txt").writeText(stray)
+            println("背景執行緒的閃退記錄：\n$stray")
+            CrashLog.clear(context)
+        }
         val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        assertNull("App 開起來就是閃退畫面：${CrashLog.read(context)}", CrashLog.read(context))
         a.findViewById<TextView>(R.id.story_bundle).performClick()
         assertFalse(MowanSettings.bundleOn(context))
         assertFalse("小工具上的包袱要卸下", widgetFrame().sameAs(before))

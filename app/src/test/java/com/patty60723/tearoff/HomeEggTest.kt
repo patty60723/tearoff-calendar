@@ -137,9 +137,13 @@ class HomeEggTest {
         a.mowan.visibleFraction = { 1f }
         a.mowan.windowFocused = { true }
         a.mowan.checkVisible()
-        // 第一次看到沒開始的話（Robolectric 的可見度判斷），用除錯重播把主演出放起來；要測的是點擊不打斷它
-        if (a.mowan.session.mode != Mode.MAIN) a.mowan.replayFestival()
-        assertEquals(Mode.MAIN, a.mowan.session.mode)
+        // Robolectric 裡 isShown／視窗可見度是 false，checkVisible 不會把今天交給狀態機；
+        // 直接交給它，再用除錯重播把主演出放起來。要測的是點擊不打斷它
+        if (a.mowan.session.mode != Mode.MAIN) {
+            a.mowan.session.enter(spring, a.mowan.festival, SystemClock.uptimeMillis(), null, false)
+            a.mowan.replayFestival()
+        }
+        assertEquals("狀態機紀錄：${a.mowan.session.events}", Mode.MAIN, a.mowan.session.mode)
         val startedAt = a.mowan.session.startMs
         assertEquals(MowanView.Reaction.LINE_ONLY, a.mowan.reactionNow())
         a.mowan.performClick()
