@@ -29,7 +29,7 @@ import java.io.File
 import java.time.LocalDate
 
 /**
- * P7-2 第一停點：首頁的城市入口候選（A：日曆上方右側；B：跟「前一天／後一天」整合）與天氣彩蛋入口的對照圖。
+ * P7-2：首頁的城市入口（2026-10-31 審核選 A：日曆上方右側；B 不再繼續）與天氣彩蛋入口（故事卡上的墨丸）的對照圖。
  * 方案的 View 只在這個測試裡組出來（拿掉天氣列、城市列，加上「⌖ 臺北市 ⌄」），正式首頁沒有改。
  * 存到 app/build/screenshots/p7-home：整個首頁（ScrollView 的完整內容）、一般與 200% 字體、411dp 與 320dp，
  * 以及觸控範圍、截斷的量測報告。Robolectric 繪圖，不代表實機。
@@ -58,11 +58,10 @@ class HomeCandidatesShotsTest {
         Config("320dp・字體 200%", "w320dp-h640dp-xhdpi", 2f),
     )
 
+    /** 2026-10-31 審核：選 A（日曆上方右側），B 不再繼續 */
     enum class Variant(val title: String) {
         NOW("現在"),
         A("A：日曆上方右側"),
-        B("B：跟前一天／後一天整合"),
-        B_BROWSING("B：翻到別天時"),
     }
 
     private fun dp(v: Float) = v * context.resources.displayMetrics.density
@@ -142,25 +141,12 @@ class HomeCandidatesShotsTest {
     /** 套用方案，回傳城市入口（現在的版面是城市那一列） */
     private fun apply(a: MainActivity, v: Variant): View {
         if (v == Variant.NOW) return a.findViewById(R.id.city)
-        // A、B 都拿掉日曆下方的天氣列與城市列（天氣、溫度、日出日落還在日曆卡片裡）
+        // A：拿掉日曆下方的天氣列與城市列（天氣、溫度、日出日落還在日曆卡片裡），城市入口放在日曆上方右側
         a.findViewById<View>(R.id.weather).visibility = View.GONE
         a.findViewById<View>(R.id.city).visibility = View.GONE
         val chip = cityChip(a)
-        when (v) {
-            Variant.A -> {
-                val row = LinearLayout(a).apply { gravity = Gravity.END; addView(chip) }
-                a.content.addView(row, a.content.indexOfChild(a.findViewById(R.id.page)))
-            }
-            else -> {
-                if (v == Variant.B_BROWSING) a.findViewById<Button>(R.id.prev).performClick()
-                val nav = a.findViewById<View>(R.id.prev).parent as LinearLayout
-                val todayButton = a.findViewById<View>(R.id.today)
-                // 中間那格：在最上面那頁時是城市入口；翻到別天時是「回到最上面那頁」（城市入口收起來）
-                val slot = LinearLayout(a).apply { gravity = Gravity.CENTER; addView(chip) }
-                nav.addView(slot, nav.indexOfChild(todayButton), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                if (v == Variant.B) todayButton.visibility = View.GONE else slot.visibility = View.GONE
-            }
-        }
+        val row = LinearLayout(a).apply { gravity = Gravity.END; addView(chip) }
+        a.content.addView(row, a.content.indexOfChild(a.findViewById(R.id.page)))
         return chip
     }
 
@@ -251,49 +237,46 @@ class HomeCandidatesShotsTest {
         }
         report.append("\n「現在」的城市入口是日曆下方那一列文字（約 36dp 高）。\n")
         File(out, "report.md").writeText(report.toString())
+        // 方便直接審核：A 在四種設定的整頁並排
+        sheet("6-a-all", "方案 A 整頁：411dp／320dp × 字體 100%／200%（縮成同樣寬；Robolectric）", configs.map { cfg -> cfg.name to open(cfg).let { a -> apply(a, Variant.A); capture(a) } })
     }
 
-    /** 點墨丸觸發天氣彩蛋：日曆頁上墨丸的位置、撕頁手勢的起手區、故事卡（反應在哪裡演） */
+    /**
+     * 天氣彩蛋入口（2026-10-31 審核）：故事卡上的墨丸。量它的可點範圍（要 ≥ 48×48dp）、跟「卸下包袱」入口的距離（不能重疊），
+     * 四種設定各一張故事卡的標示圖（藍：墨丸可點範圍；橘：包袱入口）。
+     */
     @Test
-    fun eggEntry() {
-        val a = open(configs[0])
-        apply(a, Variant.A)
-        val shot = capture(a)
-        val root = a.content
-        val page = a.findViewById<TearPageView>(R.id.page)
-        val pr = rectIn(root, page)
-        val mowan = rectIn(root, page.findViewById(R.id.mowan_still))
-        val card = rectIn(root, a.findViewById<View>(R.id.story_mowan).parent as View)
-        val c = Canvas(shot)
-        // 撕頁的起手區：頁面下方 35% 高 × 左右各 35% 寬（TearPageView.cornerAt）
-        val zone = pr.width() * 0.35f
-        val zoneFill = Paint().apply { color = 0x33B8322A }
-        val zoneLine = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = 0xFFB8322A.toInt(); strokeWidth = dp(1.5f) }
-        for (left in listOf(true, false)) {
-            val x0 = if (left) pr.left.toFloat() else pr.right - zone
-            c.drawRect(x0, pr.bottom - zone, x0 + zone, pr.bottom.toFloat(), zoneFill)
-            c.drawRect(x0, pr.bottom - zone, x0 + zone, pr.bottom.toFloat(), zoneLine)
+    fun storyCardEntry() {
+        val md = StringBuilder("# 故事卡上的墨丸：可點範圍與包袱入口（方案 A、第 14 頁；Robolectric）\n\n")
+        md.append("| 設定 | 墨丸（dp） | ≥ 48dp | 包袱入口（dp） | 包袱入口 ≥ 48dp 高 | 兩者重疊 | 最近距離（dp） | 故事卡上緣在第一個畫面裡 |\n|---|---|---|---|---|---|---|---|\n")
+        val crops = configs.map { cfg ->
+            val a = open(cfg)
+            apply(a, Variant.A)
+            val shot = capture(a)
+            val root = a.content
+            val d = context.resources.displayMetrics.density
+            val m = rectIn(root, a.findViewById(R.id.story_mowan))
+            val b = rectIn(root, a.findViewById(R.id.story_bundle))
+            val card = rectIn(root, a.findViewById<View>(R.id.story_mowan).parent as View)
+            val overlap = Rect.intersects(m, b)
+            val gapX = maxOf(0, maxOf(b.left - m.right, m.left - b.right))
+            val gapY = maxOf(0, maxOf(b.top - m.bottom, m.top - b.bottom))
+            val gap = Math.hypot(gapX.toDouble(), gapY.toDouble()) / d
+            val screenH = context.resources.displayMetrics.heightPixels
+            md.append(
+                "| ${cfg.name} | %.0f×%.0f | %s | %.0f×%.0f | %s | %s | %.0f | %s |\n".format(
+                    m.width() / d, m.height() / d, if (m.width() / d >= 47.5 && m.height() / d >= 47.5) "是" else "**否**",
+                    b.width() / d, b.height() / d, if (b.height() / d >= 47.5) "是" else "**否**",
+                    if (overlap) "**是**" else "否", gap, if (card.top < screenH) "是" else "否（要往下捲）",
+                ),
+            )
+            val c = Canvas(shot)
+            c.drawRect(m, Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = 0xFF2B5FA8.toInt(); strokeWidth = dp(2f) })
+            c.drawRect(b, Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = 0xFFC0701E.toInt(); strokeWidth = dp(2f); pathEffect = DashPathEffect(floatArrayOf(dp(5f), dp(4f)), 0f) })
+            val pad = dp(10f).toInt()
+            cfg.name to Bitmap.createBitmap(shot, 0, maxOf(0, card.top - pad), shot.width, minOf(shot.height - maxOf(0, card.top - pad), card.height() + 2 * pad))
         }
-        val blue = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = 0xFF2B5FA8.toInt(); strokeWidth = dp(2f) }
-        c.drawRect(mowan, blue)
-        // 建議的點擊範圍：墨丸外擴到至少 48dp（這裡墨丸本身已經大於 48dp）
-        val dash = Paint(blue).apply { pathEffect = DashPathEffect(floatArrayOf(dp(5f), dp(4f)), 0f) }
-        val pad = maxOf(0f, (dp(48f) - mowan.width()) / 2)
-        c.drawRect(mowan.left - pad - dp(6f), mowan.top - dp(6f), mowan.right + pad + dp(6f), mowan.bottom + dp(6f), dash)
-        val green = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = 0xFF3E7D4F.toInt(); strokeWidth = dp(2f) }
-        c.drawRect(card, green)
-        val label = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = dp(12f); color = 0xFFB8322A.toInt() }
-        c.drawText("撕頁起手區（左下、右下）", pr.left + dp(4f), pr.bottom - zone - dp(6f), label)
-        c.drawText("墨丸（點擊候選）", mowan.left - dp(60f), mowan.top - dp(10f), Paint(label).apply { color = 0xFF2B5FA8.toInt() })
-        c.drawText("故事卡：天氣反應在這裡演", card.left + dp(4f), card.top - dp(6f), Paint(label).apply { color = 0xFF3E7D4F.toInt() })
-        File(out, "5-egg-entry.png").outputStream().use { shot.compress(Bitmap.CompressFormat.PNG, 100, it) }
-        val d = context.resources.displayMetrics.density
-        File(out, "5-egg-entry.md").writeText(
-            "# 點墨丸的位置（411dp、字體 100%、方案 A）\n\n" +
-                "- 日曆頁：%.0f×%.0f dp；撕頁起手區每邊 %.0f×%.0f dp（頁寬的 35%%）\n".format(pr.width() / d, pr.height() / d, zone / d, zone / d) +
-                "- 墨丸：%.0f×%.0f dp，位置（相對日曆頁）%.0f, %.0f dp\n".format(mowan.width() / d, mowan.height() / d, (mowan.left - pr.left) / d, (mowan.top - pr.top) / d) +
-                "- 墨丸是否整個落在右下的撕頁起手區：${mowan.left >= pr.right - zone && mowan.top >= pr.bottom - zone}\n" +
-                "- 故事卡上緣離日曆頁下緣：%.0f dp\n".format((card.top - pr.bottom) / d),
-        )
+        File(out, "7-story-entry.md").writeText(md.toString() + "\n藍框：墨丸（點一下觸發天氣彩蛋）；橘色虛線：「卸下包袱」入口。\n")
+        sheet("7-story-entry", "故事卡上的墨丸（藍）與包袱入口（橘）：四種設定", crops)
     }
 }
