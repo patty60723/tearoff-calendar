@@ -80,10 +80,10 @@ class ScreenshotTest {
         val root = activity.window.decorView
         save("app", root, root.width, root.height, background = false)
 
-        // 假裝下雨，點天氣那行：故事卡上的火柴人撐傘
+        // 假裝下雨，點故事卡上的墨丸（天氣彩蛋，P7-2）：墨丸撐傘、故事卡換成天氣台詞
         com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, com.patty60723.tearoff.weather.Mood.RAIN)
         val rainy = Robolectric.buildActivity(MainActivity::class.java).setup().get()
-        rainy.findViewById<android.widget.TextView>(R.id.weather).performClick()
+        rainy.findViewById<View>(R.id.story_mowan).performClick()
         org.robolectric.shadows.ShadowLooper.idleMainLooper()
         rainy.window.decorView.let { save("app-weather", it, it.width, it.height, background = false) }
         com.patty60723.tearoff.weather.WeatherService.setFakeMood(context, null)

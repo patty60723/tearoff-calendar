@@ -30,9 +30,19 @@
     <string name="hint_cover">撕開封面，這一年就開始了</string>
     <string name="cover_title">手撕日曆</string>
     <string name="cover_sub">從角落往上撕開</string>
-    <string name="city_row">天氣和日出日落依%1$s　換城市 ›</string>
+    <!-- 城市入口（P7-2 方案 A）：畫面上只有城市名，TalkBack 唸完整說明 -->
+    <string name="city_desc">地點：%1$s。天氣與日出日落依這個城市計算</string>
+    <string name="city_action">換城市</string>
+    <string name="city_changed">已換成%1$s，天氣與日出日落已更新</string>
     <string name="city_title">日出日落用哪個城市</string>
-    <string name="weather_row">%1$s　點我看看 ›</string>
+    <!-- 故事卡上的墨丸（P7-2 天氣彩蛋，D-48）：TalkBack 的描述與點擊動作 -->
+    <string name="mowan_desc_weather">墨丸，今天%1$s</string>
+    <string name="mowan_desc_festival">墨丸，今天是%1$s</string>
+    <string name="mowan_desc">墨丸</string>
+    <string name="mowan_desc_story">墨丸正在演故事</string>
+    <string name="mowan_action_weather">讓墨丸對天氣做出反應</string>
+    <string name="mowan_action_festival">聽墨丸說一句話</string>
+    <string name="mowan_action_refresh">重新讀取天氣</string>
     <string name="bundle_take_off">卸下包袱 ›</string>
     <string name="bundle_put_on">背上包袱 ›</string>
     <string name="weather_none">天氣讀取中…（需要網路）</string>

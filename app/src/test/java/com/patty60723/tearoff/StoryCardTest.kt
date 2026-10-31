@@ -57,26 +57,23 @@ class StoryCardTest {
         }
     }
 
+    /** P7-2（D-48）：點故事卡上的墨丸。同一個天氣：經由中性姿勢重播（環境時鐘不變）；天氣換了：照原本從頭開始 */
     @Test
-    fun sameWeatherAgainDoesNotRestartTheMotion() {
+    fun tappingTheMowanReplaysOrRestartsTheWeather() {
         WeatherService.setFakeMood(context, Mood.SUNNY)
         val a = open(14)
-        val later = android.os.SystemClock.uptimeMillis() + 3000
-        val before = a.mowan.timeline.sample(later, false).clockMs
-        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(700))
-        // 點天氣那一行（還是晴天）
-        a.findViewById<TextView>(R.id.weather).performClick()
-        assertEquals(before, a.mowan.timeline.sample(later, false).clockMs, 0.0)
+        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(2_700))
+        val now = android.os.SystemClock.uptimeMillis()
+        val envBefore = a.mowan.timeline.sample(now, false).clockMs
+        a.mowan.performClick()
+        val s = a.mowan.timeline.sample(now, false)
+        assertEquals("環境時鐘不受點擊影響", envBefore, s.clockMs, 0.0)
+        assertTrue("過渡中：從目前的姿勢往起點靠", s.blendFromPoseMs != null && s.blendU == 0.0)
         // 換成雪：從頭開始
         WeatherService.setFakeMood(context, Mood.SNOW)
-        val clickedFrom = android.os.SystemClock.uptimeMillis()
-        a.findViewById<TextView>(R.id.weather).performClick()
-        val clickedTo = android.os.SystemClock.uptimeMillis()
+        a.mowan.performClick()
         assertEquals(Mowan.Weather.SNOW, a.mowan.weather)
-        // 雪的時鐘從點下去的那一刻開始算（點擊時 Robolectric 的時鐘可能會走幾毫秒）
-        val snow = a.mowan.timeline.sample(later, false).clockMs
-        assertTrue("雪的時鐘 $snow 應該從換天氣時重新開始", snow in (later - clickedTo).toDouble()..(later - clickedFrom).toDouble())
-        assertTrue(snow < before)
+        assertTrue("雪的時鐘從頭開始", a.mowan.timeline.sample(android.os.SystemClock.uptimeMillis(), false).clockMs < 50)
     }
 
     @Test

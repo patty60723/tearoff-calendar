@@ -257,6 +257,9 @@ object Mowan {
      * @param festival 今天的節日（P6-2）：節日站姿、服裝與道具，見 [FestivalScene]；null 表示沒有節日
      * @param art 還沒定案的美術候選（頭飾、耳朵、雨傘大小、小尺寸的背景），見 [ArtConfig]
      * @param performance 節日演出（P6-3），只在有節日時有用
+     * @param poseClockMs 天氣姿勢的時間（P7-2）：點故事卡上的墨丸後，姿勢從頭開始，環境（雲、雨、霧）仍照 [clockMs] 走。預設跟 [clockMs] 一樣
+     * @param blendFromPoseMs 點擊後的過渡（D-48）：從這個時間的姿勢過渡到 [poseClockMs] 的姿勢；null 表示沒有在過渡
+     * @param blendU 過渡的進度 0–1（還沒緩動）
      */
     fun frame(
         parts: Set<String>,
@@ -273,29 +276,58 @@ object Mowan {
         festival: Festival? = null,
         art: ArtConfig = ArtConfig.DEFAULT,
         performance: FestivalActions.Performance? = null,
+        poseClockMs: Double = clockMs,
+        blendFromPoseMs: Double? = null,
+        blendU: Double = 1.0,
     ): Frame {
         if (festival != null) {
             val scene = FestivalScene.resolve(parts, festival, weather, hatOn, bundleOn, art)
             val (pose, fx) = Performances.pose(scene, clockMs, performance)
             return render(parts, variant, hatOn, pose, weather, rainStep, art.umbrellaScale, clockMs, still, bundleOn, detail, scene, art, fx)
         }
+        val target = weatherPose(parts, weather, poseClockMs, sinceStrikeMs)
+        val p = if (blendFromPoseMs == null) target else PoseBlend.mix(weatherPose(parts, weather, blendFromPoseMs, sinceStrikeMs), target, PoseBlend.ease(blendU))
+        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still, bundleOn, detail)
+    }
+
+    /** 天氣日常在 [time] 這一刻的姿勢（沒有節日時） */
+    private fun weatherPose(parts: Set<String>, weather: Weather, time: Double, sinceStrikeMs: Double?): Pose {
         val caps = Capabilities.of(parts)
         val rainy = weather == Weather.RAINY
         // 雨傘是功能道具，要有右手才拿得了（Confirmed）
         val umbrella = rainy && caps.holdR
-        var p = when (weather) {
-            Weather.SUNNY -> Poses.sunny(clockMs)
-            Weather.HOT -> Poses.hot(clockMs, caps)
-            Weather.CLOUDY -> Poses.cloudy(clockMs, caps)
-            Weather.FOG -> Poses.fog(clockMs, caps)
-            Weather.THUNDER -> Poses.thunder(clockMs, caps, sinceStrikeMs)
-            Weather.COLD -> Poses.cold(clockMs, caps)
-            Weather.SNOW -> Poses.snow(clockMs, caps)
-            else -> if (umbrella) Poses.rainy(clockMs) else Poses.NORMAL
+        val p = when (weather) {
+            Weather.SUNNY -> Poses.sunny(time)
+            Weather.HOT -> Poses.hot(time, caps)
+            Weather.CLOUDY -> Poses.cloudy(time, caps)
+            Weather.FOG -> Poses.fog(time, caps)
+            Weather.THUNDER -> Poses.thunder(time, caps, sinceStrikeMs)
+            Weather.COLD -> Poses.cold(time, caps)
+            Weather.SNOW -> Poses.snow(time, caps)
+            else -> if (umbrella) Poses.rainy(time) else Poses.NORMAL
         }
-        if (rainy && !umbrella) p = p.copy(face = Face.RAINY, flick = Flick.DROOPED)
-        return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still, bundleOn, detail)
+        return if (rainy && !umbrella) p.copy(face = Face.RAINY, flick = Flick.DROOPED) else p
     }
+
+    /** 天氣日常一輪多久（D-48：點擊後重播一輪，這一輪內再點不重啟）；沒有天氣是 0 */
+    fun weatherCycleMs(weather: Weather): Double = when (weather) {
+        Weather.SUNNY -> Poses.SUNNY_MS
+        Weather.RAINY, Weather.THUNDER -> Poses.RAINY_MS
+        Weather.HOT -> Poses.HOT_MS
+        Weather.CLOUDY -> Poses.CLOUDY_MS
+        Weather.FOG -> Poses.FOG_MS
+        Weather.COLD -> Poses.COLD_MS
+        Weather.SNOW -> Poses.SNOW_MS
+        else -> 0.0
+    }
+
+    /**
+     * 點擊後從 [fromPoseMs] 的姿勢過渡到這一輪起點要多久（D-48）：看兩個姿勢差多遠，見 [PoseBlend.durationMs]；剛好在起點上是 0（直接開始）。
+     * 打雷的驚嚇不算進來（過渡不會因為剛好在打雷而變長，也不會多打一次雷）。
+     */
+    fun reactionBlendMs(parts: Set<String>, weather: Weather, fromPoseMs: Double): Long =
+        if (fromPoseMs <= 0.0) 0L
+        else PoseBlend.durationMs(PoseBlend.distance(weatherPose(parts, weather, fromPoseMs, null), weatherPose(parts, weather, 0.0, null)))
 
     /**
      * 把一個姿勢畫成一張影格。姿勢裡有、但還沒解鎖的部位一律不畫；雨傘要姿勢有握點而且有右手才畫。

@@ -601,6 +601,63 @@ adb shell am force-stop $PKG
 write_prefs debug ""
 
 log ""
+log "== 13. 首頁（P7-2）：城市入口、點故事卡上的墨丸（天氣彩蛋）=="
+# 關閉動畫時墨丸不動（只換台詞），故事卡的像素變化就只來自台詞：用這個確認點擊、捲動、6 秒後回到故事。
+# 城市入口只量大小與上下關係（view_bounds.py 假設捲到最底，絕對位置在最上面時不準，但大小與相對位置不受影響）。
+# 天氣反應的過渡動畫本身由 JVM／Robolectric 測（WeatherReactionTest、HomeEggTest），模擬器不判斷動畫。
+DPI=$(adb shell wm density | tr -d '\r' | grep -o '[0-9]*' | tail -1)
+setup 14 SUNNY
+adb shell input swipe $((W / 2)) $((H * 30 / 100)) $((W / 2)) $((H * 80 / 100)) 300; sleep 1  # 捲回最上面
+dump_ui home-top
+c=$(bounds_of home-top city)
+if [ -n "$c" ]; then
+  set -- $c
+  cw=$(( ($3 - $1) * 160 / DPI )); ch=$(( ($4 - $2) * 160 / DPI ))
+  check "城市入口 ≥ 48dp" "$([ $cw -ge 48 ] && [ $ch -ge 48 ] && echo 0 || echo 1)" "${cw}×${ch} dp（$c）"
+else
+  check "城市入口看得到" 1 "dumpsys 找不到 city"
+fi
+p=$(bounds_of home-top page)
+[ -n "$c" ] && [ -n "$p" ] && check "城市入口在日曆上方" "$([ "$(echo $c | cut -d' ' -f4)" -le "$(echo $p | cut -d' ' -f2)" ] && echo 0 || echo 1)" "城市 $c、日曆 $p"
+adb shell settings put global animator_duration_scale 0
+setup 14 SUNNY
+sleep 2
+dump_ui egg && card_region egg
+card_shot() { adb exec-out screencap -p > "$OUT/shots/$1-full.png"; crop "$1"; }
+card_diff() { compare -metric AE "$OUT/shots/$1.png" "$OUT/shots/$2.png" null: 2>&1 | awk '{print $1}'; }
+card_shot egg-0
+# 從墨丸身上往上滑：是捲動，不觸發
+m=$(bounds_of egg story_mowan)
+if [ -n "$m" ]; then
+  set -- $m
+  mx=$(( ($1 + $3) / 2 )); my=$(( ($2 + $4) / 2 ))
+  # 手指從墨丸往下拖（頁面往上捲），再用 scroll_down 捲回最底（view_bounds.py 假設捲到最底）
+  adb shell input swipe $mx $my $mx $(( my + 200 )) 300; sleep 1
+  scroll_down
+  dump_ui egg-after-swipe && card_region egg-after-swipe
+  card_shot egg-1-swipe
+  d=$(card_diff egg-0 egg-1-swipe)
+  check "從墨丸身上滑動是捲動、不觸發彩蛋" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素（捲回原位後）"
+  handle_anr egg-tap; ensure_foreground
+  if locate egg-tap story_mowan; then
+    adb shell input tap $TAP_X $TAP_Y; sleep 1
+    card_shot egg-2-tap
+    d=$(card_diff egg-0 egg-2-tap)
+    check "點故事卡上的墨丸：台詞換成天氣" "$([ "${d%.*}" -gt 500 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素"
+    sleep 6.5
+    card_shot egg-3-back
+    d=$(card_diff egg-0 egg-3-back)
+    check "6 秒後回到故事" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "跟點之前差 $d 個像素"
+  else
+    check "點故事卡上的墨丸" 1 "找不到看得到的墨丸"
+  fi
+else
+  check "故事卡上的墨丸看得到" 1 "dumpsys 找不到 story_mowan"
+fi
+adb shell settings put global animator_duration_scale 1
+
+
+log ""
 check "全程沒有閃退" "$(crashed && echo 1 || echo 0)" "logcat 沒有 FATAL EXCEPTION"
 adb logcat -d | grep -A20 "FATAL EXCEPTION" > "$OUT/crash.txt" || true
 # 手動觸發時可以故意加一項失敗，確認 CI 真的會變紅

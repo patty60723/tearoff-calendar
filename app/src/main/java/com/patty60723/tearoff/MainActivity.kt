@@ -55,8 +55,12 @@ class MainActivity : Activity() {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
         findViewById<Button>(R.id.tear).setOnClickListener { pad.peelAway() }
-        findViewById<TextView>(R.id.city).setOnClickListener { pickCity() }
-        findViewById<TextView>(R.id.weather).setOnClickListener { playWeather() }
+        findViewById<TextView>(R.id.city).apply {
+            setOnClickListener { pickCity() }
+            accessibilityDelegate = clickLabel(getString(R.string.city_action))
+        }
+        // 天氣彩蛋（P7-2，D-48）：點故事卡上的墨丸。日曆頁上的墨丸維持靜態，撕頁手勢不變
+        findViewById<MowanView>(R.id.story_mowan).setOnClickListener { playWeather() }
 
         findViewById<Button>(R.id.debug).apply {
             visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
@@ -140,11 +144,43 @@ class MainActivity : Activity() {
     }
 
     private fun showWeather() {
-        val weather = WeatherService.current(this)
-        findViewById<TextView>(R.id.weather).text =
-            if (weather == null) getString(R.string.weather_none) else getString(R.string.weather_row, weather.long)
-        // 天氣資料更新：墨丸換成新的天氣；還是同一種天氣就不重來
+        // 天氣資料更新：墨丸換成新的天氣；還是同一種天氣就不重來（天氣、溫度、日出日落顯示在日曆頁裡，P7-2 拿掉了日曆下方的天氣列）
         findViewById<MowanView>(R.id.story_mowan).weather = currentMowanWeather()
+        describeMowan()
+    }
+
+    /** TalkBack：故事卡上的墨丸唸什麼、點兩下會怎樣（成長故事事件進行中不提供點擊，見 [MowanView.onInitializeAccessibilityNodeInfo]） */
+    private fun describeMowan() {
+        val mowan = findViewById<MowanView>(R.id.story_mowan)
+        val weather = WeatherService.current(this)
+        val festival = mowan.festival
+        mowan.contentDescription = when {
+            mowan.storyPlaying -> getString(R.string.mowan_desc_story)
+            festival != null -> getString(R.string.mowan_desc_festival, festivalName(festival))
+            weather != null -> getString(R.string.mowan_desc_weather, weather.short)
+            else -> getString(R.string.mowan_desc)
+        }
+        mowan.clickLabel = getString(
+            when {
+                festival != null -> R.string.mowan_action_festival
+                weather != null -> R.string.mowan_action_weather
+                else -> R.string.mowan_action_refresh
+            },
+        )
+    }
+
+    private fun festivalName(f: com.patty60723.tearoff.mowan.Festival) = when (f) {
+        com.patty60723.tearoff.mowan.Festival.SPRING -> "春節"
+        com.patty60723.tearoff.mowan.Festival.XMAS -> "聖誕"
+        com.patty60723.tearoff.mowan.Festival.MOON -> "中秋"
+    }
+
+    /** TalkBack 唸「按兩下即可＋[label]」 */
+    private fun clickLabel(label: String) = object : View.AccessibilityDelegate() {
+        override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+            super.onInitializeAccessibilityNodeInfo(host, info)
+            info.addAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, label))
+        }
     }
 
     /** 故事卡上墨丸的天氣日常：今天的天氣，沒有資料時是一般站姿 */
@@ -164,6 +200,7 @@ class MainActivity : Activity() {
             // 節日（P6-4）：外觀都設好了才給今天，主演出開始時鎖定的層級才對
             today = AppClock.today(this@MainActivity)
         }
+        describeMowan()
         showBundleToggle()
     }
 
@@ -186,13 +223,26 @@ class MainActivity : Activity() {
         }
     }
 
-    /** 點天氣：故事卡換成天氣的那句話，幾秒後回到故事（V3 的彩蛋動作在 P7-2 以後設計，D-48）。 */
+    /**
+     * 天氣彩蛋（P7-2，D-48）：點故事卡上的墨丸。故事卡換成天氣的那句話，6 秒後回到故事；
+     * 墨丸怎麼反應見 [MowanView.react]（節日、Reduced Motion 只換台詞；成長故事事件進行中完全不反應）。
+     * 再點只把「6 秒後回到故事」重新計時。不自動捲動。
+     */
     private fun playWeather() {
-        val weather = WeatherService.current(this) ?: return refreshWeather()
-        val mood = weather.mood
-        showMowan(MowanSettings.weatherOf(mood))
-        findViewById<TextView>(R.id.story_title).text = weather.long
-        findViewById<TextView>(R.id.story_text).text = "${book.name}：${mood.line}"
+        val mowan = findViewById<MowanView>(R.id.story_mowan)
+        if (mowan.reactionNow() == MowanView.Reaction.NONE) return
+        val weather = WeatherService.current(this)
+        if (weather == null) {
+            // 沒有天氣資料：重新抓，台詞先說讀取中
+            findViewById<TextView>(R.id.story_text).text = getString(R.string.weather_none)
+            refreshWeather()
+        } else {
+            // 天氣如果剛好換了，先換上（換天氣本來就從頭開始），再算這次的反應
+            mowan.weather = MowanSettings.weatherOf(weather.mood)
+            mowan.react()
+            findViewById<TextView>(R.id.story_title).text = weather.long
+            findViewById<TextView>(R.id.story_text).text = "${book.name}：${weather.mood.line}"
+        }
         pad.removeCallbacks(backToStory)
         pad.postDelayed(backToStory, 6000)
     }
@@ -252,12 +302,25 @@ class MainActivity : Activity() {
                 dialog.dismiss()
                 show(date)
                 CalendarWidget.refreshAll(this)
+                findViewById<View>(R.id.city).announceForAccessibility(getString(R.string.city_changed, cities[which].name))
             }
             .show()
     }
 
+    /** 城市入口「⌖ 臺北市 ⌄」（P7-2 方案 A）：圖示大小跟著字（字體放大時一起放大） */
     private fun showCity() {
-        findViewById<TextView>(R.id.city).text = getString(R.string.city_row, Cities.selected(this).name)
+        val name = Cities.selected(this).name
+        findViewById<TextView>(R.id.city).apply {
+            text = name
+            contentDescription = getString(R.string.city_desc, name)
+            val pin = (textSize * 1.15f).toInt()
+            val chevron = (pin * 0.9f).toInt()
+            // 下拉符號緊接在城市名後面（不要 drawablePadding 的間距）：往左移同樣的距離
+            setCompoundDrawablesRelative(
+                getDrawable(R.drawable.ic_city_pin)?.apply { setBounds(0, 0, pin, pin) }, null,
+                getDrawable(R.drawable.ic_city_chevron)?.apply { setBounds(-compoundDrawablePadding, 0, chevron - compoundDrawablePadding, chevron) }, null,
+            )
+        }
     }
 
     /** 封面：第一次打開時最上面的那張。 */
@@ -327,6 +390,7 @@ class MainActivity : Activity() {
     internal fun onDayChanged() {
         if (!::book.isInitialized) return
         findViewById<MowanView>(R.id.story_mowan).today = AppClock.today(this)
+        describeMowan()
     }
 
     /** 拿回視窗焦點（例如拉下通知欄再收起）：日期改變的廣播萬一沒收到，這裡補一次；只動故事卡 */

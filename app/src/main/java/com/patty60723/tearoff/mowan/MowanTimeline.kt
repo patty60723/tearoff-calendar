@@ -37,6 +37,12 @@ class MowanTimeline(
         val sinceStrikeMs: Double?,
         /** 關閉動畫時的靜止畫面 */
         val still: Boolean,
+        /** 天氣姿勢的時間（P7-2）：平常跟 [clockMs] 一樣；點擊重播後從這一輪的起點重新算，環境仍照 [clockMs] */
+        val poseClockMs: Double = clockMs,
+        /** 點擊後的過渡（D-48）：從這個時間的姿勢過渡到 [poseClockMs]；null 表示沒有在過渡 */
+        val blendFromPoseMs: Double? = null,
+        /** 過渡的進度 0–1 */
+        val blendU: Double = 1.0,
     )
 
     var weather: Mowan.Weather = Mowan.Weather.NONE
@@ -48,6 +54,10 @@ class MowanTimeline(
     private var nextStrikeMs: Long? = null
     /** 最近一次真的打了的雷 */
     private var lastStrikeMs: Long? = null
+    /** 點擊重播（D-48）：點的時間、那一刻的姿勢時間、過渡多久；沒有重播是 null */
+    private var replayAtMs: Long? = null
+    private var replayFromPoseMs = 0.0
+    private var replayBlendMs = 0L
 
     /** 換天氣。跟現在一樣就什麼都不做（天氣資料更新不會讓姿勢重來）。 */
     fun setWeather(weather: Mowan.Weather, nowMs: Long) {
@@ -56,6 +66,7 @@ class MowanTimeline(
         startMs = nowMs
         started = true
         lastStrikeMs = null
+        replayAtMs = null
         nextStrikeMs = if (weather == Mowan.Weather.THUNDER) nowMs + nextInterval() else null
     }
 
@@ -66,7 +77,38 @@ class MowanTimeline(
         advanceThunder(nowMs, reducedMotion)
         if (reducedMotion) return Sample(stillClock(weather), 0, 0, null, still = true)
         val since = lastStrikeMs?.let { (nowMs - it).toDouble() }?.takeIf { it < STRIKE_MS }
-        return Sample(elapsed.toDouble(), Mowan.variantAt(elapsed), Mowan.rainStepAt(elapsed), since, still = false)
+        val sample = Sample(elapsed.toDouble(), Mowan.variantAt(elapsed), Mowan.rainStepAt(elapsed), since, still = false)
+        val at = replayAtMs ?: return sample
+        val t = (nowMs - at).coerceAtLeast(0)
+        return if (t < replayBlendMs) {
+            // 過渡中：原本的動作照樣往前走，一邊往這一輪的起點（中性姿勢）靠過去
+            sample.copy(poseClockMs = 0.0, blendFromPoseMs = replayFromPoseMs + t, blendU = t.toDouble() / replayBlendMs)
+        } else {
+            sample.copy(poseClockMs = (t - replayBlendMs).toDouble())
+        }
+    }
+
+    /** 現在的姿勢時間（還沒點過就是 [sample] 的 clockMs） */
+    fun poseClockAt(nowMs: Long): Double {
+        val s = sample(nowMs, reducedMotion = false)
+        return s.blendFromPoseMs ?: s.poseClockMs
+    }
+
+    /**
+     * 點故事卡上的墨丸（P7-2，D-48）：天氣不變，姿勢從這一輪的起點重新播；
+     * 用 [blendMs] 從目前的姿勢過渡過去（0 表示已經在起點附近，直接開始）。環境（雲、雨、霧）與打雷排程不受影響，也不會多打一次雷。
+     */
+    fun replay(nowMs: Long, blendMs: Long) {
+        if (!started) setWeather(weather, nowMs)
+        replayFromPoseMs = poseClockAt(nowMs)
+        replayAtMs = nowMs
+        replayBlendMs = blendMs.coerceAtLeast(0)
+    }
+
+    /** 點擊後的過渡與重播的那一輪還沒播完（D-48：這段時間再點只延長台詞，不重啟動作） */
+    fun replaying(nowMs: Long): Boolean {
+        val at = replayAtMs ?: return false
+        return nowMs < at + replayBlendMs + Mowan.weatherCycleMs(weather).toLong()
     }
 
     /**

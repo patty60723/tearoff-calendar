@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewTreeObserver
+import android.view.accessibility.AccessibilityNodeInfo
 import java.time.LocalDate
 import kotlin.random.Random
 
@@ -30,6 +31,8 @@ import kotlin.random.Random
  * - 節日當天整天不打雷（D-31）。
  * - 關閉動畫時主演出停在代表姿勢，演出時間到了再重畫一次回到站姿（D-34）。
  * - 沒有節日（或 [today] 是 null）時，畫法與重畫排程跟以前完全一樣。
+ *
+ * 點故事卡上的墨丸（P7-2，D-48）：見 [react]。點擊與捲動的分辨用一般的點擊（手指移動就算捲動）；不加漣漪、不震動。
  */
 class MowanView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
@@ -188,6 +191,65 @@ class MowanView @JvmOverloads constructor(
         if (sessionOrNull?.mode != before || !isTicking) invalidate()
     }
 
+    /** 點故事卡上的墨丸會怎樣（D-48） */
+    enum class Reaction {
+        /** 天氣反應：從目前的姿勢過渡到這一輪的起點，再從頭播一輪；台詞也換 */
+        REPLAY,
+        /** 只換台詞（節日當天、Reduced Motion、沒有天氣、重播的那一輪還沒播完） */
+        LINE_ONLY,
+        /** 完全不反應（成長故事事件進行中：不換台詞、不打斷故事） */
+        NONE,
+    }
+
+    /** 成長故事事件正在演（D-48：這時點墨丸完全不反應，TalkBack 也不提供點擊） */
+    val storyPlaying: Boolean get() = director.current(weather) == MowanDirector.Activity.GROWTH_STORY
+
+    /** 現在點下去會怎樣（不改任何狀態） */
+    fun reactionNow(): Reaction {
+        val now = now()
+        return when {
+            storyPlaying -> Reaction.NONE
+            festival != null || reducedMotion() || weather == Mowan.Weather.NONE -> Reaction.LINE_ONLY
+            timeline.replaying(now) -> Reaction.LINE_ONLY
+            else -> Reaction.REPLAY
+        }
+    }
+
+    /**
+     * 點故事卡上的墨丸（P7-2，D-48）。節日、Reduced Motion、成長故事的優先順序不變：
+     * 只有一般日子、動畫打開、而且不在重播中時，才從目前的姿勢經由這一輪的起點（中性姿勢）重播一輪；
+     * 過渡時間看兩個姿勢差多遠（[Mowan.reactionBlendMs]），不突然跳回第一格、不多打雷、不新增美術。
+     * 回傳這次的反應，台詞由呼叫的人換（[Reaction.NONE] 時什麼都不要做）。
+     */
+    fun react(): Reaction {
+        val r = reactionNow()
+        if (r == Reaction.REPLAY) {
+            val now = now()
+            timeline.replay(now, Mowan.reactionBlendMs(parts, weather, timeline.poseClockAt(now)))
+            redraw()
+        }
+        return r
+    }
+
+    /** TalkBack 的點擊動作要唸什麼（App 依今天的天氣、節日設定）；成長故事事件進行中不提供點擊 */
+    var clickLabel: CharSequence? = null
+
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        if (storyPlaying) {
+            info.isClickable = false
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)
+        } else if (isClickable && clickLabel != null) {
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, clickLabel))
+        }
+    }
+
+    override fun performClick(): Boolean {
+        // 成長故事事件進行中：不呼叫點擊（不換台詞、不打斷）
+        if (storyPlaying) return false
+        return super.performClick()
+    }
+
     /** 除錯選單的重播（D-33）：不改「演過了」的紀錄 */
     fun replayFestival(): Boolean {
         val f = festival ?: return false
@@ -226,6 +288,7 @@ class MowanView @JvmOverloads constructor(
                 MowanPainter(Mowan.frame(
                     parts, variant, hatOn, weather, sample.clockMs, sample.rainStep,
                     sinceStrikeMs = sample.sinceStrikeMs, still = sample.still, bundleOn = bundleOn,
+                    poseClockMs = sample.poseClockMs, blendFromPoseMs = sample.blendFromPoseMs, blendU = sample.blendU,
                 ))
             }
         } else {
