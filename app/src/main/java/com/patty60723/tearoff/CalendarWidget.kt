@@ -32,12 +32,14 @@ class CalendarWidget : AppWidgetProvider() {
 
     /** 先用存著的天氣畫，背景抓到新的再畫一次。 */
     private fun refreshWeather(context: Context) {
-        val pending = goAsync()
+        // 系統送來的廣播一定有；不是從 onReceive 呼叫時（測試直接呼叫 onUpdate）goAsync() 是 null，
+        // 不能讓背景執行緒因為這樣閃退（CI #150：閃退記錄讓下一次開 App 變成閃退畫面）
+        val pending: android.content.BroadcastReceiver.PendingResult? = goAsync()
         thread {
             try {
                 if (WeatherService.refreshIfStale(context)) refreshAll(context)
             } finally {
-                pending.finish()
+                pending?.finish()
             }
         }
     }

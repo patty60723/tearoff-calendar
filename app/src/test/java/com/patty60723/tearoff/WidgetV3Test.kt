@@ -216,13 +216,7 @@ class WidgetV3Test {
         CalendarWidget.refreshAll(context)
         fun widgetFrame() = manager.getViewFor(id).still()
         val before = widgetFrame()
-        // CI #149：這裡開 App 時看到閃退記錄（crash.txt），App 顯示閃退畫面、沒有故事卡。
-        // 記錄是背景執行緒寫的；存到截圖分支查原因，這個測試照樣要求 App 本身正常開起來
-        CrashLog.read(context)?.let { stray ->
-            File("build/screenshots/p7-home-final").apply { mkdirs() }.resolve("stray-crash-widgetv3.txt").writeText(stray)
-            println("背景執行緒的閃退記錄：\n$stray")
-            CrashLog.clear(context)
-        }
+        // CI #149／#150：小工具的背景執行緒曾在這裡閃退（goAsync() 是 null），閃退記錄讓 App 開成閃退畫面
         val a = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         assertNull("App 開起來就是閃退畫面：${CrashLog.read(context)}", CrashLog.read(context))
         a.findViewById<TextView>(R.id.story_bundle).performClick()
