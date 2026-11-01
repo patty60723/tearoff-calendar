@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7-2：首頁設計（城市入口 A、故事卡墨丸彩蛋）
 
 > 日期：2026-10-31（第一停點審核後更新）　分支：`feature/mowan-weather-poses`
-> 狀態：2026-10-31 最終互動決策已確認（第 3 節五題：中性姿勢過渡、成長故事事件中完全不反應、不震動、不加漣漪、城市入口 A 方向核准）。**正式實作見 [實作報告](character-p7-2-implementation.md)**；本文件保留設計與候選圖紀錄（`HomeCandidatesShotsTest` 已改名為 `HomeShotsTest`，改出正式首頁）。PNG golden 54 張維持鎖定。不開 PR、不合併 main。
+> 狀態：2026-10-31 最終互動決策已確認（第 3 節五題：中性姿勢過渡、成長故事事件中完全不反應、不震動、不加漣漪、城市入口 A 方向核准）。**正式實作見 [實作報告](character-p7-2-implementation.md)，2026-11-01 審核通過**；本文件保留設計與候選圖紀錄（`HomeCandidatesShotsTest` 已改名為 `HomeShotsTest`，改出正式首頁）。PNG golden 54 張維持鎖定。PR 與合併依實作報告的狀態。
 > 相關：[P7 計畫](character-p7-plan.md) §3・[未定案事項](character-open-decisions.md) D-48、D-53、D-54
 
 圖都是 Robolectric 繪圖（App 實際的版面與字型），**不是實機**。整頁圖畫的是 ScrollView 的完整內容。
