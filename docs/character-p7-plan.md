@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7 計畫：正式化、首頁 UI/UX、相容性與 QA
 
 > 日期：2026-10-29　分支：`feature/mowan-weather-poses`
-> **狀態：P7-0 通過；P7-1 第一停點（golden，2026-10-30 鎖定）與第二停點（移除舊火柴人，見 [清理報告](character-p7-1-cleanup.md)）已結案（2026-10-30 核准）。**P7-2：第一停點已審（2026-10-31：城市入口選 A、彩蛋入口改成故事卡上的墨丸），設計已更新，等待最後的視覺與互動方案確認**（[設計文件](character-p7-2-home-candidates.md)），正式首頁還沒改**。不開 PR、不合併 main；V3 是唯一的角色。
+> **狀態：P7-0 通過；P7-1 第一停點（golden，2026-10-30 鎖定）與第二停點（移除舊火柴人，見 [清理報告](character-p7-1-cleanup.md)）已結案（2026-10-30 核准）。**P7-2：最終互動決策 2026-10-31 確認，**正式實作完成，等待審核**（[實作報告](character-p7-2-implementation.md)；城市入口 A 的最終美術細節還要對照原圖）。不開 PR、不合併 main；V3 是唯一的角色。
 > 相關文件：[實作計畫 P7](character-implementation-plan.md#p7--整合效能qa)・[P6 結案報告](character-p6-acceptance.md)・[未定案事項](character-open-decisions.md)
 
 ## 0. 前提（2026-10-29 確認）
