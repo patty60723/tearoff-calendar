@@ -219,7 +219,8 @@ class HomeShotsTest {
             val during = state(a)
             val shot1 = screen(a)
             val text = a.findViewById<TextView>(R.id.story_text)
-            val pad = (text.minHeight - (text.layout?.height ?: 0) - text.totalPaddingTop - text.totalPaddingBottom).coerceAtLeast(0)
+            // 台詞下面補的空白：文字欄的高度減掉文字本身的行高
+            val pad = (text.height - (text.layout?.height ?: 0) - text.paddingTop - text.paddingBottom).coerceAtLeast(0)
             ShadowSystemClock.advanceBy(Duration.ofMillis(6_100))
             relayout(a)
             val after = state(a)
