@@ -1,8 +1,6 @@
 package com.patty60723.tearoff.story
 
 import com.patty60723.tearoff.Almanac
-import com.patty60723.tearoff.stickman.Actions
-import com.patty60723.tearoff.stickman.Parts
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -29,9 +27,10 @@ class StoryEngineTest {
         assertEquals(beats.size, beats.map { it.id }.toSet().size)
     }
 
+    /** D-50：故事 JSON 的 action 欄位保留（之後設計成長故事動作時可能用），但不再要求是舊火柴人的動作 */
     @Test
-    fun everyActionIsDrawable() {
-        for (beat in beats) assertTrue("${beat.id}: ${beat.action}", beat.action in Actions.all)
+    fun actionFieldIsKept() {
+        assertTrue(beats.any { !it.action.isNullOrEmpty() })
     }
 
     @Test

@@ -226,4 +226,8 @@ internal object Geometry {
             Pt(lerp(rigid[j].x, c.x, w), lerp(rigid[j].y, c.y, w))
         }
     }
+
+    /** 原型 core.js 的 ellipse()：32 個點的橢圓 */
+    fun ellipsePts(cx: Double, cy: Double, rx: Double, ry: Double): List<Pt> =
+        List(32) { i -> val a = i / 32.0 * TAU; Pt(cx + rx * cos(a), cy + ry * sin(a)) }
 }

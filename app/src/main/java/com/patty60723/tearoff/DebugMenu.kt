@@ -8,25 +8,25 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import com.patty60723.tearoff.mowan.Capabilities
+import com.patty60723.tearoff.mowan.Festival
+import com.patty60723.tearoff.mowan.FestivalTheme
 import com.patty60723.tearoff.mowan.Mowan
 import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.mowan.MowanView
-import com.patty60723.tearoff.stickman.Actions
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.story.StoryEngine
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
 import java.time.LocalDate
 
-/** 測試版才有的除錯選單：假裝別天、跳頁、重來、看動作。 */
+/** 測試版才有的除錯選單：假裝別天、跳頁、重來、看墨丸。 */
 class DebugMenu(
     private val activity: Activity,
     private val book: StoryBook,
     /** 改完之後讓畫面和小工具重新整理 */
     private val refresh: () -> Unit,
-    /** 在故事卡上播某個動作（全身配件都戴上） */
-    private val preview: (actionId: String) -> Unit,
 ) {
     fun show() {
         val fake = AppClock.fakeToday(activity)
@@ -37,12 +37,13 @@ class DebugMenu(
             "回到真實日期",
             "跳到第幾頁…（現在第 ${book.page} 頁）",
             "重設故事，從第 0 頁開始",
-            "看火柴人的動作…",
             "假裝天氣是…（現在：${WeatherService.fakeMood(activity)?.keyword ?: "真的天氣"}）",
             "測試閃退紀錄（App 會閃退一次）",
             "看墨丸 V3…",
-            "故事卡用墨丸 V3（現在：${if (MowanSettings.storyCard(activity)) "開" else "關"}）",
             "墨丸的紙帽（現在：${hatState()}）",
+            "墨丸的包袱（現在：${bundleState()}）",
+            "重播節日主演出（今天：${FestivalTheme.of(today)?.let(::festivalName) ?: "不是節日"}）",
+            "節日頭飾（現在：${if (MowanSettings.festivalHeadwear(activity)) "戴" else "不戴，照紙帽"}）",
         )
         AlertDialog.Builder(activity)
             .setTitle("除錯")
@@ -52,26 +53,48 @@ class DebugMenu(
                     1 -> setToday(today.plusDays(1))
                     2 -> setToday(null)
                     3 -> askPage()
-                    4 -> confirm("確定要從頭開始？名字和紙帽也會回到預設。") {
+                    4 -> confirm("確定要從頭開始？名字、紙帽和包袱也會回到預設。") {
                         book.reset()
                         MowanSettings.resetEquipment(activity)
                         refresh()
                     }
-                    5 -> pickAction()
-                    6 -> pickWeather()
-                    7 -> throw RuntimeException("除錯選單：測試閃退紀錄")
-                    8 -> showMowan()
-                    9 -> {
-                        MowanSettings.setStoryCard(activity, !MowanSettings.storyCard(activity))
+                    5 -> pickWeather()
+                    6 -> throw RuntimeException("除錯選單：測試閃退紀錄")
+                    7 -> showMowan()
+                    8 -> {
+                        MowanSettings.setHatOn(activity, !MowanSettings.hatOn(activity))
                         refresh()
                     }
-                    10 -> {
-                        MowanSettings.setHatOn(activity, !MowanSettings.hatOn(activity))
+                    9 -> {
+                        MowanSettings.setBundleOn(activity, !MowanSettings.bundleOn(activity))
+                        refresh()
+                    }
+                    10 -> replayFestival()
+                    11 -> {
+                        MowanSettings.setFestivalHeadwear(activity, !MowanSettings.festivalHeadwear(activity))
                         refresh()
                     }
                 }
             }
             .show()
+    }
+
+    /** D-33：重播只在除錯選單；不改「今天演過了」的紀錄 */
+    private fun replayFestival() {
+        val view = activity.findViewById<MowanView>(R.id.story_mowan)
+        val message = when {
+            view == null -> "找不到故事卡"
+            view.festival == null -> "今天不是節日"
+            view.replayFestival() -> null
+            else -> "現在不能重播（故事卡今天還沒出現過）"
+        }
+        message?.let { Toast.makeText(activity, it, Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun festivalName(f: Festival) = when (f) {
+        Festival.SPRING -> "春節"
+        Festival.XMAS -> "聖誕"
+        Festival.MOON -> "中秋"
     }
 
     private fun setToday(date: LocalDate?) {
@@ -106,14 +129,6 @@ class DebugMenu(
             .show()
     }
 
-    private fun pickAction() {
-        val ids = Actions.all.keys.toTypedArray()
-        AlertDialog.Builder(activity)
-            .setTitle("看火柴人的動作")
-            .setItems(ids) { _, which -> preview(ids[which]) }
-            .show()
-    }
-
     private fun pickWeather() {
         val moods = Mood.entries
         val names = moods.map { "${it.keyword}（${it.line}）" } + "用真的天氣"
@@ -132,16 +147,27 @@ class DebugMenu(
         return if (Capabilities.of(Mowan.partsOf(book.parts)).paperHat) on else "還沒拿到，拿到後$on"
     }
 
+    /** 包袱第 14 頁才拿到；拿到之前切換也會記住，拿到時就照這個狀態 */
+    private fun bundleState(): String {
+        val on = if (MowanSettings.bundleOn(activity)) "背著" else "卸下"
+        return if ("bundle" in Mowan.partsOf(book.parts)) on else "還沒拿到，拿到後$on"
+    }
+
     /** 墨丸 V3 的預覽：可以切頁數、天氣、紙帽，line boil 會自己動。 */
     private fun showMowan() {
         val density = activity.resources.displayMetrics.density
         val view = MowanView(activity).apply {
             hatOn = MowanSettings.hatOn(activity)
+            bundleOn = MowanSettings.bundleOn(activity)
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (320 * density).toInt())
         }
         val label = TextView(activity)
         var page = book.page.coerceIn(1, 14)
-        val weatherName = mapOf(Mowan.Weather.NONE to "一般", Mowan.Weather.SUNNY to "晴天", Mowan.Weather.RAINY to "雨天")
+        val weatherName = mapOf(
+            Mowan.Weather.NONE to "一般", Mowan.Weather.SUNNY to "晴天", Mowan.Weather.RAINY to "雨天",
+            Mowan.Weather.HOT to "熱", Mowan.Weather.CLOUDY to "陰", Mowan.Weather.FOG to "霧",
+            Mowan.Weather.THUNDER to "雷雨", Mowan.Weather.COLD to "冷", Mowan.Weather.SNOW to "雪",
+        )
         fun update() {
             view.parts = Mowan.partsOf(StoryEngine.unlocked(book.beats, page))
             label.text = "第 $page 頁・${weatherName[view.weather]}・紙帽${if (view.hatOn) "戴著" else "脫下"}"

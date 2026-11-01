@@ -66,11 +66,12 @@ class CapabilitiesTest {
 
     @Test
     fun eachPageAddsWhatItUnlocks() {
-        // 第 1–11 頁每一頁都會多出東西；第 14 頁的包袱還沒設計（Q21），所以跟第 13 頁一樣
+        // 第 1–11 頁每一頁都會多出東西；第 14 頁多了包袱，卸下包袱時跟第 13 頁一樣
         for (page in 2..11) {
             assertNotEquals("第 $page 頁", Mowan.frame(parts(page - 1), 0).signature(), Mowan.frame(parts(page), 0).signature())
         }
-        assertEquals(Mowan.frame(parts(13), 0).signature(), Mowan.frame(parts(14), 0).signature())
+        assertNotEquals(Mowan.frame(parts(13), 0).signature(), Mowan.frame(parts(14), 0).signature())
+        assertEquals(Mowan.frame(parts(13), 0).signature(), Mowan.frame(parts(14), 0, bundleOn = false).signature())
     }
 
     @Test

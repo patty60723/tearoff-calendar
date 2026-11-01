@@ -20,53 +20,16 @@
             android:scaleType="fitXY"
             android:src="@drawable/hills" />
 
-        <!-- 火柴人站在山丘上：6 張圖輪流播放 -->
-        <ViewFlipper
-            android:id="@+id/stickman"
+
+        <!-- 墨丸 V3：一張靜態圖（P5-3、P5-4；P7-1 起是唯一的角色）。預設圖給 launcher 的小工具預覽用，實際畫面由程式換成當天的墨丸 -->
+        <ImageView
+            android:id="@+id/mowan_still"
             android:layout_width="42dp"
             android:layout_height="56dp"
             android:layout_gravity="bottom|right"
             android:layout_marginRight="12dp"
             android:layout_marginBottom="16dp"
-            android:autoStart="true"
-            android:flipInterval="160">
-
-            <ImageView
-                android:id="@+id/frame0"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame1"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame3"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame4"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-
-            <ImageView
-                android:id="@+id/frame5"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/stickman" />
-        </ViewFlipper>
+            android:src="@drawable/mowan_preview" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -97,12 +60,13 @@
                     android:layout_weight="0.9"
                     android:orientation="vertical">
 
+                    <!-- 英文月份放在中文月份下一行：橫排時最小尺寸放不下（P7-1） -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:baselineAligned="true"
-                        android:orientation="horizontal">
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
 
                         <TextView
                             android:id="@+id/month"
@@ -120,8 +84,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:maxLines="1"
-                            android:layout_marginLeft="5dp"
-                            android:letterSpacing="0.3"
+                            android:letterSpacing="0.2"
                             android:textColor="@color/ink_soft"
                             android:textSize="8sp" />
                     </LinearLayout>
@@ -149,6 +112,7 @@
                         android:fontFamily="serif"
                         android:maxLines="1"
                         android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="5dp"
                         android:letterSpacing="0.1"
                         android:textColor="@color/ink"
                         android:textSize="10sp" />
@@ -161,7 +125,8 @@
                     android:gravity="center_vertical"
                     android:orientation="vertical"
                     android:paddingLeft="8dp"
-                    android:paddingRight="46dp">
+                    android:paddingRight="46dp"
+                    android:paddingBottom="4dp">
 
                     <TextView
                         android:id="@+id/label"
@@ -190,8 +155,8 @@
                         android:layout_width="20dp"
                         android:layout_height="1dp"
                         android:layout_gravity="left"
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="6dp"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="3dp"
                         android:scaleType="fitXY"
                         android:src="@drawable/rule" />
                     <TextView
@@ -202,7 +167,7 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:letterSpacing="0.05"
-                        android:textColor="@color/ink_soft"
+                        android:textColor="@color/ink_mid"
                         android:textSize="10sp" />
                     <TextView
                         android:id="@+id/ji"
@@ -211,9 +176,9 @@
                         android:layout_height="wrap_content"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="1dp"
                         android:letterSpacing="0.05"
-                        android:textColor="@color/ink_soft"
+                        android:textColor="@color/ink_mid"
                         android:textSize="10sp" />
                 </LinearLayout>
             </LinearLayout>

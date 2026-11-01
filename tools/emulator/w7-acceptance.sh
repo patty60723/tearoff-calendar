@@ -1,0 +1,677 @@
+#!/usr/bin/env bash
+# W7 驗收：在 Android Emulator 上實際打開 App，截圖、錄影、量重畫的影格數。
+# 用法：tools/emulator/w7-acceptance.sh <APK> <輸出資料夾>
+# 狀態（頁數、假天氣、包袱、紙帽）直接寫進 App 的 SharedPreferences（debug 版才能 run-as）。墨丸 V3 是唯一的角色（P7-1）。
+set -u
+APK=$1
+OUT=$2
+PKG=com.patty60723.tearoff
+mkdir -p "$OUT/shots" "$OUT/video" "$OUT/ui"
+LOG="$OUT/report.txt"
+: > "$LOG"
+log() { echo "$*" | tee -a "$LOG"; }
+
+# 必要的驗收項目用 check：任何一項 FAIL，腳本最後就以非零結束（CI 會失敗）。
+# 截圖、錄影、GIF 這類素材出問題只用 warn 記下來，不算功能失敗。
+PASS_N=0
+FAIL_N=0
+WARN_N=0
+# 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
+EXPECTED_CHECKS=34
+check() { # check <名稱> <條件結果 0/1> <說明>
+  if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
+  else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
+}
+warn() { WARN_N=$((WARN_N + 1)); log "WARN  $*"; }
+finish() {
+  log ""
+  local ran=$((PASS_N + FAIL_N))
+  [ "$ran" -ge "$EXPECTED_CHECKS" ] || { FAIL_N=$((FAIL_N + 1)); log "FAIL  必要檢查只跑了 $ran 項（應該 $EXPECTED_CHECKS 項）"; }
+  log "結果：PASS $PASS_N、FAIL $FAIL_N、WARN $WARN_N（WARN 是素材問題，不影響結果）"
+  [ "$FAIL_N" = 0 ] && exit 0 || exit 1
+}
+
+# 靜止判斷的腳本測試（不需要模擬器）：判斷規則壞了就不要拿來驗收
+if bash "$(dirname "$0")/test-quiet.sh" > "$OUT/test-quiet.txt" 2>&1; then log "腳本測試（test-quiet.sh）：全部通過"
+else check "腳本測試（test-quiet.sh）" 1 "見 test-quiet.txt"; fi
+if bash "$(dirname "$0")/test-recover.sh" > "$OUT/test-recover.txt" 2>&1; then log "腳本測試（test-recover.sh）：全部通過"
+else check "腳本測試（test-recover.sh）" 1 "見 test-recover.txt"; fi
+
+adb install -r "$APK" >/dev/null || { check "安裝 APK" 1 "$APK"; finish; }
+adb shell svc power stayon true
+adb shell input keyevent KEYCODE_WAKEUP
+adb shell wm dismiss-keyguard
+adb shell settings put global window_animation_scale 1
+adb shell settings put global transition_animation_scale 1
+adb shell settings put global animator_duration_scale 1
+# 模擬器剛開機時其他 App（例如 Pixel Launcher）常常 ANR，對話框會蓋住我們的 App、吃掉點擊；不顯示背景 ANR
+adb shell settings put secure anr_show_background 0
+adb logcat -c
+
+SIZE=$(adb shell wm size | tr -d '\r' | awk '{print $NF}')
+W=${SIZE%x*}
+H=${SIZE#*x}
+TODAY=$(adb shell date +%F | tr -d '\r')
+YESTERDAY=$(date -d "$TODAY -1 day" +%F)
+log "裝置：$(adb shell getprop ro.product.model | tr -d '\r')，Android $(adb shell getprop ro.build.version.release | tr -d '\r')（API $(adb shell getprop ro.build.version.sdk | tr -d '\r')），螢幕 $SIZE，密度 $(adb shell wm density | tr -d '\r' | awk '{print $NF}')"
+
+story_text() { # 第 N 頁的故事（名字用預設的「墨丸」）
+  python3 - "$1" <<'EOF'
+import json, sys, html
+p = int(sys.argv[1])
+beats = json.load(open("app/src/main/assets/story/chapter1.json"))["beats"]
+b = next(b for b in beats if b.get("when", {}).get("page") == p)
+print(html.escape(b["text"].replace("{name}", "墨丸")))
+EOF
+}
+
+write_prefs() { # write_prefs <檔名> <內容>
+  printf "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n%s\n</map>\n" "$2" |
+    adb shell "run-as $PKG sh -c 'mkdir -p shared_prefs && cat > shared_prefs/$1.xml'"
+}
+
+# setup <頁數> <天氣> [包袱 true/false]：關掉 App、寫入狀態、重新打開、捲到故事卡
+setup() {
+  adb shell am force-stop $PKG
+  write_prefs story "  <int name=\"page\" value=\"$1\" />
+  <string name=\"lastTornDate\">$YESTERDAY</string>
+  <string name=\"lastText\">$(story_text "$1")</string>"
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
+  <boolean name=\"bundleOn\" value=\"${3:-true}\" />"
+  write_prefs weather "  <string name=\"fakeMood\">$2</string>"
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  scroll_down
+}
+
+scroll_down() {
+  for _ in 1 2 3 4; do
+    adb shell input swipe $((W / 2)) $((H * 85 / 100)) $((W / 2)) $((H * 20 / 100)) 250
+    sleep 0.4
+  done
+  sleep 1
+}
+
+# 畫面上元件的位置：用 dumpsys activity top 的 View 階層算（uiautomator 在畫面持續重畫時 dump 不出來）
+dump_ui() { # dump_ui <名稱>
+  adb shell dumpsys activity top > "$OUT/ui/$1.txt" 2>/dev/null
+  grep -q "story_mowan" "$OUT/ui/$1.txt" || { log "  （$1：dumpsys 找不到故事卡）"; return 1; }
+}
+bounds_of() { # bounds_of <名稱> <id>：輸出 "x1 y1 x2 y2"（看得到的才輸出）
+  local r
+  r=$(python3 tools/emulator/view_bounds.py "$OUT/ui/$1.txt" "$2" 2>/dev/null)
+  [ "${r##* }" = V ] && echo "${r% *}"
+}
+
+# 故事卡的範圍（墨丸上緣到包袱入口或故事文字下緣）
+CARD=""
+card_region() { # card_region <dump 的名稱>
+  local m b t
+  m=$(bounds_of "$1" story_mowan); t=$(bounds_of "$1" story_text); b=$(bounds_of "$1" story_bundle)
+  [ -n "$m" ] || return 1
+  set -- $m
+  local top=$(( $2 - 60 )) bottom=$4
+  for r in "$t" "$b"; do [ -n "$r" ] && set -- $r && [ "$4" -gt "$bottom" ] && bottom=$4; done
+  bottom=$(( bottom + 40 )); [ "$top" -lt 0 ] && top=0; [ "$bottom" -gt "$H" ] && bottom=$H
+  CARD="${W}x$(( bottom - top ))+0+$top"
+}
+
+shot() { # shot <名稱>：整個畫面，加上裁切後的故事卡
+  adb exec-out screencap -p > "$OUT/shots/$1-full.png"
+  [ -s "$OUT/shots/$1-full.png" ] || warn "截圖 $1 是空的"
+  crop "$1"
+}
+crop() {
+  [ -n "$CARD" ] || { warn "截圖 $1 沒有裁切（找不到故事卡位置）"; return 0; }
+  convert "$OUT/shots/$1-full.png" -crop "$CARD" +repage "$OUT/shots/$1.png" || warn "截圖 $1 裁切失敗"
+}
+
+frames_in() { # 這段時間 App 畫了幾張（gfxinfo），印出 "總數 jank"
+  adb shell dumpsys gfxinfo $PKG reset >/dev/null
+  sleep "$1"
+  adb shell dumpsys gfxinfo $PKG > "$OUT/ui/gfx-$2.txt"
+  local total jank
+  total=$(grep -m1 "Total frames rendered" "$OUT/ui/gfx-$2.txt" | awk '{print $NF}')
+  jank=$(grep -m1 "Janky frames:" "$OUT/ui/gfx-$2.txt" | sed 's/.*Janky frames: //')
+  echo "${total:-?} ${jank:-?}"
+}
+
+record() { # record <名稱> <秒數> [GIF 的 FPS] [GIF 寬度]：錄影，裁成故事卡，轉成 GIF
+  adb shell screenrecord --time-limit "$2" /sdcard/rec.mp4
+  adb pull /sdcard/rec.mp4 "$OUT/video/$1-full.mp4" >/dev/null 2>&1
+  to_gif "$1" "${3:-12}" "${4:-480}"
+}
+to_gif() {
+  [ -s "$OUT/video/$1-full.mp4" ] || { warn "錄影 $1 沒有錄到"; return 0; }
+  [ -n "$CARD" ] || { warn "錄影 $1 沒有裁切成 GIF（找不到故事卡位置）"; return 0; }
+  local w h x y fps=${2:-12} gw=${3:-480}
+  w=${CARD%%x*}; h=${CARD#*x}; h=${h%%+*}; y=${CARD##*+}; x=0
+  ffmpeg -loglevel error -y -i "$OUT/video/$1-full.mp4" -vf "crop=$w:$h:$x:$y,fps=$fps,scale=$gw:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer" -loop 0 "$OUT/video/$1.gif"
+  ffmpeg -loglevel error -y -i "$OUT/video/$1-full.mp4" -vf "crop=$w:$h:$x:$y" -c:v libx264 -pix_fmt yuv420p -an "$OUT/video/$1.mp4" &&
+    rm -f "$OUT/video/$1-full.mp4" || warn "錄影 $1 轉檔失敗（保留原始影片）"
+}
+
+crashed() { adb logcat -d | grep -q "FATAL EXCEPTION" ; }
+# 點擊前的遮擋處理（其他 App 的「沒有回應」對話框、焦點跑掉、入口位置變了）：tools/emulator/recover.sh（test-recover.sh 有測試）
+. "$(dirname "$0")/recover.sh"
+
+log ""
+log "== 1. 8 種天氣（第 14 頁）=="
+setup 14 SUNNY
+log "  寫入的設定：$(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | tr '\n' ' ')"
+dump_ui layout-14 && card_region layout-14
+[ -n "$CARD" ] && log "  故事卡範圍：$CARD" || warn "找不到故事卡位置，截圖和錄影不會裁切"
+for m in SUNNY HOT CLOUDY FOG RAIN THUNDER COLD SNOW; do
+  setup 14 $m
+  shot "weather-$m"
+done
+check "8 種天氣都顯示" "$(crashed && echo 1 || echo 0)" "逐一切換、重開 App，沒有閃退"
+
+log ""
+log "== 2. 動畫錄影 =="
+setup 14 SUNNY;   record sunny 12
+setup 14 COLD;    record cold 9
+setup 14 RAIN;    record rain 9
+setup 14 HOT;     record hot 7
+setup 14 CLOUDY;  record cloudy 7
+setup 14 FOG;     record fog 7
+setup 14 SNOW;    record snow 9
+# 雷雨：第一次打雷在 15–40 秒之間，錄 45 秒一定錄得到
+setup 14 THUNDER; record thunder 45 8 360
+
+log ""
+log "== 3. 成長頁數（晴天）=="
+CARD14=$CARD
+for p in 1 3 4 5 8 13 14; do
+  setup $p SUNNY
+  adb exec-out screencap -p > "$OUT/shots/page-$p-full.png"
+  if dump_ui "page-$p"; then
+    card_region "page-$p" || CARD=$CARD14
+    crop "page-$p"
+    b=$(bounds_of "page-$p" story_bundle)
+    if [ "$p" = 14 ]; then check "第 $p 頁包袱入口" "$([ -n "$b" ] && echo 0 || echo 1)" "應該出現（$b）"
+    else check "第 $p 頁包袱入口" "$([ -z "$b" ] && echo 0 || echo 1)" "不應該出現"; fi
+  else
+    check "第 $p 頁包袱入口" 1 "讀不到畫面結構，無法檢查"
+  fi
+done
+CARD=$CARD14
+
+log ""
+log "== 4. 包袱入口：點擊、狀態保存、畫面更新 =="
+setup 14 SUNNY true
+# 位置要在點之前、同一次開 App 時量：重開 App 後捲動的位置可能不一樣（P5-1 遇過三下都沒點到）。
+# 量兩次，捲動停下來了位置才會一樣。dump_ui 會暫時關動畫，量完打開後墨丸會自己恢復（W7 修正）。
+dump_ui bundle-before; sleep 2; dump_ui bundle-before
+b=$(bounds_of "bundle-before" story_bundle)
+if [ -n "$b" ]; then
+  set -- $b
+  bx=$(( ($1 + $3) / 2 )); by=$(( ($2 + $4) / 2 ))
+  log "  入口位置 $b（高 $(( $4 - $2 )) px = $(( ($4 - $2) * 160 / 420 )) dp）"
+  sleep 1
+  shot bundle-1-on
+  # 每點一下就看設定有沒有切換。沒反應時記 WARN 再點一次（模擬器偶爾吃掉點擊：P5-2 有兩次三下後狀態沒變，
+  # 同一份 App 其他次都通過）；再點還是沒切換才算失敗。
+  bundle_on() { adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'name="bundleOn" value="[a-z]*"' | grep -o 'true\|false'; }
+  tap_bundle() { tap_toggle "bundle-$1" "包袱入口第 $1 下" story_bundle bundle_on; } # 最多點 3 次；3 次都沒切換回傳 1（照樣算失敗）
+  # 錄影：卸下、背上、再卸下；伸懶腰不應該重來
+  adb shell screenrecord --time-limit 30 /sdcard/rec.mp4 &
+  REC=$!
+  toggled=0
+  for k in 1 2 3; do sleep 1.5; tap_bundle $k && toggled=$((toggled + 1)); done
+  wait $REC
+  check "包袱入口每一下都切換" "$([ "$toggled" = 3 ] && echo 0 || echo 1)" "3 下裡切換了 $toggled 下"
+  adb pull /sdcard/rec.mp4 "$OUT/video/bundle-toggle-full.mp4" >/dev/null 2>&1
+  to_gif bundle-toggle
+  check "包袱點擊不閃退" "$(crashed && echo 1 || echo 0)" "點三下"
+  shot bundle-2-off
+  dump_ui bundle-after
+  log "  點完的文字看截圖 bundle-2-off（dumpsys 沒有文字內容）"
+  stored=$(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep bundleOn)
+  check "包袱狀態存起來" "$(echo "$stored" | grep -q 'value="false"' && echo 0 || echo 1)" "$stored"
+  adb shell am force-stop $PKG
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2; scroll_down
+  shot bundle-3-restart
+  dump_ui bundle-restart
+  stored=$(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep bundleOn)
+  check "重開 App 還是卸下" "$(echo "$stored" | grep -q 'value="false"' && echo 0 || echo 1)" "$stored；畫面看截圖 bundle-3-restart"
+else
+  check "找到包袱入口" 1 "dumpsys 沒找到看得到的 story_bundle"
+fi
+
+log ""
+log "== 5. 重畫次數（gfxinfo，10 秒；模擬器是軟體繪圖，張數與 jank 只能比較，不代表實機）=="
+setup 14 SUNNY;   log "  晴天動畫：$(frames_in 10 sunny)（總張數 jank）"
+setup 14 THUNDER; log "  雷雨動畫：$(frames_in 10 thunder)"
+# 沒有天氣資料：關掉網路、清掉存著的天氣
+adb shell svc wifi disable; adb shell svc data disable
+adb shell am force-stop $PKG
+write_prefs weather ""
+adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+log "  沒有天氣（一般站姿，只有筆觸 6 FPS）：$(frames_in 10 none)"
+adb shell svc wifi enable; adb shell svc data enable
+adb shell top -b -n 1 -o PID,%CPU,RES,NAME | grep -E "PID|$PKG" | tee -a "$LOG"
+
+log ""
+log "== 6. Reduced Motion（系統「移除動畫」）=="
+# 實際使用時要到設定裡改，App 會先到背景
+setup 14 SUNNY
+adb shell input keyevent KEYCODE_HOME
+adb shell settings put global animator_duration_scale 0
+sleep 3
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+sleep 2
+shot reduced-1
+sleep 3
+shot reduced-2
+diff=$(compare -metric AE "$OUT/shots/reduced-1.png" "$OUT/shots/reduced-2.png" null: 2>&1 | awk '{print $1}')
+check "關閉動畫時故事卡不動" "$([ "${diff%.*}" = 0 ] && echo 0 || echo 1)" "相隔 3 秒的兩張故事卡差 $diff 個像素"
+f=$(frames_in 10 reduced)
+# 整個 App 應該幾乎不重畫（W7 M7；P7-1 起日曆頁沒有輪播，不再跟舊火柴人對照，只看 V3 自己的門檻）
+check "關閉動畫時整個 App 幾乎不重畫" "$([ "${f%% *}" -le 10 ] 2>/dev/null && echo 0 || echo 1)" "V3 故事卡：10 秒內畫了 $f 張"
+for m in HOT CLOUDY FOG RAIN THUNDER COLD SNOW; do
+  setup 14 $m
+  sleep 1
+  shot "reduced-$m"
+done
+# 從背景回來時打開動畫
+setup 14 SUNNY
+adb shell input keyevent KEYCODE_HOME
+adb shell settings put global animator_duration_scale 1
+sleep 3
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+sleep 1
+f=$(frames_in 5 reduced-back)
+check "打開動畫後繼續動（從背景回來）" "$([ "${f%% *}" -ge 60 ] 2>/dev/null && echo 0 || echo 1)" "5 秒內畫了 $f 張"
+record reduced-back 4
+# 留在前景直接改設定（例如分割畫面）
+adb shell settings put global animator_duration_scale 0
+sleep 3
+adb shell settings put global animator_duration_scale 1
+sleep 2
+f=$(frames_in 5 reduced-live)
+check "留在前景、關掉又打開動畫後繼續動" "$([ "${f%% *}" -ge 60 ] 2>/dev/null && echo 0 || echo 1)" "之後 5 秒畫了 $f 張（Android 13 以上）"
+record reduced-live 4
+
+log ""
+log "== 7. 背景／前景（雷雨）=="
+setup 14 THUNDER
+adb shell input keyevent KEYCODE_HOME
+sleep 45
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+record thunder-back 4
+check "背景 45 秒後回來不閃退" "$(crashed && echo 1 || echo 0)" "錄了回來後的 4 秒（錯過的雷不補播，除非剛好輪到下一次）"
+
+log ""
+log "== 8. 螢幕密度與字體大小 =="
+for d in 320 420 560; do
+  for fs in 1.0 1.3 2.0; do
+    [ "$d" != 420 ] && [ "$fs" != 1.0 ] && continue
+    adb shell wm density $d
+    adb shell settings put system font_scale $fs
+    setup 14 SUNNY
+    CARD_SAVE=$CARD
+    adb exec-out screencap -p > "$OUT/shots/density-$d-font-$fs-full.png"
+    if dump_ui "density-$d-font-$fs" && card_region "density-$d-font-$fs"; then
+      crop "density-$d-font-$fs"
+      b=$(bounds_of "density-$d-font-$fs" story_bundle)
+      t=$(bounds_of "density-$d-font-$fs" story_text)
+      [ -n "$b" ] && [ -n "$t" ] || { check "密度 $d、字體 $fs 的包袱入口" 1 "找不到入口或故事文字"; CARD=$CARD_SAVE; continue; }
+      set -- $b; bh=$(( $4 - $2 )); set -- $t; tb=$4; set -- $b
+      ok=$([ "$bh" -ge $(( 48 * d / 160 - 1 )) ] && [ "$2" -ge "$tb" ] && [ "$3" -le "$W" ] && echo 0 || echo 1)
+      check "密度 $d、字體 $fs 的包袱入口" "$ok" "入口 $b（高 $bh px），故事文字下緣 $tb"
+    else
+      check "密度 $d、字體 $fs 的包袱入口" 1 "讀不到畫面結構，無法檢查"
+    fi
+    CARD=$CARD_SAVE
+  done
+done
+adb shell wm density reset
+adb shell settings put system font_scale 1.0
+
+log ""
+# 第 9 段（舊火柴人故事卡）P7-1 拿掉：舊火柴人已移除
+
+log ""
+log "== 10. 小工具（P5-4）=="
+# 狀態：關掉 App、寫設定（關掉才不會被 App 記憶體裡的舊設定蓋掉）
+state() { # state <頁數> <天氣> [包袱] [紙帽]
+  adb shell am force-stop $PKG
+  write_prefs story "  <int name=\"page\" value=\"$1\" />
+  <string name=\"lastTornDate\">$YESTERDAY</string>
+  <string name=\"lastText\">$(story_text "$1")</string>"
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"${4:-true}\" />
+  <boolean name=\"bundleOn\" value=\"${3:-true}\" />"
+  write_prefs weather "  <string name=\"fakeMood\">$2</string>"
+}
+# 測試用宿主（debug APK 的 WidgetHostActivity）：用系統的 AppWidgetHost 掛 5 個不同大小的小工具
+host_run() { # host_run <名稱>：開宿主、截圖、把這次的報告存到 ui/widget-host-<名稱>.txt
+  adb shell log -t W7HOST "mark $1"
+  adb shell am start -W -n $PKG/.WidgetHostActivity >/dev/null
+  sleep 7
+  adb exec-out screencap -p > "$OUT/shots/widget-host-$1.png"
+  adb logcat -d -s W7HOST:I | awk -v m="mark $1" 'index($0, m) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' > "$OUT/ui/widget-host-$1.txt"
+}
+host_line() { grep "report layout=$2 " "$OUT/ui/widget-host-$1.txt" | tail -1; }
+# 小工具「真的靜止」：判斷規則在 quiet.sh（tools/emulator/test-quiet.sh 有各種情境的測試）
+. "$(dirname "$0")/quiet.sh"
+# measure_window <宿主名稱> <第幾次>：量 10 秒，印「張數 更新次數」；更新只算這次宿主綁定的受測小工具（HOST_IDS）
+measure_window() {
+  local tag="win-$1-$2" f
+  adb shell log -t W7HOST "mark $tag start"
+  f=$(frames_in 10 "$1-$2")
+  adb shell log -t W7HOST "mark $tag end"
+  adb logcat -d -s W7HOST:I > "$OUT/ui/logcat-$tag.txt"
+  # frames_in 印的是「張數 jank（百分比）」，這裡只要張數
+  echo "${f%% *} $(count_updates "$OUT/ui/logcat-$tag.txt" "mark $tag start" "mark $tag end" $HOST_IDS)"
+}
+# static_check <檢查名稱> <宿主名稱>：先確認更新監測涵蓋每一個受測小工具，再照 quiet.sh 的規則量；每一次的結果都寫進報告
+static_check() {
+  local name=$1 run=$2 missing out verdict
+  HOST_IDS=$(host_ids "$OUT/ui/widget-host-$run.txt")
+  missing=$(missing_updates "$OUT/ui/widget-host-$run.txt" $HOST_IDS)
+  if [ -z "$HOST_IDS" ] || [ -n "$missing" ]; then
+    check "$name" 1 "更新監測沒有涵蓋受測小工具（綁定的 id：${HOST_IDS:-沒有}；宿主 log 裡沒有更新的 id：${missing:-—}）"
+    return
+  fi
+  out=$(quiet_judge measure_window "$run")
+  while IFS= read -r l; do log "  $l"; done <<<"$out"
+  verdict=$(tail -1 <<<"$out")
+  check "$name" "$([[ "$verdict" == "verdict=PASS "* ]] && echo 0 || echo 1)" "${verdict#*reason=}（受測小工具 id：$HOST_IDS）"
+}
+
+if adb shell appwidget grantbind --package $PKG --user 0 >/dev/null 2>&1; then
+  # V3：5 種大小都套用成功、程式畫的墨丸顯示（不是預覽用的預設圖）、角色整個在小工具裡
+  state 14 RAIN
+  host_run v3
+  for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+    r=$(host_line v3 $L)
+    ok=$(echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" && echo 0 || echo 1)
+    check "小工具 $L（V3）" "$ok" "${r#*report }"
+  done
+  # 綁定後的幾秒內還會陸續收到 onUpdate／尺寸變更（每次都重新套用一次），模擬器的 GPU 也偶爾卡住後補畫；
+  # 所以先量一段只記錄，再量第二段（綁定後約 17 秒起）當作穩定狀態檢查。
+  f0=$(frames_in 10 widget-v3-settle)
+  log "  INFO  V3 小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
+  static_check "V3 小工具真的靜止（宿主畫面不重畫）" v3
+  # P6-4c：節日當天（假日期春節初一）的 V3 小工具：5 種大小都套用成功、一樣是一張靜態圖、不重畫
+  state 14 RAIN
+  write_prefs debug "  <string name=\"fakeToday\">2027-02-06</string>"
+  host_run v3-spring
+  bad=0
+  for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+    r=$(host_line v3-spring $L)
+    echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" || { bad=$((bad + 1)); log "  春節：$r"; }
+  done
+  check "節日小工具（春節）5 種大小" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對"
+  f0=$(frames_in 10 widget-spring-settle)
+  log "  INFO  節日小工具剛綁定後 10 秒：畫了 $f0 張（還在收更新，只記錄）"
+  static_check "節日小工具真的靜止（宿主畫面不重畫）" v3-spring
+  write_prefs debug ""
+  # 密度
+  for d in 320 560; do
+    adb shell wm density $d
+    state 14 RAIN
+    host_run v3-$d
+    bad=0
+    for L in COMPACT WIDE MEDIUM TALL BETWEEN; do
+      r=$(host_line v3-$d $L)
+      echo "$r" | grep -q "ok=true" && echo "$r" | grep -q "still=VISIBLE stillImage=true" && echo "$r" | grep -q "characterInside=true" || { bad=$((bad + 1)); log "  $d：$r"; }
+    done
+    check "小工具（V3）密度 $d" "$([ $bad = 0 ] && echo 0 || echo 1)" "5 種大小裡 $bad 種不對"
+  done
+  adb shell wm density reset
+else
+  for _ in 1 2 3 4 5 6 7 8 9 10; do check "小工具宿主" 1 "appwidget grantbind 失敗，沒辦法綁定小工具"; done
+fi
+
+# 真正的桌面 launcher：用 App 的「把小工具放到桌面」，在 launcher 的對話框按加入。
+# 這一段放不上去時只記 WARN、列為沒測（launcher 的對話框不在我們控制之內）；放上去之後的檢查失敗照樣算失敗。
+log ""
+log "== 11. 桌面 launcher 上的小工具（P5-4）=="
+screen_diff() { # screen_diff <a> <b>：兩張全螢幕截圖（扣掉狀態列和導覽列）差幾個像素
+  local y0=$((H * 6 / 100)) h=$((H * 86 / 100))
+  convert "$OUT/shots/$1.png" -crop "${W}x$h+0+$y0" +repage /tmp/a.png
+  convert "$OUT/shots/$2.png" -crop "${W}x$h+0+$y0" +repage /tmp/b.png
+  compare -metric AE -fuzz 3% /tmp/a.png /tmp/b.png null: 2>&1 | awk '{print $1}'
+}
+# Launcher3 把小工具放在第一頁右邊那一頁（第一頁有日期與 App），按 HOME 會回第一頁，所以再往左滑一頁
+home_shot() {
+  adb shell input keyevent KEYCODE_HOME; sleep 2
+  adb shell input keyevent KEYCODE_HOME; sleep 2
+  adb shell input swipe $((W * 85 / 100)) $((H / 2)) $((W * 15 / 100)) $((H / 2)) 300; sleep 2
+  adb exec-out screencap -p > "$OUT/shots/$1.png"
+}
+pinned() { adb shell dumpsys appwidget | python3 -c "
+import sys, re
+t = sys.stdin.read()
+w = t.split('Widgets:', 1)[-1]
+n = 0
+for block in re.split(r'\n\s+\[\d+\]', w):
+    if 'com.patty60723.tearoff/com.patty60723.tearoff.CalendarWidget' in block or 'com.patty60723.tearoff/.CalendarWidget' in block:
+        m = re.search(r'pkg:([\w.]+)', block)
+        if m and m.group(1) != 'com.patty60723.tearoff':
+            n += 1
+print(n)
+"; }
+state 14 RAIN
+adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+dump_ui pin
+p=$(bounds_of pin pin)
+placed=0
+if [ -n "$p" ]; then
+  set -- $p
+  adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+  sleep 3
+  adb exec-out screencap -p > "$OUT/shots/launcher-pin-dialog.png"
+  # uiautomator 在對話框還在動的時候常常讀不到，多試幾次
+  for _ in 1 2 3 4; do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui/launcher-pin.xml" >/dev/null 2>&1 && break
+    sleep 2
+  done
+  a=$(python3 - "$OUT/ui/launcher-pin.xml" <<'PYEOF'
+import re, sys
+import xml.etree.ElementTree as ET
+try:
+    nodes = list(ET.parse(sys.argv[1]).iter("node"))
+except Exception:
+    sys.exit()
+for want in ["add automatically", "add to home screen", "add", "新增", "加入"]:
+    for n in nodes:
+        if (n.get("text") or "").strip().lower() == want:
+            x1, y1, x2, y2 = map(int, re.findall(r"\d+", n.get("bounds")))
+            print((x1 + x2) // 2, (y1 + y2) // 2)
+            sys.exit()
+PYEOF
+)
+  if [ -z "$a" ]; then
+    # 讀不到畫面結構時，按 Launcher3 對話框「加入」按鈕的位置（右下角）；有沒有真的放上去由下面的 dumpsys 判斷
+    a="$((W * 77 / 100)) $((H * 94 / 100))"
+    log "  讀不到 launcher 對話框的畫面結構，改按右下角的加入按鈕位置 $a"
+  fi
+  if [ -n "$a" ]; then
+    adb shell input tap $a
+    sleep 3
+    [ "$(pinned)" -ge 1 ] 2>/dev/null && placed=1
+  fi
+fi
+if [ $placed = 1 ]; then
+  log "  已放上桌面：$(adb shell dumpsys appwidget | grep -m1 -o 'pkg:[a-z.]*launcher[a-z0-9.]*')"
+  home_shot launcher-1-v3
+  update_case() { # update_case <名稱> <說明> <state 參數…>：改設定、送更新廣播、截圖、跟上一張比
+    local name=$1 what=$2; shift 2
+    state "$@"
+    adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null
+    sleep 4
+    home_shot "launcher-$name"
+    local diff; diff=$(screen_diff "$PREV" "launcher-$name")
+    check "桌面小工具：$what" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
+    PREV="launcher-$name"
+  }
+  PREV=launcher-1-v3
+  update_case 2-bundle-off "卸下包袱後更新" 14 RAIN false
+  update_case 3-hat-off "脫下紙帽後更新" 14 RAIN false false
+  update_case 4-page5 "換成第 5 頁後更新" 5 RAIN
+  update_case 5-snow "天氣換成雪後更新" 5 SNOW
+  # 第 6 個（關掉 V3 換回舊火柴人）P7-1 拿掉；回到第 14 頁、雨天（下面在 App 點包袱要第 14 頁）
+  update_case 7-page14 "回到第 14 頁、雨天後更新" 14 RAIN
+  # 在 App 裡點「卸下包袱」：App 自己叫 refreshAll
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+  dump_ui launcher-app; sleep 1; dump_ui launcher-app
+  b=$(bounds_of launcher-app story_bundle)
+  if [ -n "$b" ]; then
+    set -- $b
+    adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 2
+    home_shot launcher-8-app-toggle
+    diff=$(screen_diff launcher-7-page14 launcher-8-app-toggle)
+    check "在 App 卸下包袱後，桌面小工具跟著換" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
+  else
+    warn "找不到 App 的包袱入口，沒測 App 觸發的更新"
+  fi
+  # P6-4c：節日小工具（假日期）。換日用午夜那次的廣播（NEW_DAY），跟真的換頁走同一條路
+  fest_day() { write_prefs debug "  <string name=\"fakeToday\">$1</string>"; }
+  fest_day 2027-02-05
+  update_case 9-eve "換到除夕（不是節日，對照）" 14 RAIN
+  fest_day 2027-02-06
+  update_case 10-spring "換到春節初一（節日外觀）" 14 RAIN
+  update_case 11-spring-bundle "節日當天卸下包袱" 14 RAIN false
+  update_case 12-spring-snow "節日當天天氣換成雪" 14 SNOW false
+  update_case 13-spring-page5 "節日當天換成第 5 頁" 5 SNOW false
+  # 第 14 個（節日當天關掉 V3）P7-1 拿掉
+  update_case 15-spring-page14 "節日當天回到第 14 頁、雨天" 14 RAIN
+  fest_day 2027-02-09
+  update_case 16-after "離開春節（初四）" 14 RAIN
+  # 中秋、聖誕只截圖
+  for d in 2027-09-15:moon 2027-12-25:xmas; do
+    fest_day "${d%%:*}"; state 14 SUNNY
+    adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null; sleep 4
+    home_shot "launcher-17-${d##*:}"
+  done
+  write_prefs debug ""
+  adb shell am broadcast -n $PKG/.CalendarWidget -a com.patty60723.tearoff.NEW_DAY >/dev/null
+else
+  warn "沒辦法自動把小工具放上桌面 launcher（找不到按鈕或 launcher 的對話框），這一段列為沒測"
+  log "NOTTESTED  桌面 launcher 上的小工具"
+fi
+
+log ""
+log "== 12. 節日（P6-4b 審核用截圖；不計入必要檢查，節日驗收在 P6-5）=="
+# fest <名稱> <假日期> <天氣> <今天那頁撕了沒 true/false>：用除錯的假日期打開 App，截日曆頁、捲到故事卡錄主演出
+fest() {
+  local day=$2 torn=$4 last
+  if [ "$torn" = true ]; then last=$day; else last=$(date -d "$day -1 day" +%F); fi
+  adb shell am force-stop $PKG
+  # mowan.xml 整個重寫，「演過了」的紀錄要留著（不然每次都像第一次）
+  local played
+  played=$(adb shell run-as $PKG cat shared_prefs/mowan.xml 2>/dev/null | tr -d '\r' | grep -o '<string name="festivalMainPlayed">[^<]*</string>')
+  write_prefs debug "  <string name=\"fakeToday\">$day</string>"
+  write_prefs story "  <int name=\"page\" value=\"14\" />
+  <string name=\"lastTornDate\">$last</string>
+  <string name=\"lastText\">$(story_text 14)</string>"
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
+  <boolean name=\"bundleOn\" value=\"true\" />
+  $played"
+  write_prefs weather "  <string name=\"fakeMood\">$3</string>"
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  adb exec-out screencap -p > "$OUT/shots/fest-$1-page.png"
+  # 主演出在故事卡捲進畫面一半以上時開始：一邊錄影一邊捲
+  adb shell screenrecord --time-limit 9 /sdcard/rec.mp4 &
+  local rec=$!
+  sleep 1
+  scroll_down
+  adb exec-out screencap -p > "$OUT/shots/fest-$1-card-main.png"
+  wait $rec
+  adb exec-out screencap -p > "$OUT/shots/fest-$1-card-after.png"
+  adb pull /sdcard/rec.mp4 "$OUT/video/fest-$1-full.mp4" >/dev/null 2>&1
+  dump_ui "fest-$1" && card_region "fest-$1" && to_gif "fest-$1" 12 480
+  log "  $1（$day，$3，今天那頁$([ "$torn" = true ] && echo 已撕 || echo 沒撕)）：演過的紀錄 $(adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'festivalMainPlayed">[^<]*' | sed 's/.*">//')"
+}
+fest spring 2027-02-06 SUNNY true
+fest spring-again 2027-02-06 SUNNY true
+fest spring-rain 2027-02-07 RAIN true
+fest spring-yesterday-top 2027-02-08 SUNNY false
+fest xmas 2026-12-25 SNOW true
+fest moon 2027-09-15 SUNNY true
+fest moon-rain 2027-09-15 RAIN true
+log "  spring-again 是同一天重開 App（不應該重播）；moon-rain 是同一天換天氣重開（不應該重播）"
+# 回到真實日期
+adb shell am force-stop $PKG
+write_prefs debug ""
+
+log ""
+log "== 13. 首頁（P7-2）：城市入口、點故事卡上的墨丸（天氣彩蛋）=="
+# 關閉動畫時墨丸不動（只換台詞），故事卡的像素變化就只來自台詞：用這個確認點擊、捲動、6 秒後回到故事。
+# 城市入口只量大小與上下關係（view_bounds.py 假設捲到最底，絕對位置在最上面時不準，但大小與相對位置不受影響）。
+# 天氣反應的過渡動畫本身由 JVM／Robolectric 測（WeatherReactionTest、HomeEggTest），模擬器不判斷動畫。
+DPI=$(adb shell wm density | tr -d '\r' | grep -o '[0-9]*' | tail -1)
+setup 14 SUNNY
+adb shell input swipe $((W / 2)) $((H * 30 / 100)) $((W / 2)) $((H * 80 / 100)) 300; sleep 1  # 捲回最上面
+dump_ui home-top
+c=$(bounds_of home-top city)
+if [ -n "$c" ]; then
+  set -- $c
+  cw=$(( ($3 - $1) * 160 / DPI )); ch=$(( ($4 - $2) * 160 / DPI ))
+  check "城市入口 ≥ 48dp" "$([ $cw -ge 48 ] && [ $ch -ge 48 ] && echo 0 || echo 1)" "${cw}×${ch} dp（$c）"
+else
+  check "城市入口看得到" 1 "dumpsys 找不到 city"
+fi
+p=$(bounds_of home-top page)
+[ -n "$c" ] && [ -n "$p" ] && check "城市入口在日曆上方" "$([ "$(echo $c | cut -d' ' -f4)" -le "$(echo $p | cut -d' ' -f2)" ] && echo 0 || echo 1)" "城市 $c、日曆 $p"
+adb shell settings put global animator_duration_scale 0
+setup 14 SUNNY
+sleep 2
+dump_ui egg && card_region egg
+card_shot() { adb exec-out screencap -p > "$OUT/shots/$1-full.png"; crop "$1"; }
+card_diff() { compare -metric AE "$OUT/shots/$1.png" "$OUT/shots/$2.png" null: 2>&1 | awk '{print $1}'; }
+card_shot egg-0
+# 從墨丸身上往上滑：是捲動，不觸發
+m=$(bounds_of egg story_mowan)
+if [ -n "$m" ]; then
+  set -- $m
+  mx=$(( ($1 + $3) / 2 )); my=$(( ($2 + $4) / 2 ))
+  # 手指從墨丸往下拖（頁面往上捲），再用 scroll_down 捲回最底（view_bounds.py 假設捲到最底）
+  adb shell input swipe $mx $my $mx $(( my + 200 )) 300; sleep 1
+  scroll_down
+  dump_ui egg-after-swipe && card_region egg-after-swipe
+  card_shot egg-1-swipe
+  d=$(card_diff egg-0 egg-1-swipe)
+  check "從墨丸身上滑動是捲動、不觸發彩蛋" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素（捲回原位後）"
+  handle_anr egg-tap; ensure_foreground
+  if locate egg-tap story_mowan; then
+    adb shell input tap $TAP_X $TAP_Y; sleep 1
+    # P7-2 審核：頁面捲在最底時點墨丸，故事卡不能變矮、畫面不能位移（#89 看到的問題）。
+    # 不捲動、不重新量位置：用點之前的位置裁切，畫面有位移就會比對不上
+    card_shot egg-2-tap
+    d=$(card_diff egg-0 egg-2-tap)
+    check "點故事卡上的墨丸：台詞換成天氣" "$([ "${d%.*}" -gt 500 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素"
+    # 故事卡上方（日曆下半）整塊跟點之前一樣：畫面沒有位移。
+    # 裁切範圍從墨丸上緣 60px 開始，故事卡的標題（第 14 頁 → 晴 25°）在它上面，所以再往上留 120px 不比（#92 誤判的原因）
+    top=$(( ${CARD##*+} - 120 ))
+    above() { convert "$OUT/shots/$1-full.png" -crop "${W}x$((top > 300 ? 300 : top))+0+$(( top > 300 ? top - 300 : 0 ))" +repage "$OUT/shots/$1-above.png"; }
+    above egg-0; above egg-2-tap
+    d=$(compare -metric AE "$OUT/shots/egg-0-above.png" "$OUT/shots/egg-2-tap-above.png" null: 2>&1 | awk '{print $1}')
+    check "點了以後畫面沒有位移" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡上方 300px 差 $d 個像素"
+    sleep 6
+    card_shot egg-3-back
+    above egg-3-back
+    d=$(card_diff egg-0 egg-3-back)
+    check "6 秒後回到故事" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "跟點之前差 $d 個像素"
+    d=$(compare -metric AE "$OUT/shots/egg-0-above.png" "$OUT/shots/egg-3-back-above.png" null: 2>&1 | awk '{print $1}')
+    check "回到故事時畫面沒有再跳一次" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡上方 300px 差 $d 個像素"
+  else
+    check "點故事卡上的墨丸" 1 "找不到看得到的墨丸"
+  fi
+else
+  check "故事卡上的墨丸看得到" 1 "dumpsys 找不到 story_mowan"
+fi
+adb shell settings put global animator_duration_scale 1
+
+
+log ""
+check "全程沒有閃退" "$(crashed && echo 1 || echo 0)" "logcat 沒有 FATAL EXCEPTION"
+adb logcat -d | grep -A20 "FATAL EXCEPTION" > "$OUT/crash.txt" || true
+# 手動觸發時可以故意加一項失敗，確認 CI 真的會變紅
+[ "${W7_FORCE_FAIL:-0}" = 1 ] && check "故意失敗（確認退出碼）" 1 "W7_FORCE_FAIL=1"
+finish

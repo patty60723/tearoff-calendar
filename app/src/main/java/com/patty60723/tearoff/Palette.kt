@@ -12,6 +12,12 @@ object Palettes {
     /** 紙的背面 */
     const val PAPER_BACK = 0xFFF1ECE3.toInt()
 
+    /** [a] 佔 [share]、[b] 佔其餘的混色（不透明） */
+    fun blend(a: Int, b: Int, share: Float): Int {
+        fun ch(shift: Int) = Math.round(((a shr shift) and 0xFF) * share + ((b shr shift) and 0xFF) * (1 - share))
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+    }
+
     private val MONTHS = listOf(
         Palette("暖陽橘", 0xFFD9822B.toInt(), 0xFFA85C17.toInt()),
         Palette("春節紅", 0xFFB5352B.toInt(), 0xFF8C231B.toInt()),

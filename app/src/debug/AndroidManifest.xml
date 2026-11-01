@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只在 debug APK 裡：模擬器驗收用的小工具宿主（P5-4），正式版沒有 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".WidgetHostActivity"
+            android:exported="true"
+            android:label="小工具宿主（驗收用）"
+            android:launchMode="singleTask" />
+    </application>
+</manifest>

@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.view.View
 import android.widget.FrameLayout
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -68,5 +69,57 @@ class MowanViewTest {
         view.weather = Mowan.Weather.SUNNY
         draw()
         assertFalse(view.isTicking)
+    }
+
+    private fun advance(ms: Long) = org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(ms))
+
+    @Test
+    fun pageHatAndBundleDoNotRestartTheMotion() {
+        view.weather = Mowan.Weather.SUNNY
+        val later = android.os.SystemClock.uptimeMillis() + 2000
+        val before = view.timeline.sample(later, false).clockMs
+        advance(500)
+        view.parts = view.parts + "armL"
+        view.hatOn = false
+        view.bundleOn = false
+        assertEquals("換頁、紙帽、包袱不會讓伸懶腰重來", before, view.timeline.sample(later, false).clockMs, 0.0)
+        // 同一種天氣再設一次（天氣資料更新）也不重來
+        view.weather = Mowan.Weather.SUNNY
+        assertEquals(before, view.timeline.sample(later, false).clockMs, 0.0)
+        // 換天氣才從頭開始
+        view.weather = Mowan.Weather.HOT
+        assertEquals(before - 500, view.timeline.sample(later, false).clockMs, 0.0)
+    }
+
+    @Test
+    fun reducedMotionTogglesWithoutGettingStuck() {
+        view.weather = Mowan.Weather.THUNDER
+        view.reducedMotion = { true }
+        draw()
+        assertFalse("關閉動畫時不排重畫", view.isTicking)
+        view.reducedMotion = { false }
+        draw()
+        assertTrue("打開動畫後繼續動", view.isTicking)
+    }
+
+    /**
+     * W7：停在前景時系統動畫被打開，墨丸要重畫（之後才會繼續排重畫），不能一直停住。
+     * Robolectric 改 duration scale 不會通知 listener，這裡直接呼叫 View 註冊的那個；實際的通知在模擬器驗收裡看。
+     */
+    @Test
+    fun reenablingAnimationsInTheForegroundRedraws() {
+        view.weather = Mowan.Weather.SUNNY
+        setDurationScale(0f)
+        draw()
+        assertFalse(view.isTicking)
+        assertFalse(view.isDirty)
+        setDurationScale(1f)
+        val listener = MowanView::class.java.getDeclaredField("scaleListener").apply { isAccessible = true }.get(view)
+            as ValueAnimator.DurationScaleChangeListener
+        listener.onChanged(1f)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertTrue("打開動畫後要求重畫", view.isDirty)
+        draw()
+        assertTrue(view.isTicking)
     }
 }

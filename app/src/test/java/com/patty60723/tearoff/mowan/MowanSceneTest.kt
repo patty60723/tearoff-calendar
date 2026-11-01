@@ -72,18 +72,22 @@ class MowanSceneTest {
     }
 
     @Test
-    fun onlySunAndRainHaveV3Scenes() {
-        assertEquals(Mowan.Weather.SUNNY, MowanSettings.weatherOf(Mood.SUNNY))
-        assertEquals(Mowan.Weather.RAINY, MowanSettings.weatherOf(Mood.RAIN))
-        assertEquals(Mowan.Weather.RAINY, MowanSettings.weatherOf(Mood.THUNDER))
-        for (m in listOf(Mood.HOT, Mood.CLOUDY, Mood.FOG, Mood.COLD, Mood.SNOW)) {
-            assertEquals("$m 還沒有 V3 設計（D-10）", Mowan.Weather.NONE, MowanSettings.weatherOf(m))
-        }
+    fun everyMoodHasItsOwnV3Scene() {
+        // W6：8 種天氣都接上定稿的 V3 場景，彼此不重複
+        val expected = mapOf(
+            Mood.SUNNY to Mowan.Weather.SUNNY, Mood.HOT to Mowan.Weather.HOT, Mood.CLOUDY to Mowan.Weather.CLOUDY,
+            Mood.FOG to Mowan.Weather.FOG, Mood.RAIN to Mowan.Weather.RAINY, Mood.THUNDER to Mowan.Weather.THUNDER,
+            Mood.COLD to Mowan.Weather.COLD, Mood.SNOW to Mowan.Weather.SNOW,
+        )
+        assertEquals(Mood.entries.toSet(), expected.keys)
+        for ((mood, weather) in expected) assertEquals("$mood", weather, MowanSettings.weatherOf(mood))
     }
 
     @Test
-    fun pageFourteenLooksLikePageThirteen() {
-        // 包袱還沒設計（Q21），第 14 頁不能自己多畫東西
-        assertEquals(Mowan.frame(parts(13), 0).ops.size, Mowan.frame(parts(14), 0).ops.size)
+    fun pageFourteenOnlyAddsTheBundle() {
+        // 第 14 頁唯一的新東西是包袱（W4）；卸下包袱時跟第 13 頁一樣
+        val thirteen = Mowan.frame(parts(13), 0).ops.size
+        assertEquals(thirteen + 14, Mowan.frame(parts(14), 0).ops.size)
+        assertEquals(thirteen, Mowan.frame(parts(14), 0, bundleOn = false).ops.size)
     }
 }
