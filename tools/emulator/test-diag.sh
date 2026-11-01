@@ -109,6 +109,20 @@ snap old-a 03 "$APP_WIN" "$APP_WIN" 0 true "" true
 echo "11-01 09:59:00.000  1000  1100 I input_interaction: Interaction with: $APP_WIN" > "$T/old-a/events.txt"
 expect "點擊之前的互動記錄不算 → UNKNOWN" "verdict=UNKNOWN" "$(cls ok-b old-a true true)"
 
+echo "== 元件真正的位置（uiautomator，診斷 workflow 點了沒反應時）"
+snap rt-a 03 "$APP_WIN" "$APP_WIN" 0 true "$APP_WIN" true
+echo "real_target=395 1700 572 1826" >> "$T/rt-a/meta.txt"
+expect "元件其實在別的地方 → COORDINATE_MISS" "verdict=COORDINATE_MISS" "$(cls ok-b rt-a true true)"
+snap rn-a 03 "$APP_WIN" "$APP_WIN" 0 true "$APP_WIN" true
+echo "real_target=none" >> "$T/rn-a/meta.txt"
+expect "元件不在畫面上 → COORDINATE_MISS" "target is not on screen" "$(cls ok-b rn-a true true)"
+snap ri-a 03 "$APP_WIN" "$APP_WIN" 0 true "$APP_WIN" true
+echo "real_target=400 850 700 950" >> "$T/ri-a/meta.txt"
+expect "元件真的在點擊位置 → 不判成 COORDINATE_MISS（照樣看派送／互動記錄）" "verdict=DELIVERED_NO_CHANGE" "$(cls ok-b ri-a true true)"
+snap ru-a 03 "$APP_WIN" "$APP_WIN" 0 true "$APP_WIN" true
+echo "real_target=unreadable" >> "$T/ru-a/meta.txt"
+expect "uiautomator 讀不到 → 不判成 COORDINATE_MISS（照樣看派送／互動記錄）" "verdict=DELIVERED_NO_CHANGE" "$(cls ok-b ru-a true true)"
+
 echo "== 派送記錄（診斷 workflow 打開 InputDispatcher 的記錄時）"
 snap dsp-a 03 "$APP_WIN" "$APP_WIN" 0 true "" true
 printf '%s\n' "11-01 10:00:02.100   500   600 D InputDispatcher: channel '$APP_WIN (server)' ~ startDispatchCycle" \

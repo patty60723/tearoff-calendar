@@ -316,6 +316,13 @@ def classify(before, after, state_before, state_after):
     l, t, r, b = target
     if not (l <= x < r and t <= y < b):
         return "COORDINATE_MISS", "tap %d,%d outside target %s" % (x, y, target), ""
+    # 診斷 workflow：點了沒反應之後用 uiautomator 讀到的「真正」位置（含捲動）
+    real = ma.get("real_target")
+    if real == "none":
+        return "COORDINATE_MISS", "target is not on screen (computed %s; page not scrolled as assumed)" % (target,), ""
+    rt = ints(real) if real else None
+    if rt and len(rt) == 4 and not (rt[0] <= x < rt[2] and rt[1] <= y < rt[3]):
+        return "COORDINATE_MISS", "target is actually at %s, tap %d,%d (computed %s)" % (rt, x, y, target), ""
     if not ib["windows"]:
         return "INSUFFICIENT", "window list empty in input dump", ""
     evidence = []

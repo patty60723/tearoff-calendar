@@ -43,10 +43,30 @@ diag_snapshot() {
   # 當下的狀態（例如包袱開關）：從 recover.sh 的 tap_toggle 呼叫時，讀狀態的指令是它的區域變數 get
   [ -n "${get:-}" ] && $get > "$d/state.txt" 2>/dev/null
   [ "$DIAG_ROOT" = 1 ] && diag_stacks "$d"
+  # 診斷 workflow、點了沒反應時：用 uiautomator 讀元件「真正」在螢幕上的位置（含捲動）。
+  # 墨丸一直在動時 uiautomator 讀不到，所以暫時關掉動畫、讀完再打開（只在診斷 workflow，日常驗收不做）
+  if [ "$DIAG_ALWAYS" = 1 ] && [ -n "${DIAG_TARGET_ID:-}" ] && case "$tag" in *-miss) true ;; *) false ;; esac; then
+    diag_real_bounds "$d" "$DIAG_TARGET_ID"
+  fi
   local s
   s=$(python3 "$DIAG_PY" summary "$d" 2>&1)
   echo "$s" > "$d/summary.txt"
   log "  診斷[$tag] $s"
+}
+
+diag_real_bounds() { # diag_real_bounds <快照資料夾> <元件 id>：在 meta.txt 寫 real_target=x1 y1 x2 y2（不在畫面上寫 none）
+  local d=$1 id=$2 xml r
+  adb shell settings put global animator_duration_scale 0
+  sleep 1
+  xml=$(timeout 30 adb shell "uiautomator dump /sdcard/diag-ui.xml >/dev/null 2>&1 && cat /sdcard/diag-ui.xml" 2>/dev/null)
+  adb shell settings put global animator_duration_scale 1
+  echo "$xml" > "$d/uiautomator.xml"
+  if [ -z "$xml" ]; then echo "real_target=unreadable" >> "$d/meta.txt"; return; fi
+  r=$(echo "$xml" | python3 -c '
+import re, sys
+m = re.search(r"resource-id=\"[^\"]*:id/'"$id"'\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"", sys.stdin.read())
+print(" ".join(m.groups()) if m else "none")')
+  echo "real_target=$r" >> "$d/meta.txt"
 }
 
 # 主執行緒堆疊（只在 DIAG_ROOT=1）：送 SIGQUIT，從最新的 traces 取出 main 執行緒整段。

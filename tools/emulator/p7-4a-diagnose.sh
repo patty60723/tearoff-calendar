@@ -102,6 +102,7 @@ bundle_on() { adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | gr
 . "$HERE/recover.sh"
 DIAG_ROOT=1
 DIAG_ALWAYS=1
+DIAG_TARGET_ID=story_bundle
 . "$HERE/diag.sh"
 
 launcher_pid() { adb shell pidof $LAUNCHER_PKG 2>/dev/null | tr -d '\r' | awk '{print $1}'; }
@@ -125,6 +126,7 @@ trial() { # trial <control|inject-bg|inject-fg> <i>
     control) label="【對照】" ;;
     inject-bg) label="【人工注入·背景】" ;;
     inject-fg) label="【人工注入·前景】" ;;
+    inject-fg-old) label="【人工注入·前景·舊流程】" ;;
   esac
   log ""
   log "== $label $name =="
@@ -143,7 +145,7 @@ trial() { # trial <control|inject-bg|inject-fg> <i>
       sleep 1
       timeout 15 adb shell input keyevent KEYCODE_SPACE >/dev/null 2>&1 &
       ;;
-    inject-fg)
+    inject-fg|inject-fg-old)
       # launcher 在前面時暫停它，再點它：前景 ANR，系統顯示「沒有回應」對話框（#68／#79 看到的外觀）
       lp=$(launcher_pid)
       adb shell input keyevent KEYCODE_HOME; sleep 3
@@ -161,7 +163,10 @@ trial() { # trial <control|inject-bg|inject-fg> <i>
   adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
   scroll_down
   diag_snapshot "$name-start"
-  if tap_toggle "$name" "$label$name 包袱入口" story_bundle bundle_on; then ok=1; else ok=0; fi
+  # 舊流程（RECOVER_RESCROLL=0：關掉對話框後不重新捲動）只在對照的「舊流程」組用，證明修正是不是原因
+  local rescroll=1
+  [ "$kind" = inject-fg-old ] && rescroll=0
+  if RECOVER_RESCROLL=$rescroll tap_toggle "$name" "$label$name 包袱入口" story_bundle bundle_on; then ok=1; else ok=0; fi
   # 對照組也可能自然遇到 launcher 的對話框：tap_toggle 裡處理過就記下來
   if [ "$kind" = control ] && ls "$OUT/diag" | grep -q -- "-$name-.*anr-seen"; then
     log "  【自然發生】對照組 $name 遇到「沒有回應」對話框"
@@ -177,6 +182,7 @@ trial() { # trial <control|inject-bg|inject-fg> <i>
 
 for i in $(seq 1 "$TRIALS"); do
   trial control "$i"
+  trial inject-fg-old "$i"
   trial inject-fg "$i"
   trial inject-bg "$i"
 done

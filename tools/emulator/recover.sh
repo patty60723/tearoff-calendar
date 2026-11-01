@@ -8,6 +8,10 @@
 # - 最多點 3 次；3 次都沒切換就回傳 1，由呼叫端照樣記 FAIL。這些處理只排除遮擋，不會讓任何檢查變成通過。
 
 RECOVER_WAIT=${RECOVER_WAIT:-1.5}
+# P7-4a：對話框開著的時候，捲動手勢會送到對話框、頁面不會動；量位置的方法（view_bounds.py）假設已經捲到最底，
+# 所以關掉對話框之後要重新捲到最底再量（診斷 #2：沒有重新捲動時，點擊送到 App 的日曆頁，包袱入口其實在畫面下面）。
+# 這不是多一次重試：點擊次數與 FAIL 的條件不變。設成 0 是舊的行為（只給診斷做對照）。
+RECOVER_RESCROLL=${RECOVER_RESCROLL:-1}
 FOREGROUND_WAIT=${FOREGROUND_WAIT:-2}
 ANR_N=0
 # 診斷掛勾（P7-4a，tools/emulator/diag.sh）：有載入就在關鍵時刻收集證據；沒載入（例如 test-recover.sh）什麼都不做。
@@ -35,6 +39,12 @@ m and print((int(m[1]) + int(m[3])) // 2, (int(m[2]) + int(m[4])) // 2)')
   warn "系統跳出其他 App 的「沒有回應」對話框（${focus##*: }）：$how；證據 shots/$tag.png、ui/$tag.txt"
 }
 
+rescroll() { # 關掉對話框之後：重新捲到最底（對話框開著時的捲動沒有生效）
+  [ "$RECOVER_RESCROLL" = 1 ] || return 0
+  log "  關掉對話框後重新捲到最底（對話框開著時，捲動送到對話框、頁面沒有動）"
+  scroll_down
+}
+
 ensure_foreground() {
   adb shell dumpsys window | tr -d '\r' | grep "mCurrentFocus=" | grep -q "$PKG" && return 0
   log "  App 不在最前面，帶回前景"
@@ -56,12 +66,12 @@ tap_toggle() { # tap_toggle <檔名用的名稱> <記錄用的名稱> <元件 id
   before=$($get)
   after=$before
   for try in 1 2 3; do
-    handle_anr "$name-$try"
+    if handle_anr "$name-$try"; then rescroll; fi
     ensure_foreground
     if ! locate "$name-tap-$try" "$id"; then
       warn "$label第 $try 次：找不到看得到的元件"; shot "$name-miss-$try"; continue
     fi
-    handle_anr "$name-$try-before-tap"
+    if handle_anr "$name-$try-before-tap"; then rescroll; locate "$name-tap-$try" "$id" || { warn "$label第 $try 次：找不到看得到的元件"; shot "$name-miss-$try"; continue; }; fi
     hook before-tap "$name-$try"
     adb shell input tap $TAP_X $TAP_Y; sleep "$RECOVER_WAIT"
     after=$($get)

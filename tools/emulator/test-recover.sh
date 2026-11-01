@@ -50,6 +50,8 @@ case "$*" in
     fi
     [ "$(get focus)" = ours ] || exit 0
     [ "$(get dead)" = yes ] && exit 0
+    # 頁面沒有捲到最底：量到的位置（假設在最底）上面其實是別的東西
+    [ "$(get scrolled)" = no ] && exit 0
     read -r x1 y1 x2 y2 <"$F/entry"
     if [ "$x" -ge "$x1" ] && [ "$x" -le "$x2" ] && [ "$y" -ge "$y1" ] && [ "$y" -le "$y2" ]; then
       [ "$(get state)" = true ] && echo false >"$F/state" || echo true >"$F/state"
@@ -71,7 +73,8 @@ warn() { WARNS=$((WARNS + 1)); LOGS="${LOGS}WARN $*"$'\n'; }
 shot() { SHOTS=$((SHOTS + 1)); }
 dump_ui() { return 0; }
 bounds_of() { [ "$(cat "$FAKE/visible" 2>/dev/null)" = no ] && return 0; cat "$FAKE/entry"; }
-scroll_down() { SCROLLS=$((SCROLLS + 1)); echo yes >"$FAKE/visible"; }
+# 捲到最底：對話框開著的時候捲動送到對話框，頁面不會動（P7-4a 診斷 #2 看到的情況）
+scroll_down() { SCROLLS=$((SCROLLS + 1)); echo yes >"$FAKE/visible"; [ "$(cat "$FAKE/anr")" = 0 ] && echo yes >"$FAKE/scrolled"; return 0; }
 RECOVER_WAIT=0 FOREGROUND_WAIT=0
 . ./recover.sh
 state() { cat "$FAKE/state"; }
@@ -81,7 +84,7 @@ setup() {
   export FAKE="$T/fake-$RANDOM$RANDOM"; mkdir -p "$FAKE"
   echo "$1" >"$FAKE/anr"; echo "$2" >"$FAKE/after"; echo "$3" >"$FAKE/ui"
   echo ours >"$FAKE/focus"; echo true >"$FAKE/state"
-  echo "${4:-395 893 572 1019}" >"$FAKE/entry"; echo "${5:-yes}" >"$FAKE/visible"
+  echo "${4:-395 893 572 1019}" >"$FAKE/entry"; echo "${5:-yes}" >"$FAKE/visible"; echo yes >"$FAKE/scrolled"
   [ "$1" != 0 ] && echo launcher >"$FAKE/focus"
   rm -f "$OUT"/shots/* "$OUT"/ui/*
   LOGS=""; WARNS=0; SHOTS=0; SCROLLS=0; ANR_N=0
@@ -144,6 +147,29 @@ n=$(grep -c . <<<"$(taps | tr ',' '\n')")
   && pass "點 3 次都沒切換 → 回傳 1" || fail "rc=$rc state=$(state) taps=$(taps)"
 grep -q "FocusedWindow" "$OUT/ui/t-miss-3.txt" && grep -q "mCurrentFocus" "$OUT/ui/t-miss-3.txt" \
   && pass "每次沒反應都留下焦點與觸控視窗的紀錄" || fail "沒反應的紀錄不完整：$(cat "$OUT/ui/t-miss-3.txt" 2>&1)"
+
+echo "== 沒有對話框：不多捲動"
+setup 0 ours ok
+tap_toggle t "入口" story_bundle state; rc=$?
+[[ $rc = 0 && $SCROLLS = 0 ]] && pass "沒有對話框時不重新捲動（捲動 $SCROLLS 次）" || fail "rc=$rc scrolls=$SCROLLS"
+
+echo "== 對話框開著時的捲動沒有生效（P7-4a 診斷 #2 的情況）"
+setup 1 ours ok
+echo no >"$FAKE/scrolled"
+tap_toggle t "入口" story_bundle state; rc=$?
+[[ $rc = 0 && $(state) = false && $SCROLLS = 1 ]] && grep -q "關掉對話框後重新捲到最底" <<<"$LOGS" \
+  && pass "關掉對話框後重新捲到最底再量、再點：切換成功（捲動 $SCROLLS 次，點 $(taps)）" || fail "rc=$rc state=$(state) scrolls=$SCROLLS taps=$(taps)"
+setup 1 ours ok
+echo no >"$FAKE/scrolled"
+RECOVER_RESCROLL=0 tap_toggle t "入口" story_bundle state; rc=$?
+[[ $rc = 1 && $(state) = true ]] && pass "舊的行為（不重新捲動）在同樣情況照樣失敗 → 測試分得出兩者" || fail "rc=$rc state=$(state)"
+
+echo "== 重新捲動不會讓壞掉的點擊變成通過"
+setup 1 ours ok
+echo no >"$FAKE/scrolled"; echo yes >"$FAKE/dead"
+tap_toggle t "入口" story_bundle state; rc=$?
+n=$(grep -c . <<<"$(taps | tr ',' '\n' | grep -v '^540 1243$')")
+[[ $rc = 1 && $(state) = true && $n = 3 ]] && pass "App 的點擊壞掉時，重新捲動後照樣 3 次都沒切換 → 回傳 1" || fail "rc=$rc state=$(state) taps=$(taps)"
 
 echo
 [ "$failed" = 0 ] && echo "全部通過" || echo "有測試失敗"
