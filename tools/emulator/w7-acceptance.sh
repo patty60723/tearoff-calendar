@@ -646,8 +646,9 @@ if [ -n "$m" ]; then
     card_shot egg-2-tap
     d=$(card_diff egg-0 egg-2-tap)
     check "點故事卡上的墨丸：台詞換成天氣" "$([ "${d%.*}" -gt 500 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素"
-    # 故事卡上方（日曆下半、宜忌）整塊跟點之前一樣：畫面沒有位移
-    top=${CARD##*+}
+    # 故事卡上方（日曆下半）整塊跟點之前一樣：畫面沒有位移。
+    # 裁切範圍從墨丸上緣 60px 開始，故事卡的標題（第 14 頁 → 晴 25°）在它上面，所以再往上留 120px 不比（#92 誤判的原因）
+    top=$(( ${CARD##*+} - 120 ))
     above() { convert "$OUT/shots/$1-full.png" -crop "${W}x$((top > 300 ? 300 : top))+0+$(( top > 300 ? top - 300 : 0 ))" +repage "$OUT/shots/$1-above.png"; }
     above egg-0; above egg-2-tap
     d=$(compare -metric AE "$OUT/shots/egg-0-above.png" "$OUT/shots/egg-2-tap-above.png" null: 2>&1 | awk '{print $1}')
