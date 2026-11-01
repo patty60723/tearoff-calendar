@@ -190,6 +190,10 @@ all=$(python3 "$PY" classify-all "$R")
 expect "對照那一次 HANDLED" "control-1-1: verdict=HANDLED" "$all"
 expect "注入那一次 OBSCURED（用 after-tap 配對）" "inject-1-1: verdict=OBSCURED" "$all"
 [ "$(echo "$all" | wc -l)" = 2 ] && ok "兩次點擊、兩行結果" || bad "應該兩行：$all"
+R2="$T/root2"; mkdir -p "$R2"
+cp -r "$T/ok-b" "$R2/01-inject-fg-old-1-1-before-tap"; cp -r "$T/el-a" "$R2/02-inject-fg-old-1-1-after-tap"; cp -r "$T/el-a" "$R2/03-inject-fg-old-1-1-miss"
+echo "real_target=none" >> "$R2/03-inject-fg-old-1-1-miss/meta.txt"
+expect "after-tap 配對時，用同一次點擊的 miss 快照裡的真正位置" "inject-fg-old-1-1: verdict=COORDINATE_MISS" "$(python3 "$PY" classify-all "$R2")"
 expect "沒有診斷資料夾 → INSUFFICIENT" "verdict=INSUFFICIENT" "$(python3 "$PY" classify-all "$T/none")"
 
 echo "== 掛勾不改變點擊流程的結果"

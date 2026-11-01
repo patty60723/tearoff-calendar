@@ -290,7 +290,7 @@ def fmt(s):
     return "; ".join("%s=%s" % kv for kv in s.items())
 
 
-def classify(before, after, state_before, state_after):
+def classify(before, after, state_before, state_after, miss=None):
     missing = []
     if not os.path.isdir(before):
         missing.append("before")
@@ -317,12 +317,15 @@ def classify(before, after, state_before, state_after):
     if not (l <= x < r and t <= y < b):
         return "COORDINATE_MISS", "tap %d,%d outside target %s" % (x, y, target), ""
     # 診斷 workflow：點了沒反應之後用 uiautomator 讀到的「真正」位置（含捲動）
-    real = ma.get("real_target")
+    real = ma.get("real_target") or (meta(miss).get("real_target") if miss and os.path.isdir(miss) else None)
+    t0, t1 = mb.get("device_time", ""), ma.get("device_time", "")
+    app_rows = [r for r in (dispatch(after) or []) if t0 <= r[0] <= t1 and APP in r[1]]
+    delivered = "dispatch to app=%d handled=%s" % (len(app_rows), sorted({r[3] for r in app_rows if r[3]})) if dispatch(after) is not None else "dispatch=missing"
     if real == "none":
-        return "COORDINATE_MISS", "target is not on screen (computed %s; page not scrolled as assumed)" % (target,), ""
+        return "COORDINATE_MISS", "target is not on screen (computed %s; page not scrolled as assumed)" % (target,), delivered
     rt = ints(real) if real else None
     if rt and len(rt) == 4 and not (rt[0] <= x < rt[2] and rt[1] <= y < rt[3]):
-        return "COORDINATE_MISS", "target is actually at %s, tap %d,%d (computed %s)" % (rt, x, y, target), ""
+        return "COORDINATE_MISS", "target is actually at %s, tap %d,%d (computed %s)" % (rt, x, y, target), delivered
     if not ib["windows"]:
         return "INSUFFICIENT", "window list empty in input dump", ""
     evidence = []
@@ -346,7 +349,6 @@ def classify(before, after, state_before, state_after):
         unsure = "app wait queue=%d but no second evidence (responsive=%s, main=%s)" % (c["wait"], c["responsive"], stack)
     else:
         unsure = None
-    t0, t1 = mb.get("device_time", ""), ma.get("device_time", "")
     # 最直接的證據：InputDispatcher 的派送記錄（診斷 workflow 才有）
     dl = [r for r in (dispatch(after) or []) if t0 <= r[0] <= t1]
     if dl:
@@ -382,9 +384,12 @@ def classify_all(root):
             continue
         key = d.split("-", 1)[1][: -len("-before-tap")]
         after = next((s for s in snaps[i + 1:] if s.split("-", 1)[1] in (key + "-after-tap", key + "-miss")), None)
+        # 點了沒反應時另外存的快照（有 uiautomator 讀到的真正位置）
+        miss = next((s for s in snaps[i + 1:] if s.split("-", 1)[1] == key + "-miss"), None)
         sb = read(os.path.join(root, d), "state.txt")
         sa = read(os.path.join(root, after), "state.txt") if after else None
-        v, reason, ev = classify(os.path.join(root, d), os.path.join(root, after or "none"), (sb or "").strip(), (sa or "").strip())
+        v, reason, ev = classify(os.path.join(root, d), os.path.join(root, after or "none"), (sb or "").strip(), (sa or "").strip(),
+                                 os.path.join(root, miss) if miss else None)
         print("%s: verdict=%s; reason=%s; evidence=%s" % (key, v, reason, ev))
 
 
