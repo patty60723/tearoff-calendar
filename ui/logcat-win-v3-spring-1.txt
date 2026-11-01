@@ -1,0 +1,77 @@
+--------- beginning of main
+11-01 02:48:22.589 14123 14123 I W7HOST  : mark v3
+11-01 02:48:23.022 14130 14130 I W7HOST  : bind layout=COMPACT id=2 bound=true
+11-01 02:48:23.158 14130 14130 I W7HOST  : update id=2
+11-01 02:48:23.206 14130 14130 I W7HOST  : bind layout=WIDE id=3 bound=true
+11-01 02:48:23.224 14130 14130 I W7HOST  : update id=3
+11-01 02:48:23.353 14130 14130 I W7HOST  : bind layout=MEDIUM id=4 bound=true
+11-01 02:48:23.381 14130 14130 I W7HOST  : update id=4
+11-01 02:48:23.417 14130 14130 I W7HOST  : bind layout=TALL id=5 bound=true
+11-01 02:48:23.433 14130 14130 I W7HOST  : update id=5
+11-01 02:48:23.532 14130 14130 I W7HOST  : bind layout=BETWEEN id=6 bound=true
+11-01 02:48:23.584 14130 14130 I W7HOST  : update id=6
+11-01 02:48:25.694 14130 14130 I W7HOST  : update id=2
+11-01 02:48:25.701 14130 14130 I W7HOST  : update id=3
+11-01 02:48:25.708 14130 14130 I W7HOST  : update id=4
+11-01 02:48:25.714 14130 14130 I W7HOST  : update id=5
+11-01 02:48:25.720 14130 14130 I W7HOST  : update id=6
+11-01 02:48:26.685 14130 14130 I W7HOST  : update id=2
+11-01 02:48:29.752 14130 14130 I W7HOST  : report layout=COMPACT ok=true size=301x301 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:48:29.752 14130 14130 I W7HOST  : report layout=WIDE ok=true size=761x328 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:48:29.752 14130 14130 I W7HOST  : report layout=MEDIUM ok=true size=393x511 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:48:29.753 14130 14130 I W7HOST  : report layout=TALL ok=true size=459x761 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:48:29.753 14130 14130 I W7HOST  : report layout=BETWEEN ok=true size=525x525 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:48:35.711 14130 14130 I W7HOST  : update id=2
+11-01 02:48:35.802 14130 14130 I W7HOST  : update id=3
+11-01 02:48:35.882 14130 14130 I W7HOST  : update id=4
+11-01 02:48:35.965 14130 14130 I W7HOST  : update id=5
+11-01 02:48:36.107 14130 14130 I W7HOST  : update id=6
+11-01 02:48:36.181 14130 14130 I W7HOST  : update id=2
+11-01 02:48:36.184 14130 14130 I W7HOST  : update id=3
+11-01 02:48:36.359 14130 14130 I W7HOST  : update id=3
+11-01 02:48:36.361 14130 14130 I W7HOST  : update id=4
+11-01 02:48:36.523 14130 14130 I W7HOST  : update id=4
+11-01 02:48:36.524 14130 14130 I W7HOST  : update id=5
+11-01 02:48:36.608 14130 14130 I W7HOST  : update id=5
+11-01 02:48:36.674 14130 14130 I W7HOST  : update id=6
+11-01 02:48:36.758 14130 14130 I W7HOST  : update id=6
+11-01 02:48:43.624 14212 14212 I W7HOST  : mark win-v3-1 start
+11-01 02:48:53.675 14222 14222 I W7HOST  : mark win-v3-1 end
+11-01 02:48:54.486 14255 14255 I W7HOST  : mark v3-spring
+11-01 02:48:55.170 14262 14262 I W7HOST  : bind layout=COMPACT id=7 bound=true
+11-01 02:48:55.241 14262 14262 I W7HOST  : update id=7
+11-01 02:48:55.308 14262 14262 I W7HOST  : bind layout=WIDE id=8 bound=true
+11-01 02:48:55.314 14262 14262 I W7HOST  : update id=8
+11-01 02:48:55.318 14262 14262 I W7HOST  : bind layout=MEDIUM id=9 bound=true
+11-01 02:48:55.324 14262 14262 I W7HOST  : update id=9
+11-01 02:48:55.329 14262 14262 I W7HOST  : bind layout=TALL id=10 bound=true
+11-01 02:48:55.336 14262 14262 I W7HOST  : update id=10
+11-01 02:48:55.340 14262 14262 I W7HOST  : bind layout=BETWEEN id=11 bound=true
+11-01 02:48:55.347 14262 14262 I W7HOST  : update id=11
+11-01 02:48:56.968 14262 14262 I W7HOST  : update id=7
+11-01 02:48:56.976 14262 14262 I W7HOST  : update id=8
+11-01 02:48:56.984 14262 14262 I W7HOST  : update id=9
+11-01 02:48:56.991 14262 14262 I W7HOST  : update id=10
+11-01 02:48:57.000 14262 14262 I W7HOST  : update id=11
+11-01 02:48:58.254 14262 14262 I W7HOST  : update id=7
+11-01 02:48:59.062 14262 14262 I W7HOST  : update id=7
+11-01 02:48:59.131 14262 14262 I W7HOST  : update id=8
+11-01 02:48:59.199 14262 14262 I W7HOST  : update id=9
+11-01 02:48:59.268 14262 14262 I W7HOST  : update id=10
+11-01 02:48:59.398 14262 14262 I W7HOST  : update id=11
+11-01 02:48:59.400 14262 14262 I W7HOST  : update id=7
+11-01 02:48:59.478 14262 14262 I W7HOST  : update id=8
+11-01 02:48:59.603 14262 14262 I W7HOST  : update id=8
+11-01 02:48:59.604 14262 14262 I W7HOST  : update id=9
+11-01 02:48:59.711 14262 14262 I W7HOST  : update id=9
+11-01 02:48:59.713 14262 14262 I W7HOST  : update id=10
+11-01 02:48:59.782 14262 14262 I W7HOST  : update id=10
+11-01 02:48:59.875 14262 14262 I W7HOST  : update id=11
+11-01 02:48:59.944 14262 14262 I W7HOST  : update id=11
+11-01 02:49:01.034 14262 14262 I W7HOST  : report layout=COMPACT ok=true size=301x301 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:01.034 14262 14262 I W7HOST  : report layout=WIDE ok=true size=761x328 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:01.034 14262 14262 I W7HOST  : report layout=MEDIUM ok=true size=393x511 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:01.034 14262 14262 I W7HOST  : report layout=TALL ok=true size=459x761 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:01.034 14262 14262 I W7HOST  : report layout=BETWEEN ok=true size=525x525 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:15.280 14321 14321 I W7HOST  : mark win-v3-spring-1 start
+11-01 02:49:25.328 14331 14331 I W7HOST  : mark win-v3-spring-1 end

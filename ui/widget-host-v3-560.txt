@@ -1,0 +1,35 @@
+11-01 02:49:36.288 14463 14463 I W7HOST  : bind layout=COMPACT id=17 bound=true
+11-01 02:49:36.397 14463 14463 I W7HOST  : update id=17
+11-01 02:49:36.686 14463 14463 I W7HOST  : bind layout=WIDE id=18 bound=true
+11-01 02:49:36.696 14463 14463 I W7HOST  : update id=18
+11-01 02:49:36.701 14463 14463 I W7HOST  : bind layout=MEDIUM id=19 bound=true
+11-01 02:49:36.708 14463 14463 I W7HOST  : update id=19
+11-01 02:49:36.712 14463 14463 I W7HOST  : bind layout=TALL id=20 bound=true
+11-01 02:49:36.732 14463 14463 I W7HOST  : update id=20
+11-01 02:49:36.746 14463 14463 I W7HOST  : bind layout=BETWEEN id=21 bound=true
+11-01 02:49:36.767 14463 14463 I W7HOST  : update id=21
+11-01 02:49:37.538 14463 14463 I W7HOST  : update id=17
+11-01 02:49:37.543 14463 14463 I W7HOST  : update id=18
+11-01 02:49:37.548 14463 14463 I W7HOST  : update id=19
+11-01 02:49:37.552 14463 14463 I W7HOST  : update id=20
+11-01 02:49:37.557 14463 14463 I W7HOST  : update id=21
+11-01 02:49:38.499 14463 14463 I W7HOST  : update id=17
+11-01 02:49:39.150 14463 14463 I W7HOST  : update id=17
+11-01 02:49:39.381 14463 14463 I W7HOST  : update id=18
+11-01 02:49:39.509 14463 14463 I W7HOST  : update id=19
+11-01 02:49:39.640 14463 14463 I W7HOST  : update id=20
+11-01 02:49:39.804 14463 14463 I W7HOST  : update id=21
+11-01 02:49:39.881 14463 14463 I W7HOST  : update id=17
+11-01 02:49:39.884 14463 14463 I W7HOST  : update id=18
+11-01 02:49:40.061 14463 14463 I W7HOST  : update id=18
+11-01 02:49:40.063 14463 14463 I W7HOST  : update id=19
+11-01 02:49:40.217 14463 14463 I W7HOST  : update id=19
+11-01 02:49:40.218 14463 14463 I W7HOST  : update id=20
+11-01 02:49:40.375 14463 14463 I W7HOST  : update id=20
+11-01 02:49:40.377 14463 14463 I W7HOST  : update id=21
+11-01 02:49:40.476 14463 14463 I W7HOST  : update id=21
+11-01 02:49:41.582 14463 14463 I W7HOST  : report layout=COMPACT ok=true size=402x402 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:41.582 14463 14463 I W7HOST  : report layout=WIDE ok=true size=1015x437 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:41.582 14463 14463 I W7HOST  : report layout=MEDIUM ok=true size=525x682 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:41.582 14463 14463 I W7HOST  : report layout=TALL ok=true size=612x1015 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-01 02:49:41.582 14463 14463 I W7HOST  : report layout=BETWEEN ok=true size=700x700 still=VISIBLE stillImage=true characterInside=true clipped=0
