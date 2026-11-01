@@ -1,0 +1,4 @@
+mCurrentFocus=Window{a272109 u0 Application Not Responding: com.google.android.apps.nexuslauncher
+  mFocusedApp=ActivityRecord{97f95f4 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t6}
+  mFocusedApp=ActivityRecord{1ae7d1e u0 com.patty60723.tearoff/.MainActivity t18}
+11-01 17:55:15.287  3848 16009 I am_anr  : [0,15475,com.google.android.apps.nexuslauncher,885767749,Input dispatching timed out (cb3367e com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server) is not responding. Waited 5003ms for MotionEvent(deviceId=-1, eventTime=788299000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (540.0, 1200.0)]), policyFlags=0x6b000000)]

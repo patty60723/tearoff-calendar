@@ -1,0 +1,16 @@
+11-01 17:47:40.446  3848  3941 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-01 17:47:40.446  3848  3941 D InputDispatcher: channel 'cde20e8 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-01 17:47:40.446  3848  3941 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-01 17:47:40.446  3848  3941 D InputDispatcher: channel 'cde20e8 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-01 17:47:43.161  3848  3941 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-01 17:47:43.161  3848  3941 D InputDispatcher: channel 'b94d465 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-01 17:47:43.161  3848  3941 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-01 17:47:43.161  3848  3941 D InputDispatcher: channel 'b94d465 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-01 17:47:43.536  3848  3941 D InputDispatcher: channel 'b94d465 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ finishDispatchCycle - seq=656, handled=true
+11-01 17:47:43.536  3848  3941 D InputDispatcher: channel 'b94d465 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-01 17:47:46.319  3848  3941 D InputDispatcher: dispatchKey - eventTime=344347000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x0, flags=0x0, keyCode=0x3e, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=344347000000
+11-01 17:47:46.319  3848  3941 W InputDispatcher: Waiting because no window has focus but ActivityRecord{c3da2ff u0 com.patty60723.tearoff/.MainActivity t10} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-01 17:47:51.321  3848  3941 E InputDispatcher: Dropping KEY event because there is no focused window
+11-01 17:47:51.322  3848  3941 D InputDispatcher: dispatchKey - eventTime=344347000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x1, flags=0x0, keyCode=0x3e, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=344347000000
+11-01 17:47:51.322  3848  3941 W InputDispatcher: Waiting because no window has focus but ActivityRecord{c3da2ff u0 com.patty60723.tearoff/.MainActivity t10} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-01 17:47:56.322  3848  3941 I InputDispatcher: Dropped event because it is stale.

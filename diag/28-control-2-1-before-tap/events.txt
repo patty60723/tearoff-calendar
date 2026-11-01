@@ -1,0 +1,11 @@
+11-01 17:49:07.535  3848  4990 I am_kill : [0,11671,com.patty60723.tearoff,0,stop com.patty60723.tearoff due to from pid 12090]
+11-01 17:49:07.541 11881 11881 I wm_on_resume_called: [159356404,com.google.android.apps.nexuslauncher.NexusLauncherActivity,RESUME_ACTIVITY,1]
+11-01 17:49:07.568  3848  3869 I input_focus: [Focus request 5e1471f com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity,reason=UpdateInputWindows]
+11-01 17:49:07.575  3848  3941 I input_focus: [Focus leaving dba38b8 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server),reason=NO_WINDOW]
+11-01 17:49:08.135  3848  3884 I am_proc_start: [0,12117,10192,com.patty60723.tearoff,next-top-activity,{com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}]
+11-01 17:49:08.652  3848  3869 I input_focus: [Requesting to set focus to null window,reason=UpdateInputWindows]
+11-01 17:49:08.656 11881 11881 I wm_on_paused_called: [159356404,com.google.android.apps.nexuslauncher.NexusLauncherActivity,performPause,0]
+11-01 17:49:09.314 12117 12117 I wm_on_resume_called: [41515080,com.patty60723.tearoff.MainActivity,RESUME_ACTIVITY,97]
+11-01 17:49:09.369  3848  3869 I input_focus: [Focus request 41dfeec com.patty60723.tearoff/com.patty60723.tearoff.MainActivity,reason=UpdateInputWindows]
+11-01 17:49:10.362  3848  3941 I input_focus: [Focus entering 41dfeec com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server),reason=Window became focusable. Previous reason: NOT_VISIBLE]
+11-01 17:49:12.404  3848  3941 I input_interaction: Interaction with: 41dfeec com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server), [Gesture Monitor] swipe-up (server), [Gesture Monitor] edge-swipe (server), PointerEventDispatcher0 (server), 

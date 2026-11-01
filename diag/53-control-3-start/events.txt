@@ -1,0 +1,11 @@
+11-01 17:54:38.203  3848  3862 I am_kill : [0,15210,com.patty60723.tearoff,0,stop com.patty60723.tearoff due to from pid 15602]
+11-01 17:54:38.210 15475 15475 I wm_on_resume_called: [159356404,com.google.android.apps.nexuslauncher.NexusLauncherActivity,RESUME_ACTIVITY,0]
+11-01 17:54:38.239  3848  3869 I input_focus: [Focus request cb3367e com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity,reason=UpdateInputWindows]
+11-01 17:54:38.344  3848  3941 I input_focus: [Focus entering cb3367e com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server),reason=Window became focusable. Previous reason: NOT_VISIBLE]
+11-01 17:54:39.244 15475 15475 I wm_on_paused_called: [159356404,com.google.android.apps.nexuslauncher.NexusLauncherActivity,performPause,0]
+11-01 17:54:39.258  3848  3884 I am_proc_start: [0,15632,10192,com.patty60723.tearoff,next-top-activity,{com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}]
+11-01 17:54:39.273  3848  3941 I input_focus: [Focus leaving cb3367e com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server),reason=NO_WINDOW]
+11-01 17:54:40.988 15632 15632 I wm_on_resume_called: [250686626,com.patty60723.tearoff.MainActivity,RESUME_ACTIVITY,284]
+11-01 17:54:41.076  3848  3869 I input_focus: [Focus request db9a113 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity,reason=UpdateInputWindows]
+11-01 17:54:42.280  3848  3941 I input_focus: [Focus entering db9a113 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server),reason=Window became focusable. Previous reason: NOT_VISIBLE]
+11-01 17:54:44.359  3848  3941 I input_interaction: Interaction with: db9a113 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server), [Gesture Monitor] swipe-up (server), [Gesture Monitor] edge-swipe (server), PointerEventDispatcher0 (server), 

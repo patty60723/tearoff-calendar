@@ -1,0 +1,6 @@
+  mTopFocusedDisplayId=0
+  mCurrentFocus=Window{29010ad u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+  mFocusedApp=ActivityRecord{97f95f4 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t6}
+  mCurrentFocus=Window{c16c5d6 u0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}
+  mFocusedApp=ActivityRecord{34e074d u0 com.patty60723.tearoff/.MainActivity t14}
+  mTopFocusedDisplayId=0
