@@ -234,17 +234,42 @@ class MainActivity : Activity() {
         val weather = WeatherService.current(this)
         if (weather == null) {
             // 沒有天氣資料：重新抓，台詞先說讀取中
-            findViewById<TextView>(R.id.story_text).text = getString(R.string.weather_none)
+            holdStoryHeight { findViewById<TextView>(R.id.story_text).text = getString(R.string.weather_none) }
             refreshWeather()
         } else {
             // 天氣如果剛好換了，先換上（換天氣本來就從頭開始），再算這次的反應
             mowan.weather = MowanSettings.weatherOf(weather.mood)
             mowan.react()
-            findViewById<TextView>(R.id.story_title).text = weather.long
-            findViewById<TextView>(R.id.story_text).text = "${book.name}：${weather.mood.line}"
+            holdStoryHeight {
+                findViewById<TextView>(R.id.story_title).text = weather.long
+                findViewById<TextView>(R.id.story_text).text = "${book.name}：${weather.mood.line}"
+            }
         }
         pad.removeCallbacks(backToStory)
         pad.postDelayed(backToStory, 6000)
+    }
+
+    /** 天氣台詞顯示期間，故事卡文字欄維持點擊前的高度（null 表示沒有在維持） */
+    private var heldStoryHeight: Int? = null
+
+    /**
+     * 換成天氣台詞時，故事卡不變矮（P7-2 審核：頁面捲到最底時，卡片變矮會讓畫面位移，回到故事時再跳一次）。
+     * 天氣台詞比故事短：把少掉的高度補在台詞下面（包袱入口留在原位），回到故事時（[showStory]）解除。
+     * 台詞比原本長時照常長高、不截斷。不捲動頁面。
+     */
+    private fun holdStoryHeight(change: () -> Unit) {
+        val column = findViewById<View>(R.id.story_column)
+        val text = findViewById<TextView>(R.id.story_text)
+        if (heldStoryHeight == null && column.height > 0) heldStoryHeight = column.height
+        change()
+        text.minHeight = 0
+        val held = heldStoryHeight ?: return
+        column.measure(
+            View.MeasureSpec.makeMeasureSpec(column.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+        )
+        val missing = held - column.measuredHeight
+        if (missing > 0) text.minHeight = text.measuredHeight + missing
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -477,8 +502,12 @@ class MainActivity : Activity() {
         val started = book.page > 0
         findViewById<TextView>(R.id.story_title).text =
             if (started) getString(R.string.story_page, book.page) else getString(R.string.story_not_started)
-        findViewById<TextView>(R.id.story_text).text =
-            if (started) book.lastText else getString(R.string.story_hint)
+        findViewById<TextView>(R.id.story_text).apply {
+            text = if (started) book.lastText else getString(R.string.story_hint)
+            // 回到故事：解除天氣台詞期間維持的高度（內容換回原本的故事，高度就是原本的高度）
+            minHeight = 0
+        }
+        heldStoryHeight = null
     }
 
     private companion object {

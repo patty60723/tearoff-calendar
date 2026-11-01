@@ -640,19 +640,25 @@ if [ -n "$m" ]; then
   check "從墨丸身上滑動是捲動、不觸發彩蛋" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素（捲回原位後）"
   handle_anr egg-tap; ensure_foreground
   if locate egg-tap story_mowan; then
-    adb shell input tap $TAP_X $TAP_Y; sleep 0.3
-    # 台詞長短不同，故事卡高度會變；頁面在最底時 ScrollView 會跟著位移（#89 誤判的原因）。
-    # 截圖前捲回最底、重新量故事卡的位置（view_bounds.py 假設捲到最底）
-    # （捲動＋量位置約 4 秒，仍在 6 秒內）
-    scroll_down; dump_ui egg-tapped && card_region egg-tapped
+    adb shell input tap $TAP_X $TAP_Y; sleep 1
+    # P7-2 審核：頁面捲在最底時點墨丸，故事卡不能變矮、畫面不能位移（#89 看到的問題）。
+    # 不捲動、不重新量位置：用點之前的位置裁切，畫面有位移就會比對不上
     card_shot egg-2-tap
     d=$(card_diff egg-0 egg-2-tap)
     check "點故事卡上的墨丸：台詞換成天氣" "$([ "${d%.*}" -gt 500 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素"
-    sleep 6.5
-    scroll_down; dump_ui egg-back && card_region egg-back
+    # 故事卡上方（日曆下半、宜忌）整塊跟點之前一樣：畫面沒有位移
+    top=${CARD##*+}
+    above() { convert "$OUT/shots/$1-full.png" -crop "${W}x$((top > 300 ? 300 : top))+0+$(( top > 300 ? top - 300 : 0 ))" +repage "$OUT/shots/$1-above.png"; }
+    above egg-0; above egg-2-tap
+    d=$(compare -metric AE "$OUT/shots/egg-0-above.png" "$OUT/shots/egg-2-tap-above.png" null: 2>&1 | awk '{print $1}')
+    check "點了以後畫面沒有位移" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡上方 300px 差 $d 個像素"
+    sleep 6
     card_shot egg-3-back
+    above egg-3-back
     d=$(card_diff egg-0 egg-3-back)
     check "6 秒後回到故事" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "跟點之前差 $d 個像素"
+    d=$(compare -metric AE "$OUT/shots/egg-0-above.png" "$OUT/shots/egg-3-back-above.png" null: 2>&1 | awk '{print $1}')
+    check "回到故事時畫面沒有再跳一次" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡上方 300px 差 $d 個像素"
   else
     check "點故事卡上的墨丸" 1 "找不到看得到的墨丸"
   fi

@@ -284,4 +284,48 @@ class HomeEggTest {
         assertFalse(still.isClickable)
         assertFalse(still.hasOnClickListeners())
     }
+
+    /** 排版一次（Robolectric 的主執行緒是暫停的） */
+    private fun relayout(a: MainActivity) {
+        shadowOf(Looper.getMainLooper()).idle()
+        val d = a.window.decorView
+        d.measure(View.MeasureSpec.makeMeasureSpec(d.width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(d.height, View.MeasureSpec.EXACTLY))
+        d.layout(d.left, d.top, d.right, d.bottom)
+    }
+
+    private val MainActivity.cardHeight get() = (findViewById<View>(R.id.story_mowan).parent as View).height
+    private val MainActivity.textView get() = findViewById<TextView>(R.id.story_text)
+
+    /** P7-2 審核：天氣台詞期間故事卡維持原本高度；連續點、沒有天氣資料也一樣；回到故事就解除 */
+    @Test
+    fun storyCardKeepsItsHeightWhileTheWeatherLineShows() {
+        for (mood in listOf(Mood.SUNNY, null)) {
+            val a = open(mood = mood)
+            relayout(a)
+            val h = a.cardHeight
+            val story = a.text
+            assertTrue(h > 0)
+            a.mowan.performClick()
+            relayout(a)
+            assertTrue("$mood 換了台詞", a.text != story)
+            assertEquals("$mood 點了以後故事卡高度不變", h, a.cardHeight)
+            advance(3_000)
+            a.mowan.performClick()
+            relayout(a)
+            assertEquals("$mood 再點一次也還是原本的高度", h, a.cardHeight)
+            advance(6_100)
+            relayout(a)
+            assertEquals(story, a.text)
+            assertEquals("$mood 回到故事", h, a.cardHeight)
+            assertEquals("$mood 解除維持的高度", 0, a.textView.minHeight)
+        }
+    }
+
+    /** 不在互動中的時候故事卡沒有被撐高（不預留空白） */
+    @Test
+    fun noReservedSpaceWhenNotTapped() {
+        val a = open()
+        relayout(a)
+        assertEquals(0, a.textView.minHeight)
+    }
 }

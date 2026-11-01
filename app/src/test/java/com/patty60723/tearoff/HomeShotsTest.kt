@@ -16,14 +16,20 @@ import com.patty60723.tearoff.mowan.MowanSettings
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
+import android.os.Looper
+import com.patty60723.tearoff.mowan.MowanView
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 import java.io.File
 import java.time.LocalDate
 
@@ -163,5 +169,102 @@ class HomeShotsTest {
         sheet("1-home-final", "正式首頁（方案 A）：411dp／320dp × 字體 100%／200%（縮成同樣寬；Robolectric）", shots.map { it.first to it.second.first })
         sheet("2-home-touch", "可點範圍：紅＝城市入口、藍＝故事卡墨丸（天氣彩蛋）、橘＝包袱入口", shots.map { it.first to it.second.second })
         File(out, "report.md").writeText(report.toString())
+    }
+
+    // ---------- P7-2 審核：點墨丸換台詞時故事卡不變高度、畫面不位移 ----------
+
+    private val MainActivity.scroll get() = findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as ScrollView
+
+    /** 跟真的畫面一樣排版一次（Robolectric 的主執行緒是暫停的，不會自己跑 layout） */
+    private fun relayout(a: MainActivity) {
+        shadowOf(Looper.getMainLooper()).idle()
+        val d = a.window.decorView
+        d.measure(View.MeasureSpec.makeMeasureSpec(d.width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(d.height, View.MeasureSpec.EXACTLY))
+        d.layout(d.left, d.top, d.right, d.bottom)
+    }
+
+    /** 使用者看到的畫面（視窗大小，含捲動位置） */
+    private fun screen(a: MainActivity): Bitmap {
+        val d = a.window.decorView
+        return Bitmap.createBitmap(d.width, d.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(desk); d.draw(this) } }
+    }
+
+    data class CardState(val scrollY: Int, val cardH: Int, val bundleTop: Int, val textComplete: Boolean, val text: String)
+
+    private fun state(a: MainActivity): CardState {
+        val root = a.content
+        val card = a.findViewById<View>(R.id.story_mowan).parent as View
+        val text = a.findViewById<TextView>(R.id.story_text)
+        val l = text.layout
+        val complete = l != null && (l.lineCount == 0 || l.getEllipsisCount(l.lineCount - 1) == 0) &&
+            l.height <= text.height - text.totalPaddingTop - text.totalPaddingBottom + 1
+        return CardState(a.scroll.scrollY, card.height, rectIn(root, a.findViewById(R.id.story_bundle)).top, complete, text.text.toString())
+    }
+
+    @Test
+    fun tappingTheMowanAtTheBottomDoesNotMoveThePage() {
+        val report = StringBuilder("# 捲到最底點故事卡墨丸：故事卡高度與畫面位置（Robolectric）\n\n")
+        report.append("| 設定 | 捲動位置（點前→點後→6 秒後，px） | 故事卡高（dp） | 包袱入口上緣（dp） | 台詞完整 | 天氣台詞期間補的空白（dp） |\n|---|---|---|---|---|---|\n")
+        val rows = configs.map { cfg ->
+            val a = open(cfg)
+            val d = context.resources.displayMetrics.density
+            relayout(a)
+            // 使用者捲到最底（測試的準備動作；App 本身不捲動）
+            a.scroll.scrollTo(0, a.content.height - a.scroll.height)
+            relayout(a)
+            val before = state(a)
+            val shot0 = screen(a)
+            a.findViewById<MowanView>(R.id.story_mowan).performClick()
+            relayout(a)
+            val during = state(a)
+            val shot1 = screen(a)
+            val text = a.findViewById<TextView>(R.id.story_text)
+            val pad = (text.minHeight - (text.layout?.height ?: 0) - text.totalPaddingTop - text.totalPaddingBottom).coerceAtLeast(0)
+            ShadowSystemClock.advanceBy(Duration.ofMillis(6_100))
+            relayout(a)
+            val after = state(a)
+            val shot2 = screen(a)
+            report.append(
+                "| %s | %d → %d → %d | %.0f → %.0f → %.0f | %.0f → %.0f → %.0f | %s／%s／%s | %.0f |\n".format(
+                    cfg.name, before.scrollY, during.scrollY, after.scrollY,
+                    before.cardH / d, during.cardH / d, after.cardH / d,
+                    before.bundleTop / d, during.bundleTop / d, after.bundleTop / d,
+                    if (before.textComplete) "是" else "**否**", if (during.textComplete) "是" else "**否**", if (after.textComplete) "是" else "**否**",
+                    pad / d,
+                ),
+            )
+            assertTrue("${cfg.name} 真的捲到最底了", before.scrollY > 0)
+            assertTrue("${cfg.name} 台詞換成天氣", during.text != before.text && during.text.contains("太陽暖暖的"))
+            assertEquals("${cfg.name} 點了以後畫面不位移", before.scrollY, during.scrollY)
+            assertEquals("${cfg.name} 點了以後故事卡不變矮", before.cardH, during.cardH)
+            assertEquals("${cfg.name} 包袱入口留在原位", before.bundleTop, during.bundleTop)
+            assertTrue("${cfg.name} 天氣台詞完整", during.textComplete)
+            assertEquals("${cfg.name} 6 秒後回到故事", before.text, after.text)
+            assertEquals("${cfg.name} 回到故事時不再跳一次", before.scrollY, after.scrollY)
+            assertEquals("${cfg.name} 回到故事的高度跟原本一樣", before.cardH, after.cardH)
+            assertEquals("${cfg.name} 回到故事時解除維持的高度", 0, text.minHeight)
+            assertTrue("${cfg.name} 故事完整", after.textComplete)
+            cfg.name to listOf(shot0, shot1, shot2)
+        }
+        // 每種設定一列：點之前／點之後（天氣台詞）／6 秒後（回到故事），都是捲在最底的畫面
+        val colW = 360
+        val scaled = rows.map { (n, shots) -> n to shots.map { Bitmap.createScaledBitmap(it, colW, it.height * colW / it.width, true) } }
+        val rowH = scaled.maxOf { it.second.maxOf { b -> b.height } } + 110
+        val sheet = Bitmap.createBitmap(3 * (colW + 30) + 30, 70 + scaled.size * rowH, Bitmap.Config.ARGB_8888)
+        Canvas(sheet).apply {
+            drawColor(0xFFFBF8F2.toInt())
+            drawText("捲到最底點故事卡墨丸：點之前／點之後（天氣台詞）／6 秒後（回到故事）", 30f, 44f, words)
+            scaled.forEachIndexed { r, (n, shots) ->
+                val y = 70f + r * rowH
+                drawText(n, 30f, y + 40f, words)
+                shots.forEachIndexed { c, b ->
+                    val x = 30f + c * (colW + 30)
+                    drawText(listOf("點之前", "點之後", "6 秒後")[c], x, y + 82f, words)
+                    drawBitmap(b, x, y + 96f, null)
+                }
+            }
+        }
+        File(out, "3-tap-bottom.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        File(out, "tap-bottom.md").writeText(report.toString())
     }
 }
