@@ -85,9 +85,17 @@
 
 修正後（#3 共 3 次）：關掉對話框 → 重新捲到最底 → 第 1 下就切換（3／3）。
 
-### 3.4 診斷 #4
+### 3.4 診斷 #4（最後一版，`a326a05`）
 
-（跑完後填入）
+| 組 | 次數 | 包袱切換 | 分類 |
+|---|---|---|---|
+| 【對照】 | 3 | 3／3 | HANDLED ×3 |
+| 【人工注入·前景·舊流程】 | 3（每次 3 下） | **0／3** | **COORDINATE_MISS ×9**（target is not on screen；dispatch to app=8、handled=true） |
+| 【人工注入·前景】（修正後） | 3 | **3／3** | HANDLED ×3（都是第 1 下） |
+| 【人工注入·背景】 | 3 | 3／3 | HANDLED ×3 |
+| 【自然發生】 | 0 | — | 對照組這 4 次診斷（共 12 次）都沒有自然遇到對話框 |
+
+診斷工具本身：腳本自我測試全部通過、沒有任何點擊是 INSUFFICIENT、對照組全部通過 → workflow 綠燈。（工具失敗的情況會讓它紅：自我測試失敗、證據不足、對照組沒通過。）
 
 ## 4. 驗收腳本的修改與假陽性風險
 
@@ -104,9 +112,9 @@
 |---|---|---|
 | [#94](https://github.com/patty60723/tearoff-calendar/actions/runs/41327478277) | `603d8a0`（加診斷收集） | PASS 53、FAIL 0；沒有出現對話框 |
 | [#95](https://github.com/patty60723/tearoff-calendar/actions/runs/41330252426) | `df46975`（加重新捲動） | PASS 53、FAIL 0；沒有出現對話框（修正的路徑沒有被走到） |
-| [#96](https://github.com/patty60723/tearoff-calendar/actions/runs/41332675250) | `a326a05` | （跑完後填入） |
+| [#96](https://github.com/patty60723/tearoff-calendar/actions/runs/41332675250) | `a326a05` | PASS 53、FAIL 0；沒有出現對話框 |
 
-CI（Build APK，含 `test-quiet.sh`、`test-recover.sh`、`test-diag.sh`）：#164～#167（見 3.4 之後的表）。
+CI（Build APK，含 `test-quiet.sh`、`test-recover.sh`、`test-diag.sh` 與全部單元測試）：#164（`603d8a0`）～#168（`077e26e`）全部通過。App 程式沒有改，PNG golden 不受影響（沒有更新基準）。
 
 ## 5. 每個可能原因：證據、反證、Unknown
 
