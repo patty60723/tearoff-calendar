@@ -33,6 +33,9 @@ diag_snapshot() {
   adb logcat -d -b events -v threadtime 2>/dev/null | tr -d '\r' |
     grep -E " (am_anr|input_interaction|input_focus|am_kill|am_proc_died|am_proc_start|am_crash|wm_on_resume_called|wm_on_paused_called|am_focused_root_task)" |
     tail -60 > "$d/events.txt"
+  # 輸入派送與 ANR 的系統訊息（日常驗收也有：視窗沒回應的警告、「ANR in …」的原因；
+  # 診斷 workflow 另外打開 InputDispatcher 的派送記錄：每個事件送到哪個 channel、App 有沒有處理）
+  adb logcat -d -v threadtime -s InputDispatcher:V ActivityManager:E 2>/dev/null | tr -d '\r' | grep -v "^-----" | tail -300 > "$d/dispatch.txt"
   # 主執行緒有沒有在跑：2 秒內 App 畫了幾張（畫面靜止時是 0，不代表卡住；只當旁證）
   adb shell dumpsys gfxinfo $PKG reset >/dev/null 2>&1
   sleep 2
@@ -46,23 +49,35 @@ diag_snapshot() {
   log "  診斷[$tag] $s"
 }
 
-# 主執行緒堆疊（只在 DIAG_ROOT=1）：對 App 與 launcher 送 SIGQUIT，讀最新的 traces，各留 main 執行緒的前幾行
+# 主執行緒堆疊（只在 DIAG_ROOT=1）：送 SIGQUIT，從最新的 traces 取出 main 執行緒整段。
+# 單一個取樣只是一個瞬間：我們的 App 取兩次（間隔 1 秒），兩次都停在同一個不是閒置的 Java 位置才算「卡住」的證據。
 diag_stacks() {
-  local d=$1 p name
+  local d=$1 name n samples
   for name in $PKG $LAUNCHER_PKG; do
-    p=$(adb shell pidof $name 2>/dev/null | tr -d '\r' | awk '{print $1}')
-    [ -n "$p" ] || { echo "（$name 沒有在執行）" > "$d/stack-$name.txt"; continue; }
-    adb shell "kill -3 $p" 2>/dev/null
-    sleep 1.5
-    local f
-    f=$(adb shell "ls -t /data/anr/ 2>/dev/null | head -1" | tr -d '\r')
-    if [ -n "$f" ]; then
-      adb shell "cat /data/anr/$f" 2>/dev/null | tr -d '\r' |
-        awk -v want="Cmd line: $name" '$0 ~ /^----- pid / {keep=0} $0==want {keep=1} keep' |
-        awk '/^"main"/{m=1} m{print; n++} m && n>=30 {exit}' > "$d/stack-$name.txt"
-    fi
-    [ -s "$d/stack-$name.txt" ] || echo "（讀不到 $name 的 traces）" > "$d/stack-$name.txt"
+    [ "$name" = "$PKG" ] && samples=2 || samples=1
+    : > "$d/stack-$name.txt"
+    for n in $(seq 1 $samples); do
+      echo "=== sample $n" >> "$d/stack-$name.txt"
+      diag_one_stack "$name" >> "$d/stack-$name.txt"
+      [ "$n" -lt "$samples" ] && sleep 1
+    done
   done
+}
+diag_one_stack() { # diag_one_stack <套件>：印出 main 執行緒那一段（讀不到就印說明）
+  local name=$1 p f before
+  p=$(adb shell pidof $name 2>/dev/null | tr -d '\r' | awk '{print $1}')
+  [ -n "$p" ] || { echo "（$name 沒有在執行）"; return; }
+  before=$(adb shell "ls -t /data/anr/ 2>/dev/null | head -1" | tr -d '\r')
+  adb shell "kill -3 $p" 2>/dev/null
+  for _ in 1 2 3 4 5; do
+    sleep 0.5
+    f=$(adb shell "ls -t /data/anr/ 2>/dev/null | head -1" | tr -d '\r')
+    [ -n "$f" ] && [ "$f" != "$before" ] && break
+  done
+  if [ -z "$f" ] || [ "$f" = "$before" ]; then echo "（讀不到 $name 的 traces）"; return; fi
+  adb shell "cat /data/anr/$f" 2>/dev/null | tr -d '\r' |
+    awk -v want="Cmd line: $name" '$0 ~ /^----- pid / {keep=0} $0==want {keep=1} keep' |
+    awk '/^"main"/{m=1} m && /^$/ {exit} m'
 }
 
 # 給 recover.sh 呼叫的掛勾：只收集證據，不改流程、不改結果。

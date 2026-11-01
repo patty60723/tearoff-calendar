@@ -80,11 +80,26 @@ expect "只有 WaitQueue 不是 0 → 不判成 APP_NOT_PROCESSING" "verdict=UNK
 expect "只有 WaitQueue 不是 0 → 理由寫出來" "no second evidence" "$out"
 
 snap stk-a 03 "$APP_WIN" "$APP_WIN" 4 true "$APP_WIN" true
-printf '%s\n' '"main" prio=5 tid=1 Runnable' '  at com.patty60723.tearoff.Foo.busy(Foo.kt:1)' > "$T/stk-a/stack-com.patty60723.tearoff.txt"
-expect "佇列卡住＋主執行緒不是閒置 → APP_NOT_PROCESSING" "verdict=APP_NOT_PROCESSING" "$(cls ok-b stk-a true true)"
+printf '%s\n' '=== sample 1' '"main" prio=5 tid=1 Runnable' '  at com.patty60723.tearoff.Foo.busy(Foo.kt:1)' \
+  '=== sample 2' '"main" prio=5 tid=1 Runnable' '  at com.patty60723.tearoff.Foo.busy(Foo.kt:1)' > "$T/stk-a/stack-com.patty60723.tearoff.txt"
+expect "佇列卡住＋兩次取樣都停在同一個位置 → APP_NOT_PROCESSING" "verdict=APP_NOT_PROCESSING" "$(cls ok-b stk-a true true)"
+
+snap mv-a 03 "$APP_WIN" "$APP_WIN" 4 true "$APP_WIN" true
+printf '%s\n' '=== sample 1' '"main" prio=5 tid=1 Runnable' '  at com.patty60723.tearoff.Foo.a(Foo.kt:1)' \
+  '=== sample 2' '"main" prio=5 tid=1 Native' '  at android.os.MessageQueue.nativePollOnce(Native method)' > "$T/mv-a/stack-com.patty60723.tearoff.txt"
+expect "佇列不是 0 但主執行緒有在動（兩次取樣不同）→ 不判成卡住" "verdict=UNKNOWN" "$(cls ok-b mv-a true true)"
+
+snap one-a 03 "$APP_WIN" "$APP_WIN" 4 true "$APP_WIN" true
+printf '%s\n' '=== sample 1' '"main" prio=5 tid=1 Runnable' '  at com.patty60723.tearoff.Foo.busy(Foo.kt:1)' > "$T/one-a/stack-com.patty60723.tearoff.txt"
+expect "只有一次取樣 → 不當成卡住的證據" "verdict=UNKNOWN" "$(cls ok-b one-a true true)"
+
+snap bad-a 03 "$APP_WIN" "$APP_WIN" 4 true "$APP_WIN" true
+printf '%s\n' '=== sample 1' 'garbage' '=== sample 2' '（讀不到 com.patty60723.tearoff 的 traces）' > "$T/bad-a/stack-com.patty60723.tearoff.txt"
+expect "堆疊讀不懂 → 不當成卡住的證據" "verdict=UNKNOWN" "$(cls ok-b bad-a true true)"
 
 snap idle-a 03 "$APP_WIN" "$APP_WIN" 0 true "$APP_WIN" true
-printf '%s\n' '"main" prio=5 tid=1 Native' '  at android.os.MessageQueue.nativePollOnce(Native method)' > "$T/idle-a/stack-com.patty60723.tearoff.txt"
+printf '%s\n' '=== sample 1' '"main" prio=5 tid=1 Native' '  at android.os.MessageQueue.nativePollOnce(Native method)' > "$T/idle-a/stack-com.patty60723.tearoff.txt"
+expect "摘要寫出取樣：狀態、位置、idle" "app_main=Native:android.os.MessageQueue.nativePollOnce:idle" "$(python3 "$PY" summary "$T/idle-a")"
 expect "送到 App、主執行緒閒置、狀態沒變 → DELIVERED_NO_CHANGE" "verdict=DELIVERED_NO_CHANGE" "$(cls ok-b idle-a true true)"
 
 snap el-a 03 "$APP_WIN" "$APP_WIN" 0 true "$LAUNCHER_WIN" true
@@ -93,6 +108,38 @@ expect "互動記錄是 launcher → DELIVERED_ELSEWHERE" "verdict=DELIVERED_ELS
 snap old-a 03 "$APP_WIN" "$APP_WIN" 0 true "" true
 echo "11-01 09:59:00.000  1000  1100 I input_interaction: Interaction with: $APP_WIN" > "$T/old-a/events.txt"
 expect "點擊之前的互動記錄不算 → UNKNOWN" "verdict=UNKNOWN" "$(cls ok-b old-a true true)"
+
+echo "== 派送記錄（診斷 workflow 打開 InputDispatcher 的記錄時）"
+snap dsp-a 03 "$APP_WIN" "$APP_WIN" 0 true "" true
+printf '%s\n' "11-01 10:00:02.100   500   600 D InputDispatcher: channel '$APP_WIN (server)' ~ startDispatchCycle" \
+  "11-01 10:00:02.180   500   600 D InputDispatcher: channel '$APP_WIN (server)' ~ finishDispatchCycle - seq=12, handled=false" > "$T/dsp-a/dispatch.txt"
+out=$(cls ok-b dsp-a true true)
+expect "派送記錄送到 App、狀態沒變 → DELIVERED_NO_CHANGE" "verdict=DELIVERED_NO_CHANGE" "$out"
+expect "派送記錄寫出 handled" "handled=['false']" "$out"
+snap dse-a 03 "$APP_WIN" "$APP_WIN" 0 true "" true
+printf '%s\n' "11-01 10:00:02.100   500   600 D InputDispatcher: channel '[Gesture Monitor] swipe-up (server)' ~ startDispatchCycle" \
+  "11-01 10:00:02.120   500   600 D InputDispatcher: channel '$LAUNCHER_WIN (server)' ~ startDispatchCycle" > "$T/dse-a/dispatch.txt"
+expect "派送記錄只有 launcher（手勢監聽不算）→ DELIVERED_ELSEWHERE" "verdict=DELIVERED_ELSEWHERE" "$(cls ok-b dse-a true true)"
+snap dso-a 03 "$APP_WIN" "$APP_WIN" 0 true "" true
+echo "11-01 09:59:59.000   500   600 D InputDispatcher: channel '$APP_WIN (server)' ~ startDispatchCycle" > "$T/dso-a/dispatch.txt"
+expect "點擊之前的派送記錄不算 → UNKNOWN" "verdict=UNKNOWN" "$(cls ok-b dso-a true true)"
+
+echo "== SPY 視窗（launcher 的手勢監聽）不算擋住"
+snap spy-b 01 "$APP_WIN" "$APP_WIN" 0 true "" true "540 900" "400 850 700 950"
+sed -i "s|      0: name='$APP_WIN', id=10|      0: name='[Gesture Monitor] swipe-up', id=9, displayId=0, inputConfig=NOT_FOCUSABLE \| TRUSTED_OVERLAY \| SPY, alpha=1.00, frame=[0,0][1080,2400], globalScale=1.000000\n      5: name='$APP_WIN', id=10|" "$T/spy-b/input.txt"
+expect "最上層是 SPY 視窗 → 不判成 OBSCURED" "top_window_at_tap=APP" "$(python3 "$PY" summary "$T/spy-b")"
+
+echo "== 真的 Android 14 輸出（P7-4a 診斷 #1 的對照組，截掉不需要的部分）"
+R34="$HERE/fixtures/diag-api34"
+s34=$(python3 "$PY" summary "$R34/before")
+expect "焦點是 App" "focus=APP" "$s34"
+expect "輸入焦點是 App" "input_focus=APP" "$s34"
+expect "App 的輸入連線正常、佇列是空的" "app_conn=responsive=True,wait=0,out=0" "$s34"
+expect "launcher 的連線也找得到" "launcher_conn=responsive=True" "$s34"
+expect "點擊位置最上層是 App（手勢監聽的 SPY 不算）" "top_window_at_tap=APP" "$s34"
+expect "launcher 程序狀態讀得到" "launcher_proc=S" "$s34"
+expect "真的輸出：狀態有變 → HANDLED" "verdict=HANDLED" "$(python3 "$PY" classify "$R34/before" "$R34/after" true false)"
+expect "真的輸出：狀態沒變、沒有派送記錄 → 不亂判（UNKNOWN）" "verdict=UNKNOWN" "$(python3 "$PY" classify "$R34/before" "$R34/after" true true)"
 
 echo "== 缺資料"
 mkdir -p "$T/noinput-a"; cp "$T/ok-a/"* "$T/noinput-a/"; rm "$T/noinput-a/input.txt"

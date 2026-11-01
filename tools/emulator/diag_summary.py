@@ -96,7 +96,8 @@ def parse_input(text):
             info["windows"].append({
                 "name": m.group(1),
                 "frame": tuple(int(x) for x in f.groups()),
-                "touchable": "NOT_TOUCHABLE" not in flags and "NOT_VISIBLE" not in flags,
+                # SPY（launcher 的手勢監聽）只會收到副本、不會擋住下面的視窗
+                "touchable": "NOT_TOUCHABLE" not in flags and "NOT_VISIBLE" not in flags and "SPY" not in flags,
             })
     sec = section(text, "Connections:")
     if sec:
@@ -163,18 +164,58 @@ def events(d):
     return rows
 
 
-def main_stack(d, pkg):
+def stack_samples(d, pkg):
+    """stack-<pkg>.txt 裡每一個取樣：(狀態, 最上面的 Java 位置, 是不是在 Looper 等訊息)。沒有檔案是 None。"""
     text = read(d, "stack-%s.txt" % pkg)
     if text is None:
         return None
-    m = re.search(r'^"main".*?\b(Runnable|Native|Blocked|Waiting|TimedWaiting|Sleeping|Suspended|WaitingForGcToComplete)\b', text, re.M)
-    if not m:
+    parts = re.split(r"^=== sample \d+\s*$", text, flags=re.M)
+    samples = []
+    for part in parts:
+        if not part.strip():
+            continue
+        m = re.search(r'^"main".*?\b(Runnable|Native|Blocked|Waiting|TimedWaiting|Sleeping|Suspended|WaitingForGcToComplete|WaitingForCheckPointsToRun)\b', part, re.M)
+        if not m:
+            samples.append(("unreadable", "?", False))
+            continue
+        frame = re.search(r"^\s+at (\S+?)\(", part, re.M)
+        top = frame.group(1) if frame else "?"
+        samples.append((m.group(1), top, top == "android.os.MessageQueue.nativePollOnce"))
+    return samples
+
+
+def main_stack(d, pkg):
+    """摘要用：每個取樣寫成 狀態:位置[:idle]，用 | 分開。"""
+    samples = stack_samples(d, pkg)
+    if samples is None:
+        return None
+    if not samples:
         return "unreadable"
-    state = m.group(1)
-    frame = re.search(r"^\s+at (\S+)", text, re.M)
-    top = frame.group(1) if frame else "?"
-    idle = "nativePollOnce" in text.split("\n\n")[0]
-    return "%s:%s%s" % (state, top.split("(")[0], ":idle" if idle else "")
+    return "|".join("%s:%s%s" % (st, top, ":idle" if idle else "") for st, top, idle in samples)
+
+
+def main_thread_stuck(d, pkg):
+    """主執行緒卡住的證據：至少兩個取樣、都讀得到、都不是在等訊息、而且停在同一個 Java 位置。
+    回傳 True／False；取樣不夠（例如沒有 root）是 None。"""
+    samples = stack_samples(d, pkg)
+    if not samples or len(samples) < 2 or any(st == "unreadable" for st, _, _ in samples):
+        return None
+    tops = {top for _, top, _ in samples}
+    return all(not idle for _, _, idle in samples) and len(tops) == 1 and "?" not in tops
+
+
+def dispatch(d):
+    """InputDispatcher 的派送記錄：(時間, channel, 動作, handled)。沒有檔案是 None。"""
+    text = read(d, "dispatch.txt")
+    if text is None:
+        return None
+    rows = []
+    for line in text.splitlines():
+        m = re.match(r"(\d\d-\d\d \d\d:\d\d:\d\d)\.\d+.*?channel '([^']*)' ~ (\w+)(.*)", line)
+        if m:
+            h = re.search(r"handled=(true|false)", m.group(4))
+            rows.append((m.group(1), m.group(2), m.group(3), h.group(1) if h else None))
+    return rows
 
 
 def frames(d):
@@ -291,15 +332,27 @@ def classify(before, after, state_before, state_after):
     stack = main_stack(after, APP)
     evidence.append("app_conn=%s app_main=%s frames_2s=%s" % (c, stack, frames(after)))
     if c is not None and c["wait"] > 0:
-        busy_stack = stack is not None and stack != "unreadable" and not stack.endswith(":idle")
+        busy_stack = main_thread_stuck(after, APP) is True
         if c["responsive"] is False or busy_stack:
             return "APP_NOT_PROCESSING", "app input queue stuck (wait=%d) and %s" % (
-                c["wait"], "dispatcher marks it unresponsive" if c["responsive"] is False else "main thread not idle"), "; ".join(evidence)
+                c["wait"], "dispatcher marks it unresponsive" if c["responsive"] is False else "main thread stuck at the same frame in 2 samples"), "; ".join(evidence)
         unsure = "app wait queue=%d but no second evidence (responsive=%s, main=%s)" % (c["wait"], c["responsive"], stack)
     else:
         unsure = None
-    ev = events(after) or []
     t0, t1 = mb.get("device_time", ""), ma.get("device_time", "")
+    # 最直接的證據：InputDispatcher 的派送記錄（診斷 workflow 才有）
+    dl = [r for r in (dispatch(after) or []) if t0 <= r[0] <= t1]
+    if dl:
+        app_rows = [r for r in dl if APP in r[1]]
+        evidence.append("dispatch=%d rows, app=%d, handled=%s" % (len(dl), len(app_rows), sorted({r[3] for r in app_rows if r[3]})))
+        if app_rows:
+            if unsure:
+                return "UNKNOWN", unsure, "; ".join(evidence)
+            return "DELIVERED_NO_CHANGE", "dispatcher delivered the touch to the app window, state unchanged", "; ".join(evidence)
+        others = sorted({short(r[1]) for r in dl if "Gesture Monitor" not in r[1]})
+        if others:
+            return "DELIVERED_ELSEWHERE", "dispatcher delivered the touch to %s" % ",".join(others), "; ".join(evidence)
+    ev = events(after) or []
     inter = [e for e in ev if e[1] == "input_interaction" and t0 <= e[0] <= t1]
     if inter:
         last = inter[-1][2]

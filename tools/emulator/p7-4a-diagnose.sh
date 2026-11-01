@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # P7-4a 診斷（只在獨立的診斷 workflow 跑，不是驗收）：
 #   對照組：一般情況點包袱入口（跟日常驗收第 4 段同樣的 tap_toggle 流程）。
-#   人工注入：用 adb root 暫停 Pixel Launcher，讓它在前面時收到按鍵而 ANR（「沒有回應」對話框），
-#             再打開我們的 App、用同樣的流程點包袱入口。
+#   人工注入·前景：回到桌面、暫停 Pixel Launcher 再點它 → 前景 ANR、顯示「沒有回應」對話框（#68／#79 的外觀），
+#             再打開我們的 App、用同樣的流程（tap_toggle：關對話框 → 帶回前景 → 點）點包袱入口。
+#   人工注入·背景：App 在前面時暫停 launcher → 手勢監聽收不到觸控而 ANR（不顯示對話框）。
 # 兩組交錯進行；每次點擊前後都用 diag.sh 存快照（焦點、輸入派送、程序狀態、事件、主執行緒堆疊），
 # 最後用 diag_summary.py 逐次分類。
 #
@@ -34,6 +35,16 @@ done
 # 只有診斷 workflow 用 root（取主執行緒堆疊、暫停 launcher）
 adb root >/dev/null 2>&1; sleep 3; adb wait-for-device
 [ "$(adb shell id -u | tr -d '\r')" = 0 ] && log "adb root：是" || tool_fail "adb root 失敗（取不到堆疊、無法注入）"
+
+# InputDispatcher 的派送記錄（每個事件送到哪個 channel、有沒有處理）：系統服務啟動時才讀這個設定，
+# 所以設好之後重新啟動 framework 一次（只在診斷 workflow）
+adb shell setprop log.tag.InputDispatcherDispatchCycle DEBUG
+adb shell setprop log.tag.InputDispatcherOutboundEvent DEBUG
+adb shell stop; sleep 2; adb shell start
+for _ in $(seq 1 90); do [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && break; sleep 2; done
+for _ in $(seq 1 60); do [ -n "$(adb shell pidof com.google.android.apps.nexuslauncher | tr -d '\r')" ] && break; sleep 2; done
+sleep 15
+log "framework 重新啟動：$(adb shell getprop sys.boot_completed | tr -d '\r')（派送記錄設定 $(adb shell getprop log.tag.InputDispatcherDispatchCycle | tr -d '\r')）"
 
 adb install -r "$APK" >/dev/null || { tool_fail "安裝 APK 失敗"; exit 1; }
 adb shell svc power stayon true
@@ -108,31 +119,46 @@ wait_launcher() { # launcher 有在執行而且沒有被暫停（最多 60 秒�
 }
 
 declare -a RESULTS
-trial() { # trial <control|inject> <i>
+trial() { # trial <control|inject-bg|inject-fg> <i>
   local kind=$1 i=$2 name="$1-$2" label lp ok anr_seen=0
-  [ "$kind" = inject ] && label="【人工注入】" || label="【對照】"
+  case "$kind" in
+    control) label="【對照】" ;;
+    inject-bg) label="【人工注入·背景】" ;;
+    inject-fg) label="【人工注入·前景】" ;;
+  esac
   log ""
   log "== $label $name =="
   wait_launcher || warn "$name：launcher 沒有在正常執行"
-  adb logcat -b events -c
+  adb logcat -b events -c; adb logcat -c
   adb shell am force-stop $PKG
   write_state
-  if [ "$kind" = inject ]; then
-    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
-    lp=$(launcher_pid)
-    log "  注入：暫停 launcher（pid $lp）→ 關掉 App（launcher 到前面但不能動）→ 對它送按鍵"
-    adb shell "kill -STOP $lp"
-    adb shell am force-stop $PKG
-    sleep 1
-    timeout 15 adb shell input keyevent KEYCODE_SPACE >/dev/null 2>&1 &
-    for _ in $(seq 1 15); do anr_focus >/dev/null && { anr_seen=1; break; }; sleep 2; done
-    [ "$anr_seen" = 1 ] && log "  注入：出現「沒有回應」對話框（$(anr_focus | sed 's/.*: //')）" || warn "$name：注入後 30 秒內沒有出現對話框"
+  case "$kind" in
+    inject-bg)
+      # launcher 在後面時暫停它：它的手勢監聽收不到觸控而 ANR（系統當成背景 ANR，不顯示對話框）
+      adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
+      lp=$(launcher_pid)
+      log "  注入（背景）：App 在前面時暫停 launcher（pid $lp）→ 關掉 App → 對 launcher 送按鍵"
+      adb shell "kill -STOP $lp"
+      adb shell am force-stop $PKG
+      sleep 1
+      timeout 15 adb shell input keyevent KEYCODE_SPACE >/dev/null 2>&1 &
+      ;;
+    inject-fg)
+      # launcher 在前面時暫停它，再點它：前景 ANR，系統顯示「沒有回應」對話框（#68／#79 看到的外觀）
+      lp=$(launcher_pid)
+      adb shell input keyevent KEYCODE_HOME; sleep 3
+      log "  注入（前景）：回到桌面、暫停 launcher（pid $lp）→ 點桌面"
+      adb shell "kill -STOP $lp"
+      timeout 15 adb shell input tap $((W / 2)) $((H / 2)) >/dev/null 2>&1 &
+      ;;
+  esac
+  if [ "$kind" != control ]; then
+    for _ in $(seq 1 20); do anr_focus >/dev/null && { anr_seen=1; break; }; sleep 2; done
+    [ "$anr_seen" = 1 ] && log "  注入：出現「沒有回應」對話框（$(anr_focus | sed 's/.*: //')）" || log "  注入：40 秒內沒有出現「沒有回應」對話框"
     diag_snapshot "$name-injected"
-    # 自然發生時，對話框在第 4 段開頭就已經在；這裡照樣打開 App（對話框可能還蓋在上面）
-    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
-  else
-    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
   fi
+  # 打開 App（自然發生時，對話框在第 4 段開頭已經在，App 照樣打開；對話框可能還蓋在上面）
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
   scroll_down
   diag_snapshot "$name-start"
   if tap_toggle "$name" "$label$name 包袱入口" story_bundle bundle_on; then ok=1; else ok=0; fi
@@ -140,9 +166,9 @@ trial() { # trial <control|inject> <i>
   if [ "$kind" = control ] && ls "$OUT/diag" | grep -q -- "-$name-.*anr-seen"; then
     log "  【自然發生】對照組 $name 遇到「沒有回應」對話框"
   fi
-  RESULTS+=("$kind $i toggled=$ok injected_anr=$anr_seen")
+  RESULTS+=("$kind $i toggled=$ok dialog=$anr_seen")
   log "  結果：$label$name 包袱切換 $([ $ok = 1 ] && echo 成功 || echo 失敗)"
-  # 收尾：launcher 還被暫停就恢復；等它重新可以用
+  # 收尾：launcher 還被暫停就恢復；對話框還在就按返回；等 launcher 重新可以用
   lp=$(launcher_pid)
   [ -n "$lp" ] && adb shell "kill -CONT $lp" 2>/dev/null
   anr_focus >/dev/null && { adb shell input keyevent KEYCODE_BACK; sleep 2; }
@@ -151,8 +177,12 @@ trial() { # trial <control|inject> <i>
 
 for i in $(seq 1 "$TRIALS"); do
   trial control "$i"
-  trial inject "$i"
+  trial inject-fg "$i"
+  trial inject-bg "$i"
 done
+n=$(grep -l "startDispatchCycle" "$OUT"/diag/*/dispatch.txt 2>/dev/null | wc -l)
+log ""
+log "派送記錄：$n 個快照裡有 InputDispatcher 的派送記錄（0 表示這個系統映像不支援用設定打開，分類只能靠焦點、視窗與佇列）"
 
 log ""
 log "== 每次點擊的分類（diag_summary.py classify-all）=="
