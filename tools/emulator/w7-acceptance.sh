@@ -640,11 +640,16 @@ if [ -n "$m" ]; then
   check "從墨丸身上滑動是捲動、不觸發彩蛋" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素（捲回原位後）"
   handle_anr egg-tap; ensure_foreground
   if locate egg-tap story_mowan; then
-    adb shell input tap $TAP_X $TAP_Y; sleep 1
+    adb shell input tap $TAP_X $TAP_Y; sleep 0.3
+    # 台詞長短不同，故事卡高度會變；頁面在最底時 ScrollView 會跟著位移（#89 誤判的原因）。
+    # 截圖前捲回最底、重新量故事卡的位置（view_bounds.py 假設捲到最底）
+    # （捲動＋量位置約 4 秒，仍在 6 秒內）
+    scroll_down; dump_ui egg-tapped && card_region egg-tapped
     card_shot egg-2-tap
     d=$(card_diff egg-0 egg-2-tap)
     check "點故事卡上的墨丸：台詞換成天氣" "$([ "${d%.*}" -gt 500 ] 2>/dev/null && echo 0 || echo 1)" "故事卡差 $d 個像素"
     sleep 6.5
+    scroll_down; dump_ui egg-back && card_region egg-back
     card_shot egg-3-back
     d=$(card_diff egg-0 egg-3-back)
     check "6 秒後回到故事" "$([ "${d%.*}" -le 50 ] 2>/dev/null && echo 0 || echo 1)" "跟點之前差 $d 個像素"
