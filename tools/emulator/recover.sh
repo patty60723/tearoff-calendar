@@ -10,6 +10,9 @@
 RECOVER_WAIT=${RECOVER_WAIT:-1.5}
 FOREGROUND_WAIT=${FOREGROUND_WAIT:-2}
 ANR_N=0
+# 診斷掛勾（P7-4a，tools/emulator/diag.sh）：有載入就在關鍵時刻收集證據；沒載入（例如 test-recover.sh）什麼都不做。
+# 掛勾只收集，不改這裡的流程與回傳值。
+hook() { type diag_hook >/dev/null 2>&1 && diag_hook "$@"; return 0; }
 
 anr_focus() { adb shell dumpsys window | tr -d '\r' | grep -o "mCurrentFocus=.*Application Not Responding[^}]*"; }
 
@@ -18,6 +21,7 @@ handle_anr() { # handle_anr <情境>：有對話框而且處理了回傳 0
   focus=$(anr_focus) || return 1
   ANR_N=$((ANR_N + 1))
   tag="anr-$ANR_N-$1"
+  hook anr-seen "$tag"
   adb exec-out screencap -p > "$OUT/shots/$tag.png"
   { echo "$focus"; adb shell dumpsys window | tr -d '\r' | grep -E "mFocusedApp"; adb logcat -d -b events | grep am_anr | tail -3; } > "$OUT/ui/$tag.txt" 2>&1
   xy=$(timeout 20 adb shell "uiautomator dump /sdcard/anr.xml >/dev/null 2>&1 && cat /sdcard/anr.xml" 2>/dev/null | python3 -c '
@@ -27,6 +31,7 @@ m and print((int(m[1]) + int(m[3])) // 2, (int(m[2]) + int(m[4])) // 2)')
   if [ -n "$xy" ]; then adb shell input tap $xy; how="按「關閉應用程式」（$xy）"; else adb shell input keyevent KEYCODE_BACK; how="找不到按鈕，按返回"; fi
   sleep "$RECOVER_WAIT"
   anr_focus >/dev/null && how="$how，還在"
+  hook anr-closed "$tag"
   warn "系統跳出其他 App 的「沒有回應」對話框（${focus##*: }）：$how；證據 shots/$tag.png、ui/$tag.txt"
 }
 
@@ -43,7 +48,7 @@ locate() { # locate <dump 名稱> <元件 id>：量看得到的元件中心，�
   if [ -z "$r" ]; then scroll_down; dump_ui "$1" || return 1; r=$(bounds_of "$1" "$2"); fi
   [ -n "$r" ] || return 1
   set -- $r
-  TAP_X=$(( ($1 + $3) / 2 )); TAP_Y=$(( ($2 + $4) / 2 ))
+  TAP_X=$(( ($1 + $3) / 2 )); TAP_Y=$(( ($2 + $4) / 2 )); TARGET_BOUNDS="$1 $2 $3 $4"
 }
 
 tap_toggle() { # tap_toggle <檔名用的名稱> <記錄用的名稱> <元件 id> <讀狀態的指令>：狀態有變回傳 0；3 次都沒變回傳 1
@@ -57,11 +62,14 @@ tap_toggle() { # tap_toggle <檔名用的名稱> <記錄用的名稱> <元件 id
       warn "$label第 $try 次：找不到看得到的元件"; shot "$name-miss-$try"; continue
     fi
     handle_anr "$name-$try-before-tap"
+    hook before-tap "$name-$try"
     adb shell input tap $TAP_X $TAP_Y; sleep "$RECOVER_WAIT"
     after=$($get)
+    hook after-tap "$name-$try"
     if [ "$before" != "$after" ]; then log "  $label：$before → $after（第 $try 次點擊，位置 $TAP_X $TAP_Y）"; return 0; fi
     warn "$label第 $try 次沒有反應（$before，位置 $TAP_X $TAP_Y），重新確認畫面再點；證據 shots/$name-miss-$try、ui/$name-miss-$try.txt"
     shot "$name-miss-$try"
+    hook miss "$name-$try"
     # 點了沒反應時，誰拿到焦點、觸控送到哪個視窗（#68：關掉 launcher 的對話框後 9 下都沒反應，原因不明）
     { adb shell dumpsys window | tr -d '\r' | grep -E "mCurrentFocus|mFocusedApp"; adb shell dumpsys input | tr -d '\r' | grep -iE "FocusedWindow|TouchedWindow|touchedWindows|name='" | head -40; } > "$OUT/ui/$name-miss-$try.txt" 2>&1
   done

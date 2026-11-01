@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7 後續規劃（P5～P7-2 結案之後）與 P7-4 ANR 初步調查
 
 > 日期：2026-11-01　基準：`main` `1b3f0c2`（PR #1 merge commit）　分支：`docs/p7-next-plan`（只有這份文件）
-> 狀態：**提案，等待審核**。本次只做調查、分析與規劃：沒有改 App 程式、沒有改測試或模擬器腳本、沒有更新 golden、沒有建 PR。
+> 狀態：**2026-11-01 核准**：P7-4 拆成 P7-4a／P7-4b、先做 P7-4a、P7-3 排在 P7-4a 之後、P7-7 版面部分提前到 P7-4b 之前（這一輪不實作）。#68／#79 原因仍是 Unknown。本次只做調查、分析與規劃：沒有改 App 程式、沒有改測試或模擬器腳本、沒有更新 golden、沒有建 PR。
 > 相關：[P7 計畫](character-p7-plan.md)・[未定案事項](character-open-decisions.md)・[P7-1 golden](character-p7-1-golden.md)・[P7-1 清理](character-p7-1-cleanup.md)・[P7-2 實作](character-p7-2-implementation.md)
 
 證據分類照舊：**CI（JVM／Robolectric）**、**模擬器**、**實機**、**人工視覺審核**；沒做的寫 Not tested，推測寫「推測」。
