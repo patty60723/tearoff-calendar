@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7-3：狀態一致性（故事卡、App 日曆頁、桌面小工具）
 
 > 日期：2026-11-03　分支：`feature/p7-3-consistency`（基準：`main` `f48443c` ＋ 合併 P7-4a `b332d95`）
-> 狀態：**完成，等待審核**。不開 PR、不合併 main；沒有更新 golden 基準；沒有開始 P7-4b。
+> 狀態：**完成，等待審核**。統一一致性矩陣全部通過；找到並修正 1 個不一致（換城市時故事卡的天氣）。不開 PR、不合併 main；沒有更新 golden 基準；沒有開始 P7-4b。
 > 相關：[P7 計畫](character-p7-plan.md) §P7-3・[P7-4a 診斷](character-p7-4a-diagnosis.md)
 
 證據分類：**CI（Robolectric，實際的 App 與小工具畫圖流程）**、**模擬器**、**實機（Not tested）**。
@@ -61,17 +61,45 @@
 
 ## 5. 結果
 
-（跑完後填入）
+| 類型 | 執行 | 結果 |
+|---|---|---|
+| CI Build APK（修正前） | [#174](https://github.com/patty60723/tearoff-calendar/actions/runs/41601930237)（`6019f01`） | 340 個測試、2 個失敗：`cityChangeSyncsEverywhere`（真的不一致，§4）、`tappingTheMowanChangesNoState`（測試本身讀錯頁數） |
+| CI Build APK（修正後） | [#176](https://github.com/patty60723/tearoff-calendar/actions/runs/41602554329)（`0cbd47f`）、[#177](https://github.com/patty60723/tearoff-calendar/actions/runs/41602709559)（`4203877`，只改文件） | **全部通過**（340 個測試，其中 P7-3 新增 10 個；矩陣 36 種 × 6 個畫面）；腳本自我測試 `test-quiet.sh`、`test-recover.sh`、`test-diag.sh` 通過 |
+| PNG golden（54 張鎖定） | #176 | **全部一致，最大通道差 0**；沒有更新基準 |
+| 模擬器驗收（基準：main＋P7-4a） | [#97](https://github.com/patty60723/tearoff-calendar/actions/runs/41600995879)（`ccf948c`） | PASS 53、FAIL 0、WARN 0 |
+| 模擬器驗收（P7-3 最後的 App 程式） | [#100](https://github.com/patty60723/tearoff-calendar/actions/runs/41602554256)（`0cbd47f`） | **PASS 56、FAIL 0**、WARN 1（自然發生的 launcher ANR，見下）。新增 3 項：App 卸下包袱後的桌面小工具＝同樣狀態直接更新的小工具（差 0 像素）；點故事卡墨丸後桌面小工具不變（差 0）；App 背回包袱後回到原樣（差 0） |
+
+每個情境六個畫面的摘要：[`p7-3/matrix.md`](p7-3/matrix.md) 等（`bundle`、`hat`、`weather`、`city`、`tear`、`festival`、`reduced`、`tap`）。
+
+### 5.1 模擬器 #100：自然發生的 launcher ANR（有證據）
+
+第 4 段第一次點包袱之前，Pixel Launcher 跳出「沒有回應」（跟 #68／#79 同一個地方）。這次留下了證據（[截圖](p7-3/natural-anr-100.png)）：
+
+| 證據 | 內容 |
+|---|---|
+| ANR 原因 | `am_anr`：`com.google.android.apps.nexuslauncher`，**Input dispatching timed out (Application does not have a focused window)** |
+| 對話框開著時 | 截圖：頁面**停在最上面**（日曆頁佔上半，故事卡在下面），`setup` 的捲動沒有生效——跟人工注入看到的一樣 |
+| 焦點 | 對話框開著：輸入焦點是對話框；關掉後：輸入焦點是 App、點擊位置最上層是 App；App 的連線 responsive、佇列 0 |
+| 之後 | 修正後的流程：關掉對話框 → 重新捲到最底 → 3 下包袱**都在第 1 次點擊就切換**；後面各段照常 |
+
+這是第一次在**自然發生**時拿到證據，而且跟人工注入的鏈條一致（對話框開著時頁面沒捲到最底）。**#68／#79 本身的根因仍標 Unknown**（那兩次的截圖與紀錄還是看不到）；要不要依 #100 的證據升級成「已確認」，請你決定（§7）。
 
 ## 6. P7-4a 診斷工具在這個分支
 
-（跑完後填入）
+| 執行 | commit | 結果 |
+|---|---|---|
+| [診斷 #5](https://github.com/patty60723/tearoff-calendar/actions/runs/41600995919) | `ccf948c`（main＋P7-4a） | 正常：對照 3／3、人工注入·前景（修正後）3／3、背景 3／3 都切換；舊流程 0／3、9 下都是 COORDINATE_MISS；腳本自我測試通過 |
+| [診斷 #6](https://github.com/patty60723/tearoff-calendar/actions/runs/41602062118) | `a8888b3`（加上 P7-3 的模擬器檢查） | 同上 |
+| 日常驗收 #97、#100 | — | 診斷收集只在出事時啟動：#97 沒有對話框、沒有快照；#100 自然發生時留下 6 份快照與分類資料（§5.1） |
+
+結論：P7-4a 的診斷腳本、重新捲動修正、日常驗收的證據收集在 P7-3 分支都正常。
 
 ## 7. 需要你確認
 
 | # | 問題 | 建議 |
 |---|---|---|
 | 1 | 規則 3：小工具一律畫今天那頁、不跟 App 的撕頁進度（今天還沒撕時，App 日曆頁是昨天、小工具是今天）。這是現有行為，要不要列成正式決策 | 列成正式決策（小工具是「今天的日曆」；撕頁是 App 裡的互動） |
+| 2 | 模擬器 #100 自然發生的 launcher ANR 留下了證據（對話框開著時頁面沒捲到最底；修正後通過）。#68／#79 要維持 Unknown，或依這次的證據改成「推定原因已由同類自然發生佐證」 | 維持 Unknown（#68／#79 本身的紀錄還是看不到），在文件註明 #100 的佐證 |
 
 ## 8. 尚未驗證
 
