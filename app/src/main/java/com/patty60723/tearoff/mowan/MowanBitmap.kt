@@ -10,6 +10,18 @@ import android.graphics.Canvas
  * 節日（P6-4b）：傳 [Festival] 時畫節日的靜態外觀（站姿、服裝、道具、背景），不演出。
  */
 object MowanBitmap {
+    /** 一張靜態圖實際用的參數（P7-3 一致性測試用） */
+    data class Spec(
+        val parts: Set<String>, val hatOn: Boolean, val bundleOn: Boolean, val weather: Mowan.Weather,
+        val widthPx: Int, val heightPx: Int, val density: Float, val festival: Festival?, val art: ArtConfig,
+    )
+
+    /**
+     * 測試用（P7-3）：每畫一張就回報實際用的參數與畫出來的圖。正式執行時是 null，什麼都不記、不留任何圖。
+     */
+    @Volatile
+    internal var onRender: ((Spec, Bitmap) -> Unit)? = null
+
     /** 畫了幾張（測試用：確認一次小工具更新沒有重複畫） */
     @Volatile
     internal var renderCount = 0
@@ -35,6 +47,7 @@ object MowanBitmap {
         )
         return Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888).also {
             MowanPainter(frame).draw(Canvas(it), 0f, 0f, widthPx.toFloat(), heightPx.toFloat())
+            onRender?.invoke(Spec(parts, hatOn, bundleOn, weather, widthPx, heightPx, density, festival, art), it)
         }
     }
 
