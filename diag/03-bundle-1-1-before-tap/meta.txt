@@ -1,0 +1,6 @@
+tag=bundle-1-1-before-tap
+host_time=2026-11-03T08:30:53.198Z
+device_uptime=481.89
+device_time=11-03 08:30:53
+tap=483 1088
+target=395 1025 572 1151

@@ -1,0 +1,4 @@
+tag=anr-1-bundle-1-1-anr-seen
+host_time=2026-11-03T08:30:30.538Z
+device_uptime=459.26
+device_time=11-03 08:30:30

@@ -1,0 +1,39 @@
+--------- beginning of main
+11-03 08:36:56.738 12034 12034 I W7HOST  : mark v3
+11-03 08:36:57.984 12041 12041 I W7HOST  : bind layout=COMPACT id=2 bound=true
+11-03 08:36:58.183 12041 12041 I W7HOST  : update id=2
+11-03 08:36:58.210 12041 12041 I W7HOST  : bind layout=WIDE id=3 bound=true
+11-03 08:36:58.241 12041 12041 I W7HOST  : update id=3
+11-03 08:36:58.347 12041 12041 I W7HOST  : bind layout=MEDIUM id=4 bound=true
+11-03 08:36:58.395 12041 12041 I W7HOST  : update id=4
+11-03 08:36:58.683 12041 12041 I W7HOST  : bind layout=TALL id=5 bound=true
+11-03 08:36:58.720 12041 12041 I W7HOST  : update id=5
+11-03 08:36:58.851 12041 12041 I W7HOST  : bind layout=BETWEEN id=6 bound=true
+11-03 08:36:58.871 12041 12041 I W7HOST  : update id=6
+11-03 08:37:01.002 12041 12041 I W7HOST  : update id=2
+11-03 08:37:01.011 12041 12041 I W7HOST  : update id=3
+11-03 08:37:01.019 12041 12041 I W7HOST  : update id=4
+11-03 08:37:01.027 12041 12041 I W7HOST  : update id=5
+11-03 08:37:01.035 12041 12041 I W7HOST  : update id=6
+11-03 08:37:02.579 12041 12041 I W7HOST  : update id=2
+11-03 08:37:05.068 12041 12041 I W7HOST  : report layout=COMPACT ok=true size=301x301 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-03 08:37:05.068 12041 12041 I W7HOST  : report layout=WIDE ok=true size=761x328 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-03 08:37:05.068 12041 12041 I W7HOST  : report layout=MEDIUM ok=true size=393x511 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-03 08:37:05.068 12041 12041 I W7HOST  : report layout=TALL ok=true size=459x761 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-03 08:37:05.068 12041 12041 I W7HOST  : report layout=BETWEEN ok=true size=525x525 still=VISIBLE stillImage=true characterInside=true clipped=0
+11-03 08:37:13.281 12041 12041 I W7HOST  : update id=2
+11-03 08:37:13.436 12041 12041 I W7HOST  : update id=3
+11-03 08:37:13.586 12041 12041 I W7HOST  : update id=4
+11-03 08:37:13.738 12041 12041 I W7HOST  : update id=5
+11-03 08:37:14.016 12041 12041 I W7HOST  : update id=6
+11-03 08:37:14.019 12041 12041 I W7HOST  : update id=2
+11-03 08:37:14.168 12041 12041 I W7HOST  : update id=3
+11-03 08:37:14.334 12041 12041 I W7HOST  : update id=3
+11-03 08:37:14.503 12041 12041 I W7HOST  : update id=4
+11-03 08:37:14.659 12041 12041 I W7HOST  : update id=4
+11-03 08:37:14.813 12041 12041 I W7HOST  : update id=5
+11-03 08:37:14.964 12041 12041 I W7HOST  : update id=5
+11-03 08:37:15.111 12041 12041 I W7HOST  : update id=6
+11-03 08:37:15.254 12041 12041 I W7HOST  : update id=6
+11-03 08:37:19.472 12109 12109 I W7HOST  : mark win-v3-1 start
+11-03 08:37:29.536 12119 12119 I W7HOST  : mark win-v3-1 end
