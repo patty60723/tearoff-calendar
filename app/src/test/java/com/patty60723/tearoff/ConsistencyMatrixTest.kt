@@ -144,7 +144,8 @@ class ConsistencyMatrixTest {
         m.draw(Canvas(Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)))
         m.onFrame = null
         val s = spec ?: error("故事卡沒有畫")
-        val page = Regex("""\d+""").find(a.text(R.id.story_title) ?: "")?.value?.toInt()
+        // 標題平常是「第 N 頁」；點墨丸後 6 秒內換成天氣（那是台詞，不是狀態），那時不讀頁數
+        val page = Regex("""第 (\d+) 頁""").find(a.text(R.id.story_title) ?: "")?.groupValues?.get(1)?.toInt()
         return Shown("故事卡", m.today, s.festival, s.parts, s.hatOn, s.bundleOn, s.weather, s.art.festivalHeadwear, s.still, null, page)
     }
 
@@ -211,7 +212,7 @@ class ConsistencyMatrixTest {
                     assertEquals("$at：故事卡的節日照今天", todayFestival, s.festival)
                     assertEquals("$at：故事卡的天氣照今天的天氣資料", t.weather, s.weather)
                     assertEquals("$at：故事卡只有 Reduced Motion 時是靜態", reduced, s.still)
-                    if (t.page > 0) assertEquals("$at：故事卡的頁數", t.page, s.page)
+                    if (t.page > 0 && s.page != null) assertEquals("$at：故事卡的頁數", t.page, s.page)
                 }
                 s.where == "日曆頁" -> {
                     val date = pageDate ?: t.top

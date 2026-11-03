@@ -326,6 +326,9 @@ class MainActivity : Activity() {
                 Cities.select(this, cities[which])
                 dialog.dismiss()
                 show(date)
+                // P7-3：存著的天氣是舊城市的，換了以後不再顯示；故事卡的墨丸也要一起換（以前只更新日曆頁與小工具，
+                // 故事卡還在演舊城市的天氣），並馬上抓新城市的天氣（抓到後三處一起更新，見 onWeatherRefreshed）
+                refreshWeather()
                 CalendarWidget.refreshAll(this)
                 findViewById<View>(R.id.city).announceForAccessibility(getString(R.string.city_changed, cities[which].name))
             }
