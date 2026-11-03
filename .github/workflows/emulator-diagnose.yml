@@ -5,7 +5,7 @@ name: Emulator diagnose (P7-4a)
 # 只在 P7-4a 的分支改到診斷相關檔案時跑；不影響 Build APK 與 Emulator acceptance。
 on:
   push:
-    branches: [feature/p7-4a-anr-diagnosis]
+    branches: [feature/p7-4a-anr-diagnosis, feature/p7-3-consistency]
     paths:
       - 'tools/emulator/**'
       - '.github/workflows/emulator-diagnose.yml'

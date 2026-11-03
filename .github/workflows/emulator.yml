@@ -4,7 +4,7 @@ name: Emulator acceptance
 # 比較久（約 17 分鐘），只在墨丸的功能分支（不含只改文件的 push）和手動觸發時跑。
 on:
   push:
-    branches: [feature/mowan-weather-poses]
+    branches: [feature/mowan-weather-poses, feature/p7-3-consistency]
     paths-ignore: ['docs/**']
   workflow_dispatch:
     inputs:
