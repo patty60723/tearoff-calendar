@@ -1,0 +1,2 @@
+      topResumedActivity=ActivityRecord{e592a37 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t6}
+  ResumedActivity: ActivityRecord{e592a37 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t6}

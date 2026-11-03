@@ -1,0 +1,6 @@
+tag=inject-fg-old-3-2-after-tap
+host_time=2026-11-03T08:34:13.140Z
+device_uptime=943.95
+device_time=11-03 08:34:13
+tap=483 1088
+target=395 1025 572 1151

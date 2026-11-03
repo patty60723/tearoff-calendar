@@ -1,0 +1,114 @@
+11-03 08:32:33.027  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:32:33.027  3146  3240 D InputDispatcher: channel 'b6551b0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:33.027  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:32:33.027  3146  3240 D InputDispatcher: channel 'b6551b0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:32:33.182  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:32:33.182  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:33.182  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:32:33.182  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:33.182  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ finishDispatchCycle - seq=1805, handled=true
+11-03 08:32:33.182  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:34.036  3146  3240 D InputDispatcher: dispatchKey - eventTime=845039000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x0, flags=0x0, keyCode=0x3, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=845039000000
+11-03 08:32:34.037  3146  3240 D InputDispatcher: dispatchKey - eventTime=845039000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x1, flags=0x0, keyCode=0x3, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=845039000000
+11-03 08:32:37.119  3146  3240 D InputDispatcher: dispatchMotion - eventTime=848121000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=DOWN, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=848121000000
+11-03 08:32:37.119  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1200.000000, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:32:37.119  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:32:37.119  3146  3240 D InputDispatcher: channel '6aefa5 NavigationBar0 (server)' ~ prepareDispatchCycle - flags=ZERO_COORDS | DISPATCH_AS_OUTSIDE, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:37.119  3146  3240 D InputDispatcher:         default (ROT_0) (TRANSLATE)
+11-03 08:32:37.119  3146  3240 D InputDispatcher:             1.0000  0.0000  -0.0000
+11-03 08:32:37.119  3146  3240 D InputDispatcher:             0.0000  1.0000  -2274.0000
+11-03 08:32:37.119  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:32:37.119  3146  3240 D InputDispatcher: channel '6aefa5 NavigationBar0 (server)' ~ startDispatchCycle
+11-03 08:32:37.119  3146  3240 D InputDispatcher: channel 'd0d20e1 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ prepareDispatchCycle - flags=ZERO_COORDS | DISPATCH_AS_OUTSIDE, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:37.119  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:32:37.119  3146  3240 D InputDispatcher: channel 'd0d20e1 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:32:37.120  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '583dd1e com.android.systemui.wallpapers.ImageWallpaper (server)' ~ prepareDispatchCycle - flags=WINDOW_IS_OBSCURED | SPLIT | DISPATCH_AS_IS | WINDOW_IS_PARTIALLY_OBSCURED, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:32:37.120  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (SCALE TRANSLATE)
+11-03 08:32:37.120  3146  3240 D InputDispatcher:             0.3879  -0.0000  20.9449
+11-03 08:32:37.120  3146  3240 D InputDispatcher:             -0.0000  0.3879  46.5455
+11-03 08:32:37.120  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '583dd1e com.android.systemui.wallpapers.ImageWallpaper (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '[Gesture Monitor] swipe-up (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:32:37.120  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '[Gesture Monitor] swipe-up (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:32:37.120  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:37.120  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '6aefa5 NavigationBar0 (server)' ~ finishDispatchCycle - seq=1806, handled=true
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '6aefa5 NavigationBar0 (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel 'd0d20e1 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ finishDispatchCycle - seq=1807, handled=false
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel 'd0d20e1 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '583dd1e com.android.systemui.wallpapers.ImageWallpaper (server)' ~ finishDispatchCycle - seq=1809, handled=true
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel '583dd1e com.android.systemui.wallpapers.ImageWallpaper (server)' ~ startDispatchCycle
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=1812, handled=false
+11-03 08:32:37.120  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:32:37.124  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=1811, handled=true
+11-03 08:32:37.124  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:32:42.125  3146  3240 W InputDispatcher: Window 61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server) is unresponsive: 61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server) is not responding. Waited 5005ms for MotionEvent(deviceId=-1, eventTime=848121000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (540.0, 1200.0)]), policyFlags=0x6b000000
+11-03 08:32:42.125  3146  3240 W InputDispatcher: Canceling events for 61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server) because it is unresponsive
+11-03 08:32:42.125  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ Synthesized 1 cancelation events to bring channel back in sync with reality: application not responding, mode=CANCEL_ALL_EVENTS.
+11-03 08:32:42.125  3146  3240 D InputDispatcher: cancel - eventTime=853127916325, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=CANCEL, actionButton=0x0, flags=0x20, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=848121000000
+11-03 08:32:42.125  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1200.000000, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:32:42.125  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:42.126  3146  3240 W InputDispatcher: Window [Gesture Monitor] swipe-up (server) is unresponsive: [Gesture Monitor] swipe-up (server) is not responding. Waited 5006ms for MotionEvent(deviceId=-1, eventTime=848121000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (540.0, 1200.0)]), policyFlags=0x6b000000
+11-03 08:32:42.126  3146  3240 W InputDispatcher: Canceling events for [Gesture Monitor] swipe-up (server) because it is unresponsive
+11-03 08:32:42.126  3146  3240 D InputDispatcher: channel '[Gesture Monitor] swipe-up (server)' ~ Synthesized 1 cancelation events to bring channel back in sync with reality: application not responding, mode=CANCEL_ALL_EVENTS.
+11-03 08:32:42.126  3146  3240 D InputDispatcher: cancel - eventTime=853128806518, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=CANCEL, actionButton=0x0, flags=0x20, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=848121000000
+11-03 08:32:42.126  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1200.000000, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:32:42.126  3146  3240 D InputDispatcher: channel '[Gesture Monitor] swipe-up (server)' ~ startDispatchCycle
+11-03 08:32:54.163  3146 15601 E ActivityManager: Aborted stack trace dump (current primary pid=14928); deadline exceeded.
+11-03 08:32:54.656  3146 15602 E ActivityManager: ANR in com.google.android.apps.nexuslauncher (com.google.android.apps.nexuslauncher/.NexusLauncherActivity)
+11-03 08:32:54.656  3146 15602 E ActivityManager: PID: 14928
+11-03 08:32:54.656  3146 15602 E ActivityManager: Reason: Input dispatching timed out (61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server) is not responding. Waited 5005ms for MotionEvent(deviceId=-1, eventTime=848121000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (540.0, 1200.0)]), policyFlags=0x6b000000)
+11-03 08:32:54.656  3146 15602 E ActivityManager: Parent: com.google.android.apps.nexuslauncher/.NexusLauncherActivity
+11-03 08:32:54.656  3146 15602 E ActivityManager: ErrorId: 8a31a263-7868-4634-b6b9-5493a649aeff
+11-03 08:32:54.656  3146 15602 E ActivityManager: Frozen: false
+11-03 08:32:54.656  3146 15602 E ActivityManager: Load: 2.99 / 4.33 / 3.9
+11-03 08:32:54.656  3146 15602 E ActivityManager: ----- Output from /proc/pressure/memory -----
+11-03 08:32:54.656  3146 15602 E ActivityManager: some avg10=0.00 avg60=0.00 avg300=0.43 total=17240454
+11-03 08:32:54.656  3146 15602 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=2180152
+11-03 08:32:54.656  3146 15602 E ActivityManager: ----- End output from /proc/pressure/memory -----
+11-03 08:32:54.656  3146 15602 E ActivityManager: ----- Output from /proc/pressure/cpu -----
+11-03 08:32:54.656  3146 15602 E ActivityManager: some avg10=24.32 avg60=26.76 avg300=28.76 total=350764047
+11-03 08:32:54.656  3146 15602 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+11-03 08:32:54.656  3146 15602 E ActivityManager: ----- End output from /proc/pressure/cpu -----
+11-03 08:32:54.656  3146 15602 E ActivityManager: ----- Output from /proc/pressure/io -----
+11-03 08:32:54.656  3146 15602 E ActivityManager: some avg10=0.09 avg60=0.12 avg300=0.91 total=29963310
+11-03 08:32:54.656  3146 15602 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=1698172
+11-03 08:32:54.656  3146 15602 E ActivityManager: ----- End output from /proc/pressure/io -----
+11-03 08:32:54.656  3146 15602 E ActivityManager: 
+11-03 08:32:54.656  3146 15602 E ActivityManager: CPU usage from 1ms to 12512ms later (2026-11-03 08:32:42.139 to 2026-11-03 08:32:54.650):
+11-03 08:32:54.656  3146 15602 E ActivityManager:   10% 3340/com.android.systemui: 9.1% user + 1.2% kernel / faults: 58734 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager:   2.3% 3146/system_server: 1.7% user + 0.6% kernel / faults: 5672 minor 1 major
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0.7% 3081/surfaceflinger: 0% user + 0.6% kernel / faults: 114 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0.5% 360/android.hardware.sensors-service.multihal: 0.1% user + 0.3% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0.5% 13781/kworker/1:2-virtio_vsock: 0% user + 0.5% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0% 1/init: 0% user + 0% kernel / faults: 2 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0% 471/media.swcodec: 0% user + 0% kernel / faults: 2556 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0.1% 388/android.hardware.graphics.composer3-service.ranchu: 0% user + 0.1% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0.1% 451/logcat: 0% user + 0.1% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager:   0% 461/media.extractor: 0% user + 0% kernel / faults: 867 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager: 8% TOTAL: 5.9% user + 1.9% kernel + 0% iowait + 0% softirq
+11-03 08:32:54.656  3146 15602 E ActivityManager: CPU usage from 14ms to 244ms later (2026-11-03 08:32:42.152 to 2026-11-03 08:32:42.382):
+11-03 08:32:54.656  3146 15602 E ActivityManager:   13% 3146/system_server: 9% user + 4.5% kernel / faults: 391 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager:     13% 15605/AnrAuxiliaryTas: 9% user + 4.5% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager:     4.5% 3155/HeapTaskDaemon: 4.5% user + 0% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager:   9% 3340/com.android.systemui: 4.5% user + 4.5% kernel / faults: 956 minor
+11-03 08:32:54.656  3146 15602 E ActivityManager:     9% 3340/ndroid.systemui: 4.5% user + 4.5% kernel
+11-03 08:32:54.656  3146 15602 E ActivityManager: 15% TOTAL: 10% user + 4.3% kernel
+11-03 08:32:54.732  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:32:54.733  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:54.733  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:32:54.733  3146  3240 D InputDispatcher: channel '61bf971 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server)' ~ startDispatchCycle
+11-03 08:32:54.891  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:32:54.891  3146  3240 D InputDispatcher: channel '47d28fe Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:32:54.891  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:32:54.892  3146  3240 D InputDispatcher: channel '47d28fe Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:32:54.898  3146  3240 D InputDispatcher: channel '47d28fe Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=1816, handled=true
+11-03 08:32:54.898  3146  3240 D InputDispatcher: channel '47d28fe Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle

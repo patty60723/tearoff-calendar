@@ -1,0 +1,20 @@
+11-03 08:24:46.189  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:24:46.189  3146  3240 D InputDispatcher: channel 'f4e62b0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:24:46.189  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:24:46.189  3146  3240 D InputDispatcher: channel 'f4e62b0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:24:49.524  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:24:49.524  3146  3240 D InputDispatcher: channel 'df95328 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:24:49.524  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:24:49.524  3146  3240 D InputDispatcher: channel 'df95328 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:24:49.681  3146  3240 D InputDispatcher: channel 'df95328 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ finishDispatchCycle - seq=605, handled=true
+11-03 08:24:49.681  3146  3240 D InputDispatcher: channel 'df95328 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:24:51.673  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:24:51.674  3146  3240 D InputDispatcher: channel 'df95328 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:24:51.674  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:24:51.674  3146  3240 D InputDispatcher: channel 'df95328 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:24:52.727  3146  3240 D InputDispatcher: dispatchKey - eventTime=383729000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x0, flags=0x0, keyCode=0x3e, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=383729000000
+11-03 08:24:52.727  3146  3240 W InputDispatcher: Waiting because no window has focus but ActivityRecord{c39f75 u0 com.patty60723.tearoff/.MainActivity t10} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-03 08:24:57.728  3146  3240 E InputDispatcher: Dropping KEY event because there is no focused window
+11-03 08:24:57.729  3146  3240 D InputDispatcher: dispatchKey - eventTime=383729000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x1, flags=0x0, keyCode=0x3e, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=383729000000
+11-03 08:24:57.730  3146  3240 W InputDispatcher: Waiting because no window has focus but ActivityRecord{c39f75 u0 com.patty60723.tearoff/.MainActivity t10} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-03 08:25:02.735  3146  3240 I InputDispatcher: Dropped event because it is stale.

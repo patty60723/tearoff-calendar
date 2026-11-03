@@ -1,0 +1,4 @@
+mCurrentFocus=Window{10406ad u0 Application Not Responding: com.google.android.apps.nexuslauncher
+  mFocusedApp=ActivityRecord{e592a37 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t6}
+  mFocusedApp=ActivityRecord{5b7e85d u0 com.patty60723.tearoff/.MainActivity t8}
+11-03 08:20:45.467  3146  7554 I am_anr  : [0,3875,com.google.android.apps.nexuslauncher,885767749,Input dispatching timed out ([Gesture Monitor] swipe-up (server) is not responding. Waited 5003ms for MotionEvent(deviceId=-1, eventTime=131412000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (540.0, 1200.0)]), policyFlags=0x6b000000)]

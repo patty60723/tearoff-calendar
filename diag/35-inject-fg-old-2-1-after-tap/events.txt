@@ -1,0 +1,23 @@
+11-03 08:26:46.192  3146  5550 I am_kill : [0,11811,com.patty60723.tearoff,0,stop com.patty60723.tearoff due to from pid 12141]
+11-03 08:26:46.199 11516 11516 I wm_on_resume_called: [240724535,com.google.android.apps.nexuslauncher.NexusLauncherActivity,RESUME_ACTIVITY,0]
+11-03 08:26:46.209  3146  3240 I input_focus: [Focus leaving d0b6189 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server),reason=NO_WINDOW]
+11-03 08:26:46.215  3146  3167 I input_focus: [Focus request 8e2801c com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity,reason=UpdateInputWindows]
+11-03 08:26:46.415  3146  3240 I input_focus: [Focus entering 8e2801c com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server),reason=Window became focusable. Previous reason: NOT_VISIBLE]
+11-03 08:26:47.239 11516 11516 I wm_on_paused_called: [240724535,com.google.android.apps.nexuslauncher.NexusLauncherActivity,performPause,0]
+11-03 08:26:47.271 11516 11516 I wm_on_resume_called: [240724535,com.google.android.apps.nexuslauncher.NexusLauncherActivity,LIFECYCLER_RESUME_ACTIVITY,0]
+11-03 08:26:50.289  3146  3240 I input_interaction: Interaction with: 8e2801c com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server), 583dd1e com.android.systemui.wallpapers.ImageWallpaper (server), [Gesture Monitor] swipe-up (server), [Gesture Monitor] edge-swipe (server), PointerEventDispatcher0 (server), 
+11-03 08:26:55.305  3146 12190 I am_anr  : [0,11516,com.google.android.apps.nexuslauncher,885767749,Input dispatching timed out (8e2801c com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server) is not responding. Waited 5003ms for MotionEvent(deviceId=-1, eventTime=501291000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (540.0, 1200.0)]), policyFlags=0x6b000000)]
+11-03 08:27:07.831  3146  3167 I input_focus: [Focus request 8066c1 Application Not Responding: com.google.android.apps.nexuslauncher,reason=UpdateInputWindows]
+11-03 08:27:07.855  3146  3240 I input_focus: [Focus leaving 8e2801c com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity (server),reason=Waiting for window because NOT_VISIBLE]
+11-03 08:27:07.977  3146  3240 I input_focus: [Focus entering 8066c1 Application Not Responding: com.google.android.apps.nexuslauncher (server),reason=Window became focusable. Previous reason: NOT_VISIBLE]
+11-03 08:27:14.699  3146  3180 I am_proc_start: [0,12346,10192,com.patty60723.tearoff,next-top-activity,{com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}]
+11-03 08:27:16.110 12346 12346 I wm_on_resume_called: [239086921,com.patty60723.tearoff.MainActivity,RESUME_ACTIVITY,103]
+11-03 08:27:19.356  3146  3240 I input_interaction: Interaction with: 8066c1 Application Not Responding: com.google.android.apps.nexuslauncher (server), [Gesture Monitor] edge-swipe (server), PointerEventDispatcher0 (server), 
+11-03 08:27:44.935  3146  3164 I am_kill : [0,11516,com.google.android.apps.nexuslauncher,100,user request after error]
+11-03 08:27:44.982  3146  6241 I am_proc_died: [0,11516,com.google.android.apps.nexuslauncher,100,5]
+11-03 08:27:45.105  3146  3180 I am_proc_start: [0,12632,10169,com.google.android.apps.nexuslauncher,service,{com.google.android.apps.nexuslauncher/com.android.quickstep.TouchInteractionService}]
+11-03 08:27:45.152  3146  3167 I input_focus: [Focus request b99503f com.patty60723.tearoff/com.patty60723.tearoff.MainActivity,reason=UpdateInputWindows]
+11-03 08:27:45.279  3146  3240 I input_focus: [Focus entering b99503f com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server),reason=setFocusedWindow]
+11-03 08:27:47.543 12632 12632 I wm_on_resume_called: [240724535,com.google.android.apps.nexuslauncher.NexusLauncherActivity,LIFECYCLER_RESUME_ACTIVITY,0]
+11-03 08:27:47.575 12632 12632 I wm_on_paused_called: [240724535,com.google.android.apps.nexuslauncher.NexusLauncherActivity,performPause,0]
+11-03 08:28:00.317  3146  3240 I input_interaction: Interaction with: b99503f com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server), [Gesture Monitor] swipe-up (server), [Gesture Monitor] edge-swipe (server), PointerEventDispatcher0 (server), 

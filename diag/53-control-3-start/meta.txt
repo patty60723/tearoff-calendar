@@ -1,0 +1,4 @@
+tag=control-3-start
+host_time=2026-11-03T08:32:13.596Z
+device_uptime=824.42
+device_time=11-03 08:32:13

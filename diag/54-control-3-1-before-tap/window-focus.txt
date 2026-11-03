@@ -1,0 +1,6 @@
+  mTopFocusedDisplayId=0
+  mCurrentFocus=Window{7963818 u0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}
+  mFocusedApp=ActivityRecord{5a52af7 u0 com.patty60723.tearoff/.MainActivity t16}
+  mCurrentFocus=Window{b6551b0 u0 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity}
+  mFocusedApp=ActivityRecord{4d2ad9e u0 com.patty60723.tearoff/.MainActivity t17}
+  mTopFocusedDisplayId=0

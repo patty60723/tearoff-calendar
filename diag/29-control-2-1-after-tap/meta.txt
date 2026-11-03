@@ -1,0 +1,6 @@
+tag=control-2-1-after-tap
+host_time=2026-11-03T08:26:39.746Z
+device_uptime=490.60
+device_time=11-03 08:26:39
+tap=483 1088
+target=395 1025 572 1151

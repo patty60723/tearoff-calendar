@@ -1,0 +1,300 @@
+11-03 08:23:53.857  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=443, handled=true
+11-03 08:23:53.857  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.857  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=444, handled=false
+11-03 08:23:53.857  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.871  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=442, handled=false
+11-03 08:23:53.871  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.872  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324874000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.872  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1821.599609, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.872  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.872  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.872  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.872  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.872  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.872  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.872  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.872  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.872  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.872  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.872  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.872  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.872  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.873  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=447, handled=false
+11-03 08:23:53.873  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.873  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=446, handled=true
+11-03 08:23:53.873  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.889  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=445, handled=false
+11-03 08:23:53.889  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.889  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324892000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.889  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1709.280273, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.890  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.890  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.890  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.890  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.890  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.890  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.890  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=449, handled=true
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=450, handled=false
+11-03 08:23:53.890  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=448, handled=false
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.903  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324905000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.903  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1628.160156, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.903  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.903  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.903  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.903  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.903  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.903  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.903  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.903  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.904  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=452, handled=true
+11-03 08:23:53.904  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.906  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=453, handled=false
+11-03 08:23:53.906  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.922  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=451, handled=false
+11-03 08:23:53.922  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.922  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324925000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.922  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1503.360352, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.923  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.923  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.923  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.923  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.923  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.923  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.923  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=456, handled=false
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=455, handled=true
+11-03 08:23:53.923  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=454, handled=false
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.938  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324940000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.938  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1409.759766, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.938  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.938  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.938  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.938  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.938  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.938  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.938  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=459, handled=false
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=458, handled=true
+11-03 08:23:53.938  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=457, handled=false
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.953  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324956000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.953  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1309.919922, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.953  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.953  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.953  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.953  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.953  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.953  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.953  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=462, handled=false
+11-03 08:23:53.953  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.955  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=461, handled=true
+11-03 08:23:53.955  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=460, handled=false
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.977  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324979000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.977  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1166.400391, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.977  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.977  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.977  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.977  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.977  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.977  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.977  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=464, handled=true
+11-03 08:23:53.977  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.978  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=465, handled=false
+11-03 08:23:53.978  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=463, handled=false
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.987  3146  3240 D InputDispatcher: dispatchMotion - eventTime=324990000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:53.987  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=1097.759766, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:53.987  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.987  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:53.987  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:53.987  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:53.987  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:53.987  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:53.987  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=467, handled=true
+11-03 08:23:53.987  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:53.988  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=468, handled=false
+11-03 08:23:53.988  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=466, handled=false
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.004  3146  3240 D InputDispatcher: dispatchMotion - eventTime=325006000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:54.004  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=997.919922, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:54.004  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.004  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:54.004  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:54.004  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:54.004  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.004  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:54.004  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=471, handled=false
+11-03 08:23:54.004  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.005  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=470, handled=true
+11-03 08:23:54.005  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.021  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=469, handled=false
+11-03 08:23:54.021  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.022  3146  3240 D InputDispatcher: dispatchMotion - eventTime=325024000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:54.022  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=885.599609, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:54.022  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.022  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:54.022  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:54.022  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:54.022  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.022  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:54.022  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=473, handled=true
+11-03 08:23:54.022  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.023  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=474, handled=false
+11-03 08:23:54.023  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.038  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=472, handled=false
+11-03 08:23:54.038  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.038  3146  3240 D InputDispatcher: dispatchMotion - eventTime=325041000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:54.038  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=779.519531, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:54.038  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:54.038  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.038  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:54.038  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:54.038  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:54.038  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:54.038  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.039  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:54.039  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=477, handled=false
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=476, handled=true
+11-03 08:23:54.039  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=475, handled=false
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.054  3146  3240 D InputDispatcher: dispatchMotion - eventTime=325057000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:54.054  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=679.679688, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:54.054  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.054  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:54.054  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:54.054  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:54.054  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.054  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:54.054  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.054  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=480, handled=false
+11-03 08:23:54.055  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.060  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=479, handled=true
+11-03 08:23:54.060  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.069  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=478, handled=false
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.070  3146  3240 D InputDispatcher: dispatchMotion - eventTime=325072000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=MOVE, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:54.070  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=586.080078, pressure=1.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:54.070  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.070  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:54.070  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:54.070  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:54.070  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.070  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:54.070  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=483, handled=false
+11-03 08:23:54.070  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.072  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=482, handled=true
+11-03 08:23:54.073  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.088  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=481, handled=false
+11-03 08:23:54.088  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.088  3146  3240 D InputDispatcher: dispatchMotion - eventTime=325091000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, policyFlags=0x6b000000, action=UP, actionButton=0x0, flags=0x0, metaState=0x0, buttonState=0x0,edgeFlags=0x0, xPrecision=1.000000, yPrecision=1.000000, downTime=324839000000
+11-03 08:23:54.089  3146  3240 D InputDispatcher:   Pointer 0: id=0, toolType=FINGER, x=540.000000, y=480.000000, pressure=0.000000, size=1.000000, touchMajor=0.000000, touchMinor=0.000000, toolMajor=0.000000, toolMinor=0.000000, orientation=0.000000
+11-03 08:23:54.089  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ prepareDispatchCycle - flags=FOREGROUND | SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.089  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (TRANSLATE)
+11-03 08:23:54.089  3146  3240 D InputDispatcher:             1.0000  -0.0000  -28.0000
+11-03 08:23:54.089  3146  3240 D InputDispatcher:             -0.0000  1.0000  -979.0000
+11-03 08:23:54.089  3146  3240 D InputDispatcher:             0.0000  0.0000  1.0000
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ prepareDispatchCycle - flags=SPLIT | DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000001 
+11-03 08:23:54.089  3146  3240 D InputDispatcher:         pointerId 0: (ROT_0) (IDENTITY)
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:23:54.089  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ finishDispatchCycle - seq=484, handled=false
+11-03 08:23:54.089  3146  3240 D InputDispatcher: channel '205cb9f Application Not Responding: com.google.android.apps.nexuslauncher (server)' ~ startDispatchCycle
+11-03 08:23:54.090  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ finishDispatchCycle - seq=486, handled=false
+11-03 08:23:54.090  3146  3240 D InputDispatcher: channel 'PointerEventDispatcher0 (server)' ~ startDispatchCycle
+11-03 08:23:54.092  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ finishDispatchCycle - seq=485, handled=true
+11-03 08:23:54.092  3146  3240 D InputDispatcher: channel '[Gesture Monitor] edge-swipe (server)' ~ startDispatchCycle

@@ -1,0 +1,2 @@
+ 3146  3083 R<    0      system_server
+ 8322  3083 R<    0      com.patty60723.tearoff

@@ -1,0 +1,6 @@
+tag=inject-bg-1-1-after-tap
+host_time=2026-11-03T08:26:09.898Z
+device_uptime=460.73
+device_time=11-03 08:26:09
+tap=483 1088
+target=395 1025 572 1151

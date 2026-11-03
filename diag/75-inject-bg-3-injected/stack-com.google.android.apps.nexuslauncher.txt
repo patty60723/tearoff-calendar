@@ -1,0 +1,2 @@
+=== sample 1
+（讀不到 com.google.android.apps.nexuslauncher 的 traces）

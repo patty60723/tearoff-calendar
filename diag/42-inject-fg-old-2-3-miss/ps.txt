@@ -1,0 +1,3 @@
+ 3146  3083 S<    do_epoll_wait system_server
+12346  3083 S<    do_epoll_wait com.patty60723.tearoff
+12632  3083 S     do_epoll_wait com.google.android.apps.nexuslauncher

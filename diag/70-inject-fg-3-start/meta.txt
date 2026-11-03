@@ -1,0 +1,4 @@
+tag=inject-fg-3-start
+host_time=2026-11-03T08:35:32.251Z
+device_uptime=1023.06
+device_time=11-03 08:35:32

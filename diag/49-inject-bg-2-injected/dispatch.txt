@@ -1,0 +1,12 @@
+11-03 08:30:36.929  3146  3240 D InputDispatcher: dispatchEventToCurrentInputTargets
+11-03 08:30:36.929  3146  3240 D InputDispatcher: channel 'f2cb81 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ prepareDispatchCycle - flags=DISPATCH_AS_IS, globalScaleFactor=1.000000, pointerIds=00000000000000000000000000000000 
+11-03 08:30:36.929  3146  3240 D InputDispatcher:         default (ROT_0) (IDENTITY)
+11-03 08:30:36.929  3146  3240 D InputDispatcher: channel 'f2cb81 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:30:37.066  3146  3240 D InputDispatcher: channel 'f2cb81 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ finishDispatchCycle - seq=1582, handled=true
+11-03 08:30:37.067  3146  3240 D InputDispatcher: channel 'f2cb81 com.patty60723.tearoff/com.patty60723.tearoff.MainActivity (server)' ~ startDispatchCycle
+11-03 08:30:40.098  3146  3240 D InputDispatcher: dispatchKey - eventTime=731100000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x0, flags=0x0, keyCode=0x3e, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=731100000000
+11-03 08:30:40.098  3146  3240 W InputDispatcher: Waiting because no window has focus but ActivityRecord{f45d97 u0 com.patty60723.tearoff/.MainActivity t15} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-03 08:30:45.099  3146  3240 E InputDispatcher: Dropping KEY event because there is no focused window
+11-03 08:30:45.100  3146  3240 D InputDispatcher: dispatchKey - eventTime=731100000000, deviceId=-1, source=0x0, displayId=-1, policyFlags=0x6b000000, action=0x1, flags=0x0, keyCode=0x3e, scanCode=0x0, metaState=0x0, repeatCount=0, downTime=731100000000
+11-03 08:30:45.100  3146  3240 W InputDispatcher: Waiting because no window has focus but ActivityRecord{f45d97 u0 com.patty60723.tearoff/.MainActivity t15} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-03 08:30:50.105  3146  3240 I InputDispatcher: Dropped event because it is stale.

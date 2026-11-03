@@ -1,0 +1,4 @@
+=== sample 1
+（com.patty60723.tearoff 沒有在執行）
+=== sample 2
+（com.patty60723.tearoff 沒有在執行）

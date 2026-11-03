@@ -1,0 +1,34 @@
+=== sample 1
+"main" prio=5 tid=1 Native
+  | group="main" sCount=1 ucsCount=0 flags=1 obj=0x73701e08 self=0x7da4ca5d82c0
+  | sysTid=8965 nice=0 cgrp=foreground sched=0/0 handle=0x7da7369ae4f8
+  | state=S schedstat=( 173871744 1589067234 584 ) utm=10 stm=6 core=1 HZ=100
+  | stack=0x7fff8926e000-0x7fff89270000 stackSize=8188KB
+  | held mutexes=
+  native: #00 pc 0005db96  /apex/com.android.runtime/lib64/bionic/libc.so (syscall+22) (BuildId: fa337969c798946280caa45e2d71a2e7)
+  native: #01 pc 000624a0  /apex/com.android.runtime/lib64/bionic/libc.so (__futex_wait_ex+144) (BuildId: fa337969c798946280caa45e2d71a2e7)
+  native: #02 pc 000cc3a2  /apex/com.android.runtime/lib64/bionic/libc.so (pthread_cond_wait+50) (BuildId: fa337969c798946280caa45e2d71a2e7)
+  native: #03 pc 00052f7e  /system/lib64/libc++.so (std::__1::condition_variable::wait+14) (BuildId: 3324cfa90a3aa967ca9e5c4269b1b7f2)
+  native: #04 pc 00052f4a  /system/lib64/libc++.so (std::__1::__assoc_sub_state::__sub_wait+90) (BuildId: 3324cfa90a3aa967ca9e5c4269b1b7f2)
+  native: #05 pc 00052df0  /system/lib64/libc++.so (std::__1::__assoc_sub_state::copy+64) (BuildId: 3324cfa90a3aa967ca9e5c4269b1b7f2)
+  native: #06 pc 00052d85  /system/lib64/libc++.so (std::__1::future<void>::get+21) (BuildId: 3324cfa90a3aa967ca9e5c4269b1b7f2)
+  native: #07 pc 007041da  /system/lib64/libhwui.so (android::uirenderer::renderthread::RenderProxy::setStopped+330) (BuildId: 428825c8c10bbbc19334086c16db5553)
+  at android.graphics.HardwareRenderer.nSetStopped(Native method)
+  at android.graphics.HardwareRenderer.setStopped(HardwareRenderer.java:525)
+  at android.view.ViewRootImpl.performDraw(ViewRootImpl.java:4676)
+  at android.view.ViewRootImpl.performTraversals(ViewRootImpl.java:3822)
+  at android.view.ViewRootImpl.doTraversal(ViewRootImpl.java:2465)
+  at android.view.ViewRootImpl$TraversalRunnable.run(ViewRootImpl.java:9305)
+  at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1339)
+  at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1348)
+  at android.view.Choreographer.doCallbacks(Choreographer.java:952)
+  at android.view.Choreographer.doFrame(Choreographer.java:882)
+  at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:1322)
+  at android.os.Handler.handleCallback(Handler.java:958)
+  at android.os.Handler.dispatchMessage(Handler.java:99)
+  at android.os.Looper.loopOnce(Looper.java:205)
+  at android.os.Looper.loop(Looper.java:294)
+  at android.app.ActivityThread.main(ActivityThread.java:8177)
+  at java.lang.reflect.Method.invoke(Native method)
+  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)

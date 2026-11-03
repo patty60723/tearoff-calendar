@@ -1,0 +1,4 @@
+tag=inject-fg-old-2-start
+host_time=2026-11-03T08:27:23.408Z
+device_uptime=534.23
+device_time=11-03 08:27:23

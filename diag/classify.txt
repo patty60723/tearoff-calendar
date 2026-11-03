@@ -1,0 +1,18 @@
+control-1-1: verdict=HANDLED; reason=state true -> false; evidence=
+inject-fg-old-1-1: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-old-1-2: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-old-1-3: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-1-1: verdict=HANDLED; reason=state true -> false; evidence=
+inject-bg-1-1: verdict=HANDLED; reason=state true -> false; evidence=
+control-2-1: verdict=HANDLED; reason=state true -> false; evidence=
+inject-fg-old-2-1: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-old-2-2: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-old-2-3: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-2-1: verdict=HANDLED; reason=state true -> false; evidence=
+inject-bg-2-1: verdict=HANDLED; reason=state true -> false; evidence=
+control-3-1: verdict=HANDLED; reason=state true -> false; evidence=
+inject-fg-old-3-1: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-old-3-2: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-old-3-3: verdict=COORDINATE_MISS; reason=target is not on screen (computed [395, 1025, 572, 1151]; page not scrolled as assumed); evidence=dispatch to app=8 handled=['true']
+inject-fg-3-1: verdict=HANDLED; reason=state true -> false; evidence=
+inject-bg-3-1: verdict=HANDLED; reason=state true -> false; evidence=

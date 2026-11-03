@@ -1,0 +1,4 @@
+tag=inject-bg-1-injected
+host_time=2026-11-03T08:25:33.605Z
+device_uptime=424.41
+device_time=11-03 08:25:33

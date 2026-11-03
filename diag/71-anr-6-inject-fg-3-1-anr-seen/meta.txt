@@ -1,0 +1,4 @@
+tag=anr-6-inject-fg-3-1-anr-seen
+host_time=2026-11-03T08:35:41.556Z
+device_uptime=1031.87
+device_time=11-03 08:35:40

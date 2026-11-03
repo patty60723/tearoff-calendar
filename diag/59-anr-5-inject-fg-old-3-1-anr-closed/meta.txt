@@ -1,0 +1,4 @@
+tag=anr-5-inject-fg-old-3-1-anr-closed
+host_time=2026-11-03T08:33:32.697Z
+device_uptime=903.70
+device_time=11-03 08:33:32
