@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7-4a：ANR 與模擬器驗收可靠性診斷
 
 > 日期：2026-11-01　分支：`feature/p7-4a-anr-diagnosis`（從 `docs/p7-next-plan` 分出，基準 `main` `1b3f0c2`）
-> 狀態：**2026-11-03 驗收通過、結案（Blocker 0）**。人工注入的座標錯誤已證實並修正；**#68／#79 自然發生的根因仍是 Unknown**（推定：腳本座標問題，未證實），不標成已解決。已併入 P7-3 工作分支 `feature/p7-3-consistency`。沒有改 App 程式、美術、golden 或小工具版面；只改 `tools/emulator/`、新的診斷 workflow、`build.yml` 的腳本自我測試與文件。不開 PR、不合併 main。
+> 狀態：**2026-11-03 驗收通過、結案（Blocker 0）**。人工注入的座標錯誤已證實並修正；**#68／#79 自然發生的根因仍是 Unknown**（推定：腳本座標問題，未證實），不標成已解決。已併入 P7-3 工作分支 `feature/p7-3-consistency`。**2026-11-03 補充**：模擬器 #100（P7-3 分支）自然發生同類的 launcher ANR（`Application does not have a focused window`），截圖顯示對話框開著時頁面沒捲到最底，修正後的流程 3／3 通過——記錄為「同類自然 ANR 已證實修正流程有效」；#68／#79 個別事件仍是 Unknown（見 [P7-3 報告](character-p7-3-consistency.md) §5.1）。沒有改 App 程式、美術、golden 或小工具版面；只改 `tools/emulator/`、新的診斷 workflow、`build.yml` 的腳本自我測試與文件。不開 PR、不合併 main。
 > 相關：[P7 計畫](character-p7-plan.md) §P7-4a・[P7 後續規劃](character-p7-next-plan.md) §5（初步調查）
 
 證據分類：**自然發生**（日常驗收 #29～#79 的紀錄）、**人工注入**（診斷 workflow 用 `adb root` 暫停 Pixel Launcher）、**對照**（同一個診斷 workflow、不注入）。人工注入只是「同一種外觀的故障」，不等於自然發生的原因已經證實。
