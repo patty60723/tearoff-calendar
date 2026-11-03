@@ -537,6 +537,31 @@ if [ $placed = 1 ]; then
     home_shot launcher-8-app-toggle
     diff=$(screen_diff launcher-7-page14 launcher-8-app-toggle)
     check "在 App 卸下包袱後，桌面小工具跟著換" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
+    # P7-3：不只「有變」，還要跟同樣狀態直接更新出來的小工具一樣（第 14 頁、雨、卸下包袱、戴紙帽＝launcher-2-bundle-off）
+    diff=$(screen_diff launcher-2-bundle-off launcher-8-app-toggle)
+    check "P7-3：App 卸下包袱後的桌面小工具＝同樣狀態直接更新的小工具" "$([ "${diff%.*}" -le 200 ] 2>/dev/null && echo 0 || echo 1)" "跟 launcher-2-bundle-off 差 $diff 個像素"
+    # P7-3：點故事卡上的墨丸只換台詞與動作，桌面小工具不變
+    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+    handle_anr p73-mowan; ensure_foreground
+    if locate p73-mowan story_mowan; then
+      adb shell input tap $TAP_X $TAP_Y; sleep 2
+      home_shot launcher-8b-after-mowan-tap
+      diff=$(screen_diff launcher-8-app-toggle launcher-8b-after-mowan-tap)
+      check "P7-3：點故事卡的墨丸後，桌面小工具不變" "$([ "${diff%.*}" -le 200 ] 2>/dev/null && echo 0 || echo 1)" "跟點之前差 $diff 個像素"
+    else
+      check "P7-3：點故事卡的墨丸後，桌面小工具不變" 1 "找不到看得到的故事卡墨丸"
+    fi
+    # P7-3：在 App 背回包袱，桌面小工具回到背著包袱的樣子（＝launcher-7-page14）。點擊用 tap_toggle（遇到 launcher ANR 照樣 FAIL＋診斷）
+    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+    bundle_on() { adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'name="bundleOn" value="[a-z]*"' | grep -o 'true\|false'; }
+    if tap_toggle p73-bundle "P7-3 背回包袱" story_bundle bundle_on; then
+      sleep 2
+      home_shot launcher-8c-app-bundle-on
+      diff=$(screen_diff launcher-7-page14 launcher-8c-app-bundle-on)
+      check "P7-3：App 背回包袱後的桌面小工具＝背著包袱時的小工具" "$([ "${diff%.*}" -le 200 ] 2>/dev/null && echo 0 || echo 1)" "跟 launcher-7-page14 差 $diff 個像素"
+    else
+      check "P7-3：App 背回包袱後的桌面小工具＝背著包袱時的小工具" 1 "包袱入口點了沒切換（見上面的 WARN 與診斷）"
+    fi
   else
     warn "找不到 App 的包袱入口，沒測 App 觸發的更新"
   fi
