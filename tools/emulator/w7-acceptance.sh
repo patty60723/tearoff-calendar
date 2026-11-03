@@ -36,6 +36,8 @@ if bash "$(dirname "$0")/test-quiet.sh" > "$OUT/test-quiet.txt" 2>&1; then log "
 else check "腳本測試（test-quiet.sh）" 1 "見 test-quiet.txt"; fi
 if bash "$(dirname "$0")/test-recover.sh" > "$OUT/test-recover.txt" 2>&1; then log "腳本測試（test-recover.sh）：全部通過"
 else check "腳本測試（test-recover.sh）" 1 "見 test-recover.txt"; fi
+if bash "$(dirname "$0")/test-diag.sh" > "$OUT/test-diag.txt" 2>&1; then log "腳本測試（test-diag.sh）：全部通過"
+else check "腳本測試（test-diag.sh）" 1 "見 test-diag.txt"; fi
 
 adb install -r "$APK" >/dev/null || { check "安裝 APK" 1 "$APK"; finish; }
 adb shell svc power stayon true
@@ -154,6 +156,10 @@ to_gif() {
 crashed() { adb logcat -d | grep -q "FATAL EXCEPTION" ; }
 # 點擊前的遮擋處理（其他 App 的「沒有回應」對話框、焦點跑掉、入口位置變了）：tools/emulator/recover.sh（test-recover.sh 有測試）
 . "$(dirname "$0")/recover.sh"
+# P7-4a：出事的時候（「沒有回應」對話框、點了沒反應）自動留下診斷證據（diag/、job log）。只收集，不改任何結果；
+# 日常驗收不用 root，正常點擊前不多花時間（tools/emulator/diag.sh）
+mkdir -p "$OUT/diag"
+. "$(dirname "$0")/diag.sh"
 
 log ""
 log "== 1. 8 種天氣（第 14 頁）=="
@@ -221,6 +227,11 @@ if [ -n "$b" ]; then
   for k in 1 2 3; do sleep 1.5; tap_bundle $k && toggled=$((toggled + 1)); done
   wait $REC
   check "包袱入口每一下都切換" "$([ "$toggled" = 3 ] && echo 0 || echo 1)" "3 下裡切換了 $toggled 下"
+  # P7-4a：沒有全部切換時，把有前後快照的點擊逐一分類（只是說明，不改上面的 FAIL）
+  if [ "$toggled" != 3 ] && ls "$OUT/diag" 2>/dev/null | grep -q -- "-before-tap$"; then
+    log "  診斷分類（不影響結果；證據在 diag/）："
+    python3 "$(dirname "$0")/diag_summary.py" classify-all "$OUT/diag" | sed 's/^/    /' | tee -a "$LOG"
+  fi
   adb pull /sdcard/rec.mp4 "$OUT/video/bundle-toggle-full.mp4" >/dev/null 2>&1
   to_gif bundle-toggle
   check "包袱點擊不閃退" "$(crashed && echo 1 || echo 0)" "點三下"
@@ -526,6 +537,31 @@ if [ $placed = 1 ]; then
     home_shot launcher-8-app-toggle
     diff=$(screen_diff launcher-7-page14 launcher-8-app-toggle)
     check "在 App 卸下包袱後，桌面小工具跟著換" "$([ "${diff%.*}" -gt 200 ] 2>/dev/null && echo 0 || echo 1)" "跟上一張差 $diff 個像素"
+    # P7-3：不只「有變」，還要跟同樣狀態直接更新出來的小工具一樣（第 14 頁、雨、卸下包袱、戴紙帽＝launcher-2-bundle-off）
+    diff=$(screen_diff launcher-2-bundle-off launcher-8-app-toggle)
+    check "P7-3：App 卸下包袱後的桌面小工具＝同樣狀態直接更新的小工具" "$([ "${diff%.*}" -le 200 ] 2>/dev/null && echo 0 || echo 1)" "跟 launcher-2-bundle-off 差 $diff 個像素"
+    # P7-3：點故事卡上的墨丸只換台詞與動作，桌面小工具不變
+    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+    handle_anr p73-mowan; ensure_foreground
+    if locate p73-mowan story_mowan; then
+      adb shell input tap $TAP_X $TAP_Y; sleep 2
+      home_shot launcher-8b-after-mowan-tap
+      diff=$(screen_diff launcher-8-app-toggle launcher-8b-after-mowan-tap)
+      check "P7-3：點故事卡的墨丸後，桌面小工具不變" "$([ "${diff%.*}" -le 200 ] 2>/dev/null && echo 0 || echo 1)" "跟點之前差 $diff 個像素"
+    else
+      check "P7-3：點故事卡的墨丸後，桌面小工具不變" 1 "找不到看得到的故事卡墨丸"
+    fi
+    # P7-3：在 App 背回包袱，桌面小工具回到背著包袱的樣子（＝launcher-7-page14）。點擊用 tap_toggle（遇到 launcher ANR 照樣 FAIL＋診斷）
+    adb shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2; scroll_down
+    bundle_on() { adb shell run-as $PKG cat shared_prefs/mowan.xml | tr -d '\r' | grep -o 'name="bundleOn" value="[a-z]*"' | grep -o 'true\|false'; }
+    if tap_toggle p73-bundle "P7-3 背回包袱" story_bundle bundle_on; then
+      sleep 2
+      home_shot launcher-8c-app-bundle-on
+      diff=$(screen_diff launcher-7-page14 launcher-8c-app-bundle-on)
+      check "P7-3：App 背回包袱後的桌面小工具＝背著包袱時的小工具" "$([ "${diff%.*}" -le 200 ] 2>/dev/null && echo 0 || echo 1)" "跟 launcher-7-page14 差 $diff 個像素"
+    else
+      check "P7-3：App 背回包袱後的桌面小工具＝背著包袱時的小工具" 1 "包袱入口點了沒切換（見上面的 WARN 與診斷）"
+    fi
   else
     warn "找不到 App 的包袱入口，沒測 App 觸發的更新"
   fi

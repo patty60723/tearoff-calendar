@@ -71,6 +71,10 @@ class CalendarWidget : AppWidgetProvider() {
     }
 
     companion object {
+        /** 測試用（P7-3）：每次送給系統的 RemoteViews（小工具 id、內容）。正式執行時是 null */
+        @Volatile
+        internal var onUpdated: ((Int, RemoteViews) -> Unit)? = null
+
         fun refreshAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, CalendarWidget::class.java))
@@ -90,6 +94,7 @@ class CalendarWidget : AppWidgetProvider() {
                     val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).toFloat()
                     build(context, page, PageLayout.fitting(width, height), wideWidthDp = width)
                 }
+                onUpdated?.invoke(id, views)
                 manager.updateAppWidget(id, views)
             }
         }

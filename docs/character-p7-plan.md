@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7 計畫：正式化、首頁 UI/UX、相容性與 QA
 
 > 日期：2026-10-29　分支：`feature/mowan-weather-poses`
-> **狀態：P7-0 通過；P7-1 第一停點（golden，2026-10-30 鎖定）與第二停點（移除舊火柴人，見 [清理報告](character-p7-1-cleanup.md)）已結案（2026-10-30 核准）。****P7-2：2026-11-01 審核通過**（[實作報告](character-p7-2-implementation.md)；實機與 TalkBack Not tested），已建立 PR（目標 main），合併前等待最後確認。P7-3 尚未開始；V3 是唯一的角色。
+> **狀態（2026-11-01）：P7-0、P7-1、P7-2 結案；P5～P7-2 已由 PR #1 合併 `main`（merge commit `1b3f0c2`，main CI #162 通過、54 張 PNG golden 一致）。** P7-2 的實機與 TalkBack 仍是 Not tested。後續順序依 [P7 後續規劃](character-p7-next-plan.md)（2026-11-01 核准）：P7-4a（2026-11-03 結案；#68／#79 自然發生的根因仍 Unknown）→ P7-3（狀態一致性，2026-11-03 驗收通過，[報告](character-p7-3-consistency.md)；D-55）→ **P7-7 版面部分（下一階段，尚未開始）** → P7-4b → P7-5 → P7-6 → P7-8。V3 是唯一的角色。
 > 相關文件：[實作計畫 P7](character-implementation-plan.md#p7--整合效能qa)・[P6 結案報告](character-p6-acceptance.md)・[未定案事項](character-open-decisions.md)
 
 ## 0. 前提（2026-10-29 確認）
@@ -14,17 +14,20 @@
 
 每階段結束停下來審核。順序照風險：先修測試可靠性，再一次把舊程式拿掉（之後所有驗收都只看 V3），再做 UI，最後是相容性、實機與完整回歸。
 
+> 2026-11-01：P7-4 拆成 P7-4a（ANR 診斷）與 P7-4b（相容性）；執行順序改成 P7-4a → P7-3 → P7-4b → P7-5 → P7-6 → P7-8（[後續規劃](character-p7-next-plan.md)）。下表保留原本的編號順序。
+
 | 階段 | 內容 | 主要檔案 | 停點 |
 |---|---|---|---|
 | **P7-0** | 測試可靠性：`count_updates()` 少了開始或結束標記、或順序錯誤時 FAIL（不能當成 0 次） | `tools/emulator/quiet.sh`、`test-quiet.sh` | 小，跟 P7-1 第一停點一起審 |
 | **P7-1 第一停點** | V3 正式幾何 golden＋代表組合 PNG golden（刪舊程式之前） | 測試、`app/src/test/resources/mowan/` | **golden 審核（不自行批准）** |
 | **P7-1 第二停點** | 刪舊火柴人、ViewFlipper、6 張輪播、V3 除錯開關；新裝預設 V3；golden 前後一致 | 見第 2 節 | 清理審核 |
 | **P7-2** | 首頁：城市入口精簡、拿掉日曆下方的獨立天氣列、彩蛋入口提案（第 3 節）。**先出候選圖、審核後才實作** | `activity_main.xml`、`MainActivity.kt`、strings | 候選圖審核 → 實作 → 視覺審核 |
-| **P7-3** | 故事卡、日曆頁、小工具的狀態一致性 | 測試為主 | 一致性矩陣 |
-| **P7-4** | 相容性：Android 8–14、不同 launcher、小工具尺寸調整與 WIDE | 模擬器 workflow、`WidgetHostActivity` | 模擬器矩陣 |
+| **P7-4a** | ANR 與模擬器驗收可靠性診斷（#68／#79，原因 Unknown）：獨立的診斷 workflow、證據收集；**不改 App** | `tools/emulator/`、診斷 workflow | 診斷報告（2026-11-01 核准，排在 P7-3 之前） |
+| **P7-3** | 故事卡、日曆頁、小工具的狀態一致性（驗收目標不變；排在 P7-4a 之後） | 測試為主 | 一致性矩陣 |
+| **P7-4b** | 相容性：Android 8–14、不同 launcher、小工具尺寸調整與 WIDE（原 P7-4；排在 P7-7 版面部分之後） | 模擬器 workflow、`WidgetHostActivity` | 模擬器矩陣 |
 | **P7-5** | 真正跨午夜的日期與節日更新 | 模擬器腳本 | 模擬器結果 |
 | **P7-6** | 效能：站姿重畫兩次、更新耗時、CPU、記憶體、耗電 | `MowanView.kt`、量測腳本 | 模擬器量測＋實機清單 |
-| **P7-7** | 無障礙：Reduced Motion、TalkBack、觸控範圍、字體放大 | 版面、`contentDescription` | 檢查清單 |
+| **P7-7** | 無障礙：Reduced Motion、TalkBack、觸控範圍、字體放大。**版面部分（D-54、WIDE 月份對比）提前到 P7-4b 之前**（2026-11-01 核准；P7-4a 這一輪不實作） | 版面、`contentDescription` | 檢查清單 |
 | **P7-8** | 完整回歸：3 節日 × 8 天氣 × 14 頁 × 裝備 | 測試 | 回歸報告、P7 結案 |
 
 ### P7-0 測試可靠性
@@ -84,7 +87,14 @@
 - 自動測試：每種狀態改變之後比對三處的「狀態摘要」（日期、節日、頁數、裝備、天氣），不比像素。
 - 模擬器：撕頁、換裝備、換天氣、換日之後，桌面小工具截圖與 App 一致（已有一部分，P6-4c）。
 
-### P7-4 相容性、小工具尺寸與 WIDE
+### P7-4a ANR 與模擬器驗收可靠性診斷（2026-11-01 新增）
+
+- 問題：模擬器 #68／#79（以及 #78、更早的 #29、#35、#52、#54、#58～#61）在第 4 段出現 Pixel Launcher 的「沒有回應」對話框，之後包袱入口點了都沒切換。**原因 Unknown**；不能只因為對話框屬於 launcher 就排除 App 或腳本。
+- 要釐清：(1) 當時的輸入焦點與觸控實際送到哪個視窗；(2) App 主執行緒是否正常處理事件；(3) 包袱沒切換是輸入沒送達、被遮擋、座標錯，還是 App 收到後沒完成；(4) 驗收能不能分辨 App 功能失敗與模擬器環境失效。
+- 做法：獨立的診斷 workflow（可以 `adb root`、暫停 launcher 注入故障，要有對照組，標明「人工注入」與「自然發生」）；日常驗收只加證據收集，不改門檻、不加重試。
+- 驗收：故障出現時拿得到足以區分原因的證據；診斷工具有正常、缺資料、錯誤輸入的測試；`test-quiet.sh`、`test-recover.sh` 通過；CI 不會因此假綠。
+
+### P7-4b（原 P7-4）相容性、小工具尺寸與 WIDE
 
 - **Android 版本**：模擬器 workflow 改成矩陣：API 26（Android 8.0）、28、30、33、34。Android 8–11 走「只送一個版面」（`PageLayout.fitting`），Android 12 以上走尺寸對應的 RemoteViews。
 - **Launcher**：API 34 的 Pixel Launcher（已有）；舊版本模擬器的 Launcher3／Quickstep。各廠牌 launcher 只能實機（Not tested 清單）。
@@ -200,7 +210,8 @@ A／B 完整首頁候選圖、320dp、字體 200%、日曆接故事卡的流程�
 | P7-1 第二停點 | 沒有舊火柴人的程式與開關；新裝即 V3；既有功能測試改寫後通過；golden 清理前後相同 | 回歸全部 PASS（拿掉的項目列出） | — |
 | P7-2 | 城市入口 ≥ 48dp、TalkBack 描述、字體 200%／320dp 不截斷；彩蛋規則（三種情況） | 截圖、彩蛋錄影、TalkBack 焦點順序 | 實際手感、TalkBack 朗讀 |
 | P7-3 | 三處狀態摘要一致 | 撕頁、換裝備、換天氣、換日後桌面小工具一致 | — |
-| P7-4 | `PageLayout.fitting` 各尺寸 | API 26／28／30／33／34；WIDE 真的被選到；尺寸調整 | 各廠牌 launcher |
+| P7-4a | 診斷工具的測試（正常、缺資料、錯誤輸入）；腳本自我測試 | 診斷 workflow（對照組、人工注入）；日常驗收在自然發生時留下證據 | — |
+| P7-4b | `PageLayout.fitting` 各尺寸 | API 26／28／30／33／34；WIDE 真的被選到；尺寸調整 | 各廠牌 launcher |
 | P7-5 | — | 真的跨午夜（前景、背景、三個節日） | 實機跨午夜 |
 | P7-6 | 筆觸每秒 6 張、重畫 ≤ 7 次 | 重畫次數、小工具更新耗時（比較用） | frame time、CPU、記憶體、耗電 |
 | P7-7 | 描述、觸控範圍、字體放大 | Reduced Motion 不重畫（已有） | TalkBack 實際朗讀 |

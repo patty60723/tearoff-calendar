@@ -1,0 +1,84 @@
+name: Emulator diagnose (P7-4a)
+
+# P7-4a：ANR 與模擬器驗收可靠性的診斷，不是驗收。
+# 對照組與「人工注入」（adb root 暫停 Pixel Launcher）交錯進行，每次點擊前後存快照。
+# 只在 P7-4a 的分支改到診斷相關檔案時跑；不影響 Build APK 與 Emulator acceptance。
+on:
+  push:
+    branches: [feature/p7-4a-anr-diagnosis, feature/p7-3-consistency]
+    paths:
+      - 'tools/emulator/**'
+      - '.github/workflows/emulator-diagnose.yml'
+  workflow_dispatch:
+    inputs:
+      trials:
+        description: 每組（對照、人工注入）各幾次
+        default: '3'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # 跟 Emulator acceptance 同樣的模擬器設定
+      - name: Diagnose on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          # 診斷工具本身失敗（自我測試、證據不足、對照組沒通過）才以非零結束
+          script: bash tools/emulator/p7-4a-diagnose.sh app/build/outputs/apk/debug/app-debug.apk diag-out ${{ inputs.trials || '3' }}
+
+      - name: Show report
+        if: always()
+        run: |
+          cat diag-out/report.txt || true
+          { echo '## P7-4a 診斷'; echo; echo '```'; cat diag-out/report.txt 2>/dev/null || echo '沒有報告'; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p7-4a-diagnose
+          path: diag-out
+          if-no-files-found: ignore
+
+      # 原始資料推到 screenshots/<分支>-diag（artifact 下載不了的環境也能用 git 拿）
+      - name: Push results to a branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -d diag-out ] || exit 0
+          cd diag-out
+          git init -q
+          git checkout -q -b shots
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add .
+          git commit -qm "p7-4a diagnose ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "shots:screenshots/${GITHUB_REF_NAME}-diag"

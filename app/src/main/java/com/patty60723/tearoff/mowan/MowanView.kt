@@ -272,6 +272,15 @@ class MowanView @JvmOverloads constructor(
 
     private var lastReduced: Boolean? = null
 
+    /** 故事卡這一格實際用的參數（P7-3 一致性測試用）；still＝靜態代表姿勢（關閉動畫），performing＝節日演出中 */
+    data class FrameSpec(
+        val parts: Set<String>, val hatOn: Boolean, val bundleOn: Boolean, val weather: Mowan.Weather,
+        val festival: Festival?, val art: ArtConfig, val still: Boolean, val performing: Boolean,
+    )
+
+    /** 測試用（P7-3）：每畫一格就回報實際用的參數。正式執行時是 null */
+    internal var onFrame: ((FrameSpec) -> Unit)? = null
+
     override fun onDraw(canvas: Canvas) {
         stop()
         val now = now()
@@ -313,6 +322,7 @@ class MowanView @JvmOverloads constructor(
                 ))
             }
         }
+        onFrame?.invoke(FrameSpec(parts, hatOn, bundleOn, weather, f, art, sample.still, performing))
         painter.draw(
             canvas, paddingLeft.toFloat(), paddingTop.toFloat(),
             (width - paddingLeft - paddingRight).toFloat(), (height - paddingTop - paddingBottom).toFloat(),
