@@ -2,6 +2,15 @@
 
 Android 桌面小工具：傳統手撕日曆的樣子，每天一頁，有農曆、節氣、節日和農民曆的宜忌。
 
+📦 **[下載最新版 APK](https://github.com/patty60723/tearoff-calendar/releases/latest)**
+
+**技術**：Kotlin · Android App Widget · [lunar-java](https://github.com/6tail/lunar-java) 離線計算農曆、節氣與宜忌 · AlarmManager 午夜換頁 · Robolectric 單元與截圖測試 · GitHub Actions 自動打包並發佈 Release
+
+**亮點**
+- **擬真手撕日曆**：農曆、干支、節氣、台灣國定假日與農民曆宜忌，每天自動換頁
+- **會長大的火柴人**：每天撕一頁，「墨丸」就從一條線慢慢長出頭、手、腳，依宜忌發生小插曲
+- **桌面上的動畫**：小工具裡的火柴人會動，故事進度和動作都跟 App 同步
+
 ## 安裝
 
 1. 用手機打開這個 repo 的 **Releases → 最新版**，下載 `tearoff-calendar.apk`。
