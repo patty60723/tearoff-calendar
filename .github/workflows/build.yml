@@ -26,6 +26,7 @@ jobs:
         run: |
           bash tools/emulator/test-quiet.sh
           bash tools/emulator/test-recover.sh
+          bash tools/emulator/test-diag.sh
 
       - name: Test and build
         run: ./gradlew testDebugUnitTest assembleDebug

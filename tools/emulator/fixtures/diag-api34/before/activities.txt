@@ -1,0 +1,2 @@
+    topResumedActivity=ActivityRecord{a541db6 u0 com.patty60723.tearoff/.MainActivity t8}
+  ResumedActivity: ActivityRecord{a541db6 u0 com.patty60723.tearoff/.MainActivity t8}

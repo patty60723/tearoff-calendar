@@ -36,6 +36,8 @@ if bash "$(dirname "$0")/test-quiet.sh" > "$OUT/test-quiet.txt" 2>&1; then log "
 else check "腳本測試（test-quiet.sh）" 1 "見 test-quiet.txt"; fi
 if bash "$(dirname "$0")/test-recover.sh" > "$OUT/test-recover.txt" 2>&1; then log "腳本測試（test-recover.sh）：全部通過"
 else check "腳本測試（test-recover.sh）" 1 "見 test-recover.txt"; fi
+if bash "$(dirname "$0")/test-diag.sh" > "$OUT/test-diag.txt" 2>&1; then log "腳本測試（test-diag.sh）：全部通過"
+else check "腳本測試（test-diag.sh）" 1 "見 test-diag.txt"; fi
 
 adb install -r "$APK" >/dev/null || { check "安裝 APK" 1 "$APK"; finish; }
 adb shell svc power stayon true
@@ -154,6 +156,10 @@ to_gif() {
 crashed() { adb logcat -d | grep -q "FATAL EXCEPTION" ; }
 # 點擊前的遮擋處理（其他 App 的「沒有回應」對話框、焦點跑掉、入口位置變了）：tools/emulator/recover.sh（test-recover.sh 有測試）
 . "$(dirname "$0")/recover.sh"
+# P7-4a：出事的時候（「沒有回應」對話框、點了沒反應）自動留下診斷證據（diag/、job log）。只收集，不改任何結果；
+# 日常驗收不用 root，正常點擊前不多花時間（tools/emulator/diag.sh）
+mkdir -p "$OUT/diag"
+. "$(dirname "$0")/diag.sh"
 
 log ""
 log "== 1. 8 種天氣（第 14 頁）=="
@@ -221,6 +227,11 @@ if [ -n "$b" ]; then
   for k in 1 2 3; do sleep 1.5; tap_bundle $k && toggled=$((toggled + 1)); done
   wait $REC
   check "包袱入口每一下都切換" "$([ "$toggled" = 3 ] && echo 0 || echo 1)" "3 下裡切換了 $toggled 下"
+  # P7-4a：沒有全部切換時，把有前後快照的點擊逐一分類（只是說明，不改上面的 FAIL）
+  if [ "$toggled" != 3 ] && ls "$OUT/diag" 2>/dev/null | grep -q -- "-before-tap$"; then
+    log "  診斷分類（不影響結果；證據在 diag/）："
+    python3 "$(dirname "$0")/diag_summary.py" classify-all "$OUT/diag" | sed 's/^/    /' | tee -a "$LOG"
+  fi
   adb pull /sdcard/rec.mp4 "$OUT/video/bundle-toggle-full.mp4" >/dev/null 2>&1
   to_gif bundle-toggle
   check "包袱點擊不閃退" "$(crashed && echo 1 || echo 0)" "點三下"
