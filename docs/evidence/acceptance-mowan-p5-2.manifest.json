@@ -1,0 +1,54 @@
+{
+  "archive": "acceptance-mowan-p5-2.zip",
+  "archive_sha256": "2487e36d338b7ceac58540fe607a77991376d587c11c8c92c4ae6d06b82b6747",
+  "archive_bytes": 605119,
+  "source": {
+    "repository": "patty60723/tearoff-calendar",
+    "branch": "acceptance/mowan-p5-2",
+    "commit": "c5797ed17fc3fc7fb79f0f268b600d2ab94793b2",
+    "commit_date": "2026-10-26T04:16:45+00:00",
+    "commit_subject": "P5-2 小尺寸簡化對照圖（Build APK #59、87e62e0）"
+  },
+  "created_with": "git archive --format=zip --prefix=acceptance-mowan-p5-2/ <commit>",
+  "kind": "human-review evidence (P5-2 small-size simplification comparison images); NOT an app release",
+  "file_count": 6,
+  "total_bytes": 619971,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1110,
+      "sha256": "9705f518cf4768be6ca5f5ec0fdc3b5dabaecaf5f08a5a9a25400605e24ea973",
+      "git_blob": "84069b0a95300b42b6f44c5f7b042a792bae7b61"
+    },
+    {
+      "path": "actual-pixels.png",
+      "bytes": 60917,
+      "sha256": "b3c327db36b1fae4c96a041f45d0b3c96254a69a073ea90f5123ef46dffecbcc",
+      "git_blob": "298892fcea5a53ebbe4c45b24d318dab77f12c87"
+    },
+    {
+      "path": "densities.png",
+      "bytes": 276714,
+      "sha256": "0e01df8721189a65598c45b78afe80114a6b5b57c2d8dac8ba17c9c5544961c9",
+      "git_blob": "e40f4211409ffc31768f322019eff05060dc5f2f"
+    },
+    {
+      "path": "equipment.png",
+      "bytes": 25420,
+      "sha256": "ec35665960669175120de1d188a2f331eb73f0068aaa29782b3b092c85848595",
+      "git_blob": "7928aaee9fc7ef3f6e51d4ae01063920db04095a"
+    },
+    {
+      "path": "sizes.png",
+      "bytes": 56216,
+      "sha256": "1837fd4fe19c10908e1c78bd2d4bd85c496b7a12b718156bdf7cadb043c8577e",
+      "git_blob": "ee0f86aba534800feefae68a705da4fc69adf2f6"
+    },
+    {
+      "path": "weathers-before-after.png",
+      "bytes": 199594,
+      "sha256": "8bc06fb853c473903800fc568bde451f106278ce58637c36810c528b31d4f191",
+      "git_blob": "d30fe25e264888bca3c4a660b551c697756ad4f4"
+    }
+  ]
+}

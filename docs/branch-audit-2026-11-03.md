@@ -1,4 +1,6 @@
-# Branch Audit（2026-11-03，P7-3 合併時）
+# Branch Audit（2026-11-03，P7-3 合併**前**的歷史快照）
+
+> **這份是合併前（`main` = `f48443c`）的快照，保留不改。** 合併後的實際狀態、無法刪除分支的紀錄、修訂後的 squash 判斷方式見 [branch-audit-2026-11-03-post-merge.md](branch-audit-2026-11-03-post-merge.md)。下面「可刪除」「本輪刪除」是當時的建議，不代表已經刪除。
 
 > 基準：`main` `f48443c`（PR #3 合併前）。資料來源：`git ls-remote`、逐一 fetch 後用 `git merge-base --is-ancestor`、`git rev-list --count main..<branch>`、`git diff <branch> main`（偵測 squash 合併）、檔案數與大小、`docs/` 裡的引用次數。
 > 本輪只刪除：`feature/p7-3-consistency`、`feature/p7-4a-anr-diagnosis`（PR #3 合併、main CI 與 golden 確認之後）。其他分支只列出建議，**不刪除、不合併**；驗收素材分支不併進 main。

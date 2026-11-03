@@ -27,6 +27,7 @@ jobs:
           bash tools/emulator/test-quiet.sh
           bash tools/emulator/test-recover.sh
           bash tools/emulator/test-diag.sh
+          bash tools/evidence/test-verify-archive.sh
 
       - name: Test and build
         run: ./gradlew testDebugUnitTest assembleDebug
