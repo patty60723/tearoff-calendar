@@ -110,6 +110,7 @@
                 android:id="@+id/month_en"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:textColor="@color/ink_month_en"
                 android:visibility="gone" />
             <TextView
                 android:id="@+id/label"

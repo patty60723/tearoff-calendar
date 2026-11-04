@@ -6,6 +6,8 @@
     <color name="ink_soft">#8C8378</color>
     <!-- WIDE 小工具的農曆、忌：疊在山丘上也要有 4.5:1（P7-1），比 ink 淡、比 ink_soft 深 -->
     <color name="ink_mid">#4A433D</color>
+    <!-- 英文月份（WIDE、TALL、App 日曆頁）：紙色上 4.82:1（P7-7）。ink_soft 只有 3.52 -->
+    <color name="ink_month_en">#746D64</color>
     <color name="paper">#FBF8F2</color>
     <color name="paper_under">#ECE6DA</color>
     <color name="paper_bottom">#DDD5C6</color>

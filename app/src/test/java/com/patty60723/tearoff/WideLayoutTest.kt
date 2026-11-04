@@ -53,7 +53,7 @@ class WideLayoutTest {
         R.id.label to "節日", R.id.phrase to "宜", R.id.lunar to "農曆", R.id.ji to "忌",
     )
     /** 審核要求 4.5:1 的文字 */
-    private val contrastTargets = listOf(R.id.weekday to "星期", R.id.phrase to "宜", R.id.lunar to "農曆", R.id.ji to "忌")
+    private val contrastTargets = listOf(R.id.weekday to "星期", R.id.month_en to "英文月份", R.id.phrase to "宜", R.id.lunar to "農曆", R.id.ji to "忌")
 
     /** [mowan] false 時不畫角色（量截斷用，快很多；文字版面一樣） */
     private fun widget(day: LocalDate, w: Int, h: Int, mowan: Boolean = false): View {
@@ -248,7 +248,7 @@ class WideLayoutTest {
         report.append("\n" + if (below.isEmpty()) "**全部 ≥ 4.5（最不利像素）。**\n" else "**未達 4.5：${below.size} 項**\n\n" + below.joinToString("\n") { "- $it" } + "\n")
 
         // 2026-10-30 補測：其他文字（只記錄，不設門檻讓測試失敗）。日期數字 ≥ 32sp 算大字（WCAG 3:1），其他 4.5:1
-        val others = listOf(R.id.month to "中文月份", R.id.month_en to "英文月份", R.id.day to "日期數字", R.id.label to "節日名稱")
+        val others = listOf(R.id.month to "中文月份", R.id.day to "日期數字", R.id.label to "節日名稱")
         report.append("\n## 其他文字（補測，只記錄）\n\n日期數字是大字（≥ 18pt），目標 3:1；其他一般文字 4.5:1。\n\n")
         report.append("| 日子 | 大小 | " + others.joinToString(" | ") { it.second } + " |\n|---|---|" + "---|".repeat(others.size) + "\n")
         val otherBelow = mutableListOf<String>()

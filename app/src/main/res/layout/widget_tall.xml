@@ -102,7 +102,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="2dp"
                 android:letterSpacing="0.3"
-                android:textColor="@color/ink_soft"
+                android:textColor="@color/ink_month_en"
                 android:textSize="8sp" />
             <TextView
                 android:id="@+id/day"
