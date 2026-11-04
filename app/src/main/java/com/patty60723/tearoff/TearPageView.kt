@@ -46,6 +46,13 @@ class TearPageView @JvmOverloads constructor(
     /** 高 / 寬 */
     var aspect = 1.45f
 
+    /**
+     * 在「寬 × [aspect]」之外再加的高度（px）。P7-7 候選 C：大字體時左下的天氣三行需要比底部保留更多的空間，
+     * 頁面加高同樣的高度，日期數字的空間不變。字體 100% 時是 0（畫面不變）。
+     */
+    var extraHeight = 0
+        set(value) { if (field != value) { field = value; requestLayout() } }
+
     private val density = resources.displayMetrics.density
     private var front: Bitmap? = null
     private var below: Bitmap? = null
@@ -68,7 +75,7 @@ class TearPageView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = (width * aspect).toInt()
+        val height = (width * aspect).toInt() + extraHeight
         super.onMeasure(
             MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),

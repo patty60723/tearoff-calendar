@@ -301,7 +301,10 @@ class MainActivity : Activity() {
         val page = Almanac.page(newDate ?: today)
 
         pad.removeAllViews()
-        pad.addView(if (newDate == null) coverView() else pageView(newDate))
+        val view = if (newDate == null) coverView() else pageView(newDate)
+        // 這一頁需要的加高（候選 C）；每次換頁各自計算，封面是 0
+        pad.extraHeight = (view.getTag(R.id.bottom_space) as? Int) ?: 0
+        pad.addView(view)
         // 只有最上面那張、而且還有沒撕的頁時才能撕
         pad.tearable = newDate == topDate() && book.nextDate(today) != null
 
@@ -389,6 +392,7 @@ class MainActivity : Activity() {
                 it.bottomMargin = (pageWidthPx * 0.05f).toInt()
             }
         }
+        frame.setTag(R.id.bottom_space, reserveForSun(page))
         frame.addView(page)
         val today = AppClock.today(this)
         if (day.isAfter(today)) {
@@ -406,6 +410,24 @@ class MainActivity : Activity() {
             )
         }
         return frame
+    }
+
+    /**
+     * P7-7 候選 C：左下的天氣三行（今天那頁有天氣、日出、日落）在大字體時比底部保留（84dp）高，會蓋到「忌」。
+     * 需要的空間＝三行的高度＋下邊距＋4dp；不夠時把底部保留加高到需要的高度，回傳多出來的高度（頁面加高同樣多，日期數字的空間不變）。
+     * 字體 100% 時夠用，回傳 0、什麼都不改。
+     */
+    private fun reserveForSun(page: View): Int {
+        val sun = page.findViewById<TextView>(R.id.sun) ?: return 0
+        val space = page.findViewById<View>(R.id.bottom_space) ?: return 0
+        if (sun.visibility == View.GONE || sun.text.isNullOrEmpty()) return 0
+        sun.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        val margin = (sun.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+        val need = sun.measuredHeight + margin + (4 * resources.displayMetrics.density).toInt()
+        val have = space.layoutParams.height
+        if (need <= have) return 0
+        space.layoutParams = space.layoutParams.apply { height = need }
+        return need - have
     }
 
     /**

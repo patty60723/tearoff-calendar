@@ -174,8 +174,9 @@
                 android:textColor="@color/ink_soft"
                 android:textSize="9.5sp" />
 
-            <!-- 留給山丘和火柴人 -->
+            <!-- 留給山丘和火柴人。App 日曆頁在大字體時會加高（P7-7 候選 C，MainActivity.reserveForSun） -->
             <FrameLayout
+                android:id="@+id/bottom_space"
                 android:layout_width="match_parent"
                 android:layout_height="84dp" />
         </LinearLayout>
