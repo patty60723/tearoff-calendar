@@ -378,22 +378,54 @@ class P77SupplementShotsTest {
         relayout(v)
     }
 
+    /**
+     * T5：T3＋日期數字自動縮放的下限改用 dp（版面檔 `autoSizeMinTextSize` 30sp → 30dp）。
+     * 現在的下限是 30sp，字體 200% 時變成 60dp 高，比剩下的空間大，日期就被切掉；改成 dp 後下限不跟著字體放大。
+     * 字體 100% 時 sp＝dp，所以不變。
+     */
+    private fun t5(v: View, fontScale: Float) {
+        t3(v, fontScale)
+        val day = v.findViewById<TextView>(R.id.day)
+        if (fontScale > 1.3f) {
+            day.setAutoSizeTextTypeUniformWithConfiguration(30, 150 * fontScale.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_DIP)
+            relayout(v)
+        }
+    }
+
     private fun tallState(v: View): List<String> {
         val sun = inkRect(v, v.findViewById(R.id.sun))
         val hits = listOf(R.id.ji to "忌", R.id.lunar to "農曆", R.id.phrase to "宜", R.id.label to "節日", R.id.day to "日期").mapNotNull { (id, n) ->
             val tv = v.findViewById<TextView>(id)
             if (tv.visibility == View.VISIBLE && tv.text.isNotEmpty() && Rect.intersects(sun, inkRect(v, tv))) n else null
         } + (if (Rect.intersects(sun, rectIn(v, v.findViewById(R.id.mowan_still)))) listOf("墨丸") else emptyList())
+        // 日期數字的字形（以字的大小為準，不是元件）跟下面的文字
+        val dayTv = v.findViewById<TextView>(R.id.day)
+        val dayBox = rectIn(v, dayTv)
+        val glyph = Rect(dayBox.left, dayBox.centerY() - (dayTv.textSize / 2).toInt(), dayBox.right, dayBox.centerY() + (dayTv.textSize / 2).toInt())
+        val dayHits = listOf(R.id.phrase to "宜", R.id.label to "節日", R.id.month_en to "英文月份").mapNotNull { (id, n) ->
+            val tv = v.findViewById<TextView>(id)
+            if (dayTv.height > 0 && tv.visibility == View.VISIBLE && tv.text.isNotEmpty() && Rect.intersects(glyph, inkRect(v, tv))) "日期×$n" else null
+        }
+        val allHits = hits + dayHits
         val cuts = listOf(R.id.ji to "忌", R.id.lunar to "農曆", R.id.phrase to "宜", R.id.label to "節日", R.id.sun to "天氣", R.id.month to "月份", R.id.weekday to "星期", R.id.month_en to "英文月份").filter { (id, _) ->
             val tv = v.findViewById<TextView>(id); tv.visibility == View.VISIBLE && tv.text.isNotEmpty() && (cut(tv) || outside(v, tv))
         }.map { it.second }
         val day = v.findViewById<TextView>(R.id.day)
-        // 日期數字自動縮放；版面被擠到沒有高度時就看不到（可見高度 0）
-        val dayVisible = minOf(day.textSize, day.height.toFloat())
+        // 日期數字：自動縮放後的字比自己的高度大，字形就被上下切掉；被擠到沒有高度時看不到
+        val dayState = when {
+            day.height <= 0 -> "**看不到（0dp）**"
+            day.textSize > day.height + 2 * d -> "**被切掉**（字 %.0fdp、只有 %.0fdp 高）".format(day.textSize / d, day.height / d)
+            else -> "%.0fdp".format(day.textSize / d)
+        }
+        val sunTv = v.findViewById<TextView>(R.id.sun)
+        val sl = sunTv.layout
+        val sunDebug = if (sl == null) "" else "（天氣：最寬一行 %.1fdp／可用 %.1fdp，文字高 %.1fdp／元件 %.1fdp）".format(
+            (0 until sl.lineCount).maxOf { sl.getLineWidth(it) } / d, (sunTv.width - sunTv.totalPaddingLeft - sunTv.totalPaddingRight) / d,
+            sl.height / d, (sunTv.height - sunTv.totalPaddingTop - sunTv.totalPaddingBottom) / d)
         return listOf(
-            if (hits.isEmpty()) "不重疊" else "**重疊：${hits.joinToString("、")}**",
-            if (day.height <= 0) "**看不到（0dp）**" else "%.0fdp".format(dayVisible / d),
-            if (cuts.isEmpty()) "完整" else "**截斷：${cuts.joinToString("、")}**",
+            if (allHits.isEmpty()) "不重疊" else "**重疊：${allHits.joinToString("、")}**",
+            dayState,
+            (if (cuts.isEmpty()) "完整" else "**截斷：${cuts.joinToString("、")}**") + sunDebug,
         )
     }
 
@@ -401,17 +433,17 @@ class P77SupplementShotsTest {
     fun tallWidgetCandidates() {
         val report = StringBuilder("# TALL 小工具（最小 150×250dp）：字體 200% 的重疊\n\n")
         report.append("T1：三行搬進文字欄最下面（所有字體同一個版面）。T2：字體放大時換一個版面，三行改成「忌」下面置中一段（100% 照舊）。\n")
-        report.append("T3：小工具上的字放大到 1.3 倍為止（setTextViewTextSize）。T4：T3＋T1。\n")
+        report.append("T3：小工具上的字放大到 1.3 倍為止（setTextViewTextSize）。T4：T3＋T1。T5：T3＋日期數字自動縮放的下限改用 dp。\n")
         report.append("兩者都只用 RemoteViews 支援的 LinearLayout／TextView；不隱藏任何資訊。\n\n")
         report.append("| 日子 | 字體 | 方案 | 重疊 | 日期數字（字高） | 文字 |\n|---|---|---|---|---|---|\n")
         val rows = mutableListOf<Pair<String, List<Bitmap>>>()
         for ((day, dayName) in listOf(normal to "一般", spring to "春節")) for (scale in listOf(1f, 2f)) {
             val shots = mutableListOf<Bitmap>()
             var base: Bitmap? = null
-            for ((i, name) in listOf("現況", "T1", "T2", "T3", "T4").withIndex()) {
+            for ((i, name) in listOf("現況", "T1", "T2", "T3", "T4", "T5").withIndex()) {
                 val v = widget(day, PageLayout.TALL, scale)
-                // T2 只在字體放大時換版面：100% 時就是現況；T3 只在超過 1.3 倍時限制；T4＝T3＋T1
-                when (i) { 1 -> t1(v); 2 -> if (scale > 1.3f) t2(v); 3 -> t3(v, scale); 4 -> { t3(v, scale); t1(v) } }
+                // T2 只在字體放大時換版面：100% 時就是現況；T3 只在超過 1.3 倍時限制；T4＝T3＋T1；T5＝T3＋日期下限用 dp
+                when (i) { 1 -> t1(v); 2 -> if (scale > 1.3f) t2(v); 3 -> t3(v, scale); 4 -> { t3(v, scale); t1(v) }; 5 -> t5(v, scale) }
                 val st = tallState(v)
                 report.append("| $dayName | ${(scale * 100).toInt()}% | $name | ${st.joinToString(" | ")} |\n")
                 val shot = shoot(v)
@@ -421,7 +453,7 @@ class P77SupplementShotsTest {
             }
             rows += "$dayName ${(scale * 100).toInt()}%" to shots
         }
-        sheet("4-tall-widget", "TALL 小工具 150×250dp：現況／T1／T2／T3（字放大到 1.3 倍為止）／T4（T3＋T1）", listOf("現況", "T1", "T2", "T3", "T4"), rows, colW = 260)
+        sheet("4-tall-widget", "TALL 150×250dp：現況／T1／T2／T3（字到 1.3 倍）／T4（T3＋T1）／T5（T3＋日期下限 dp）", listOf("現況", "T1", "T2", "T3", "T4", "T5"), rows, colW = 230)
         File(out, "4-tall-widget.md").writeText(report.toString())
     }
 }
