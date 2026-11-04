@@ -26,7 +26,7 @@ object Palettes {
         Palette("鼠尾草", 0xFF7E9F95.toInt(), 0xFF4F7268.toInt()),
         Palette("霧藍", 0xFF7F9DB8.toInt(), 0xFF4D6E8C.toInt()),
         Palette("海藍", 0xFF4F7FA3.toInt(), 0xFF335C7C.toInt()),
-        Palette("沙金", 0xFFC4A06A.toInt(), 0xFF8E7040.toInt()),
+        Palette("沙金", 0xFFC4A06A.toInt(), 0xFF84693D.toInt()), // deep：P7-7 由 #8E7040（紙色上 4.36）加深到 4.87
         Palette("奶茶", 0xFFB39A82.toInt(), 0xFF7D6550.toInt()),
         Palette("楓糖", 0xFFC0814E.toInt(), 0xFF8C5530.toInt()),
         Palette("薰衣灰", 0xFF9A92AE.toInt(), 0xFF675F7E.toInt()),
