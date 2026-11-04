@@ -82,6 +82,18 @@ class P77TallStructureTest {
 
     private fun shoot(v: View): Bitmap = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(desk); v.draw(this) } }
 
+    /** 墨丸實際有墨（不透明）的範圍：ImageView 單獨畫出來，找 alpha > 32 的像素外框（不含透明留白） */
+    private fun inkRect(root: View, iv: View): Rect {
+        val r = rectIn(root, iv)
+        if (iv.width <= 0 || iv.height <= 0) return Rect()
+        val b = Bitmap.createBitmap(iv.width, iv.height, Bitmap.Config.ARGB_8888).also { iv.draw(Canvas(it)) }
+        var l = b.width; var t = b.height; var rr = -1; var bb = -1
+        for (y in 0 until b.height) for (x in 0 until b.width) if ((b.getPixel(x, y) ushr 24) > 32) {
+            if (x < l) l = x; if (y < t) t = y; if (x > rr) rr = x; if (y > bb) bb = y
+        }
+        return if (rr < 0) Rect() else Rect(r.left + l, r.top + t, r.left + rr + 1, r.top + bb + 1)
+    }
+
     private fun rectIn(root: View, v: View): Rect {
         var x = 0
         var y = 0
@@ -141,7 +153,7 @@ class P77TallStructureTest {
             if (tv.visibility == View.VISIBLE && tv.text.isNotEmpty() && (tv.width == 0 || tv.height == 0)) problems += "${n}看不到"
         }
         for ((_, n, tv) in texts) clipped(v, tv).let { if (it > 0) problems += "${n}被切 %.0f%%".format(it * 100) }
-        val mowan = rectIn(v, v.findViewById<ImageView>(R.id.mowan_still))
+        val mowan = inkRect(v, v.findViewById<ImageView>(R.id.mowan_still))
         for (i in texts.indices) for (j in i + 1 until texts.size) {
             val a = glyphs(v, texts[i].third)
             val b = glyphs(v, texts[j].third)
@@ -216,7 +228,7 @@ class P77TallStructureTest {
                 rows.getOrPut("小工具外框的內距（下 5dp）") { mutableListOf() } += pad
                 rows.getOrPut("**日期數字可以用的高度**（欄高 − 其他）") { mutableListOf() } += left
                 val dayTv = v.findViewById<TextView>(R.id.day)
-                totals += "${(scale * 100).toInt()}%：欄高 %.0f、其他合計 %.0f、日期可用 %.0f（日期字級 %.0f、元件高 %.0f）".format(
+                totals += "${(scale * 100).toInt()}%%：欄高 %.0f、其他合計 %.0f、日期可用 %.0f（日期字級 %.0f、元件高 %.0f）".format(
                     column.height / d, sum / d, left / d, dayTv.textSize / d, dayTv.height / d)
             }
             for ((k, hs) in rows) {
@@ -289,7 +301,7 @@ class P77TallStructureTest {
         relayout(v)
     }
 
-    private val caps = listOf(2.0f, 1.8f, 1.6f, 1.5f, 1.4f, 1.3f, 1.2f, 1.15f, 1.1f)
+    private val caps = listOf(2.0f, 1.8f, 1.6f, 1.5f, 1.4f, 1.3f, 1.2f, 1.15f, 1.1f, 1.05f)
 
     private val words = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF2B2B2B.toInt(); textSize = 26f }
 
@@ -358,12 +370,28 @@ class P77TallStructureTest {
         for ((day, dayName) in listOf(normal to "一般日", spring to "春節")) for (structure in listOf("現在的結構", "T6")) {
             val min = dayMin(day)
             var found: Pair<Int, Verdict>? = null
+            var last: Verdict? = null
             for (h in 250..520 step 10) {
                 val v = widget(day, 2f, hDp = h.toFloat()).also { if (structure == "T6") t6(it, 2f) }
                 val r = verdict(v, min)
+                last = r
                 if (r.pass) { found = h to r; if (structure == "T6") shots += shoot(v); break }
             }
-            report.append("| $dayName | $structure | ${found?.let { "${it.first}dp" } ?: "> 520dp"} | ${found?.let { f(it.second) } ?: "—"} |\n")
+            report.append("| $dayName | $structure | ${found?.let { "${it.first}dp" } ?: "> 520dp"} | ${found?.let { f(it.second) } ?: "520dp 時：${last?.let { f(it) }}"} |\n")
+        }
+        // 只加高解決不了「寬度不夠」：再找寬度（高度 250 與 520）
+        report.append("\n## 同時放寬寬度（字體 200%、不限制倍率）\n\n| 日子 | 結構 | 高度 | 最小能通過的寬度 | 那個寬度的結果 |\n|---|---|---|---|---|\n")
+        for ((day, dayName) in listOf(normal to "一般日", spring to "春節")) for (structure in listOf("現在的結構", "T6")) for (h in listOf(250, 520)) {
+            val min = dayMin(day)
+            var found: Pair<Int, Verdict>? = null
+            var last: Verdict? = null
+            for (w in 150..330 step 10) {
+                val v = widget(day, 2f, hDp = h.toFloat(), wDp = w.toFloat()).also { if (structure == "T6") t6(it, 2f) }
+                val r = verdict(v, min)
+                last = r
+                if (r.pass) { found = w to r; break }
+            }
+            report.append("| $dayName | $structure | ${h}dp | ${found?.let { "${it.first}dp" } ?: "> 330dp"} | ${found?.let { f(it.second) } ?: "330dp 時：${last?.let { f(it) }}"} |\n")
         }
         report.append("\n目前 TALL 的最小尺寸是 150×250dp（`PageLayout.TALL`、`calendar_widget_info.xml`）。提高最小高度會讓 launcher 不能把 TALL 縮到那麼小，所有使用者（不只大字體）都受影響，PageLayout 的尺寸判斷也要一起改。\n")
         File(out, "3-min-height.md").writeText(report.toString())
