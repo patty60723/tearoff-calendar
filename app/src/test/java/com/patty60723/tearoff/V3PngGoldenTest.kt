@@ -196,6 +196,7 @@ class V3PngGoldenTest {
         report.append("Robolectric NATIVE 繪圖、411dp xxhdpi；通道容許差距 $CHANNEL_TOLERANCE。\n\n")
         report.append("| 圖 | 大小（px） | 結果 |\n|---|---|---|\n")
         val problems = mutableListOf<String>()
+        val changed = mutableListOf<Pair<Triple<String, Bitmap, Bitmap>, Bitmap>>()
         for ((name, b) in shots) {
             val actual = File(out, "actual/$name.png").also { save(b, it) }
             val now = reloaded(actual)
@@ -211,6 +212,7 @@ class V3PngGoldenTest {
                     d.pixels == 0 -> "一致（最大通道差 ${d.maxChannel}）"
                     else -> {
                         save(d.image!!, File(out, "diff/$name.png"))
+                        changed += Triple(name, reloaded(base), now) to d.image
                         problems += "$name 有 ${d.pixels} 個像素不同"
                         "**${d.pixels} 個像素不同**（最大通道差 ${d.maxChannel}，見 diff/$name.png）"
                     }
@@ -222,10 +224,37 @@ class V3PngGoldenTest {
         File(out, "report.md").writeText(report.toString())
         File(out, "timing.txt").writeText(timing.joinToString("\n") + "\n")
         overview(shots)
+        if (changed.isNotEmpty()) changedSheet(changed)
         if (LOCKED) assertNull("PNG golden 不一致：$problems", problems.ifEmpty { null })
     }
 
     private val words = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF2B2B2B.toInt(); textSize = 34f }
+
+    /**
+     * 不一致的圖一覽（基準／這次／差異，紅＝不同的像素）：要改基準時給人審核用（P7-7）。只輸出，不改基準。
+     * 輸出：changed.png（每列一張圖）。
+     */
+    private fun changedSheet(changed: List<Pair<Triple<String, Bitmap, Bitmap>, Bitmap>>) {
+        val cellH = 360
+        fun fit(b: Bitmap) = Bitmap.createScaledBitmap(b, maxOf(1, b.width * cellH / b.height), cellH, true)
+        val rows = changed.map { (t, diff) -> Triple(t.first, listOf(fit(t.second), fit(t.third), fit(diff)), 0) }
+        val colW = (0 until 3).map { c -> rows.maxOf { it.second[c].width } + 24 }
+        val left = 420
+        val top = 70
+        val sheet = Bitmap.createBitmap(left + colW.sum(), top + (cellH + 24) * rows.size, Bitmap.Config.ARGB_8888)
+        Canvas(sheet).apply {
+            drawColor(0xFFFBF8F2.toInt())
+            var x = left
+            listOf("基準（鎖定）", "這次", "差異（紅＝不同）").forEachIndexed { i, t -> drawText(t, x.toFloat(), 46f, words); x += colW[i] }
+            rows.forEachIndexed { r, (name, cells, _) ->
+                val y = top + r * (cellH + 24)
+                drawText(name, 16f, (y + cellH / 2).toFloat(), words)
+                var cx = left
+                cells.forEachIndexed { i, b -> drawBitmap(b, cx.toFloat(), y.toFloat(), null); cx += colW[i] }
+            }
+        }
+        save(sheet, File(out, "changed.png"))
+    }
 
     /** 總覽：每一列是一種情況，每一欄是一個畫面（縮到同樣高度，只給人看，不拿來比） */
     private fun overview(shots: Map<String, Bitmap>) {
