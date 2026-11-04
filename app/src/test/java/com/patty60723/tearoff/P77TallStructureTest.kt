@@ -102,6 +102,33 @@ class P77TallStructureTest {
         return Rect(x, y, x + v.width, y + v.height)
     }
 
+    /**
+     * 一行字實際有墨的範圍（相對於起點與基線）：用同一支 Paint 畫在夠大的透明圖上，找 alpha > 32 的像素外框。
+     * 不用 getTextBounds：有 letterSpacing 時它會把字距留白也算進去（上一輪「被切 1～2%」的誤報）。
+     */
+    private val inkCache = HashMap<String, Rect>()
+
+    private fun ink(paint: Paint, s: String): Rect = inkCache.getOrPut("$s|${paint.textSize}|${paint.letterSpacing}|${paint.typeface?.hashCode()}|${paint.isFakeBoldText}") { inkOf(paint, s) }
+
+    private fun inkOf(paint: Paint, s: String): Rect {
+        val p = Paint(paint)
+        val fm = p.fontMetricsInt
+        val pad = (p.textSize / 4).toInt() + 4
+        val w = (p.measureText(s)).toInt() + pad * 2
+        val h = (fm.bottom - fm.top) + pad * 2
+        val bmp = Bitmap.createBitmap(maxOf(1, w), maxOf(1, h), Bitmap.Config.ARGB_8888)
+        val base = pad - fm.top
+        Canvas(bmp).drawText(s, pad.toFloat(), base.toFloat(), p.apply { color = Color.BLACK })
+        var l = w; var t = h; var r = -1; var b = -1
+        val row = IntArray(bmp.width)
+        for (y in 0 until bmp.height) {
+            bmp.getPixels(row, 0, bmp.width, 0, y, bmp.width, 1)
+            for (x in row.indices) if ((row[x] ushr 24) > 32) { if (x < l) l = x; if (x > r) r = x; if (y < t) t = y; if (y > b) b = y }
+        }
+        bmp.recycle()
+        return if (r < 0) Rect() else Rect(l - pad, t - base, r + 1 - pad, b + 1 - base)
+    }
+
     /** 每一行字形實際的範圍（getTextBounds：不含行距與字距留白），在 root 座標 */
     private fun glyphs(root: View, tv: TextView): List<Rect> {
         val l = tv.layout ?: return emptyList()
@@ -110,8 +137,7 @@ class P77TallStructureTest {
         return (0 until l.lineCount).mapNotNull { i ->
             val s = text.substring(l.getLineStart(i), l.getLineEnd(i)).trimEnd()
             if (s.isEmpty()) return@mapNotNull null
-            val b = Rect()
-            tv.paint.getTextBounds(s, 0, s.length, b)
+            val b = ink(tv.paint, s)
             val x = r.left + tv.totalPaddingLeft + l.getLineLeft(i).toInt()
             val y = r.top + tv.totalPaddingTop + l.getLineBaseline(i)
             Rect(x + b.left, y + b.top, x + b.right, y + b.bottom)
@@ -242,7 +268,7 @@ class P77TallStructureTest {
             report.append("\n" + totals.joinToString("；") + "\n\n")
         }
         report.append("天氣三行與墨丸是疊放的：不佔文字欄的高度，但文字欄最下面的 84dp 就是為了讓出它們的位置。\n")
-        report.append("日期數字需要的最小可見高度：同一天在字體 100% 時的字形高度（一般日 %.0fdp、春節 %.0fdp）；字形約是字級的 0.7，所以日期元件至少要再高一些。\n".format(dayMin(normal), dayMin(spring)))
+        report.append("日期數字需要的最小可見高度：同一天在字體 100%% 時的字形高度（一般日 %.0fdp、春節 %.0fdp）；字形約是字級的 0.7，所以日期元件至少要再高一些。\n".format(dayMin(normal), dayMin(spring)))
         File(out, "1-budget.md").writeText(report.toString())
     }
 
