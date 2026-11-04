@@ -62,6 +62,28 @@
 - 風險：Release 可以被編輯、asset 可以被換掉 → 所以 SHA-256 與 manifest 要放在 repo（`docs/evidence/`），用 repo 裡的值驗證，不信任 Release 頁面上的說明。
 - 替代方案（未測）：獨立的私人「證據 repo」的 Release；或維持現在的 `acceptance/*` 分支（最省事，但分支容易被誤刪、不好搜尋）。
 
+## 4.1 三種保存方式的比較（2026-11-04 補充；都還沒有實測上傳）
+
+> 期限、大小、計費的數字是依 GitHub 公開文件的一般規則整理，**沒有在這個環境驗證**；實際採用前要再對照 repo 的方案設定。
+
+| 項目 | GitHub Release Assets（本 repo） | 專用 evidence repository | Actions Artifacts |
+|---|---|---|---|
+| 保存期限 | 不會過期（除非手動刪除 Release／asset） | 不會過期 | **預設 90 天**（可設 1～400 天，有方案上限）；過期自動刪除 |
+| 費用 | 公開 repo 不計費；私人 repo 的 Release asset 也不算 Actions 儲存空間 | 同一般 repo；用 Release asset 或 Git LFS（LFS 有額度與費用） | 計入 Actions 的 storage 額度（私人 repo 有上限，超過要付費） |
+| 單檔／總量 | 單檔 < 2 GiB；每個 Release 的 asset 數量有上限 | 同 Release；放 git 本身時大檔不適合（repo 變大、clone 變慢） | 單個 artifact 可以很大，但會占額度 |
+| 穩定連結 | `…/releases/download/<tag>/<檔名>`（tag 不改就穩定） | 同上（在另一個 repo） | **不穩定**：artifact id 每次不同，過期就失效 |
+| 跟 App 發布的混淆 | **高**：跟「最新版」APK 在同一個 Releases 頁面，要靠命名、prerelease、不設 latest 區隔 | **低**：完全分開 | 低（不在 Releases 頁面） |
+| 權限與誤刪 | 有 repo 寫入權的人都能刪；CI 的 `gh release delete latest` 只刪 `latest`，但規則寫錯就可能誤刪 | 可以單獨設權限（例如只有擁有者能寫） | 有寫入權的人都能刪；過期自動刪 |
+| 這個執行環境 | 建立被擋（403）；**下載可以** | 未測（需要建立新 repo，這個環境大概也不允許） | 下載被擋（blob 主機） |
+| 適合放 | 里程碑的審核素材（小量、要長期保存） | 大量或敏感的證據、需要不同權限時 | 暫時的 CI 輸出（截圖、log、影片） |
+
+建議（待你決定）：
+
+- **短期**：維持現狀（`acceptance/*` 分支）＋這次的 manifest 與 SHA-256 放在 repo；分支不刪。
+- **里程碑歸檔**：Release Assets（`evidence/…` tag、prerelease、不設 latest、不放 APK）。最省事，但要接受跟 App 發布放在同一頁的風險，並在 `build.yml` 確認不會刪到 `evidence/…`。
+- 證據量變大、或要分開權限時，再改成專用 evidence repository。
+- **Actions Artifacts 只當暫存**，不當長期證據（期限、連結都不穩定）。
+
 ## 5. 請你手動上傳（建議的方式）
 
 ZIP 在這次的回覆裡另外提供；也可以自己用 `git archive` 重建（git 版本不同時 ZIP 的位元組可能不同，那時改用 manifest 逐檔比對）。
