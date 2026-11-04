@@ -184,13 +184,12 @@ class P77TallStructureTest {
             if (tv.visibility == View.VISIBLE && tv.text.isNotEmpty() && (tv.width == 0 || tv.height == 0)) problems += "${n}看不到"
         }
         for ((_, n, tv) in texts) clipped(v, tv).let { if (it > 0) problems += "${n}被切 %.0f%%".format(it * 100) }
-        val mowan = inkRect(v, v.findViewById<ImageView>(R.id.mowan_still))
-        for (i in texts.indices) for (j in i + 1 until texts.size) {
-            val a = glyphs(v, texts[i].third)
-            val b = glyphs(v, texts[j].third)
-            if (a.any { x -> b.any { y -> Rect.intersects(x, y) } }) problems += "${texts[i].second}×${texts[j].second}"
-        }
-        for ((_, n, tv) in texts) if (glyphs(v, tv).any { Rect.intersects(it, mowan) }) problems += "${n}×墨丸"
+        // 碰撞一律用實際有墨的像素（2026-11-04 最後一輪起；之前墨丸用有墨範圍的外框，春節 100% 的「忌×墨丸」就是外框造成的）
+        val masks = texts.map { mask(v, it.third) }
+        val mowanMask = mask(v, v.findViewById<ImageView>(R.id.mowan_still))
+        fun hit(a: BooleanArray, b: BooleanArray): Boolean { for (k in a.indices) if (a[k] && b[k]) return true; return false }
+        for (i in texts.indices) for (j in i + 1 until texts.size) if (hit(masks[i], masks[j])) problems += "${texts[i].second}×${texts[j].second}"
+        for ((i, t) in texts.withIndex()) if (hit(masks[i], mowanMask)) problems += "${t.second}×墨丸"
         val day = shown(v, R.id.day)
         val dayDp = day?.let { glyphs(v, it).maxOfOrNull { g -> g.height() }?.div(d.toDouble()) } ?: 0.0
         if (dayDp < minDay - 0.5) problems += "日期字形 %.0fdp（< 100%% 時的 %.0f）".format(dayDp, minDay)
@@ -511,7 +510,7 @@ class P77TallStructureTest {
     @Test
     fun t8() {
         val report = StringBuilder("# T8：T6 ＋ 宜、忌換兩行（最小 TALL 150×250dp）\n\n")
-        report.append("判斷同 §9：日期字形完整而且不小於同一天 100% 時的字形；宜、忌、農曆、天氣、節日、月份、星期的字形完整（含「…」省略）；文字彼此不碰；不碰墨丸與裝飾（實際有墨的像素範圍）。\n\n")
+        report.append("判斷同 §9（碰撞改用實際有墨的像素）：日期字形完整而且不小於同一天 100% 時的字形；宜、忌、農曆、天氣、節日、月份、星期的字形完整（含「…」省略）；文字彼此不碰；不碰墨丸與裝飾（實際有墨的像素範圍）。\n\n")
         report.append("| 日子 | 字體 | 現況 | T6＋T7（上限 1.2） | T8（不限制倍率） | T8 能通過的最高倍率 |\n|---|---|---|---|---|---|\n")
         val rows = mutableListOf<Pair<String, List<Bitmap>>>()
         val notes = StringBuilder()
@@ -615,8 +614,9 @@ class P77TallStructureTest {
     private fun shorten(v: View, units: Double) {
         val k = 1 - units / (14.5 + 17.2)
         redrawMowan(v, spring, PageLayout.TALL) { op ->
-            val ring = op.part == "couplet" && ys(op.path).let { it.isNotEmpty() && it.all { y -> y < -10 } }
-            if (op.part == "cplString" || ring) op.copy(path = mapPath(op.path) { x, y -> x to (14.5 - (14.5 - y) * k) }) else op
+            // 裝訂環與吊繩都記在 "couplet" 底下（strokePath 的 part 參數只用來決定筆觸）；春聯菱形的 y 在 13.4～36.6，吊繩與環整個在 y ≤ 14.5
+            val hang = op.part == "couplet" && ys(op.path).let { it.isNotEmpty() && it.max() <= 14.6 && it.min() < 0 }
+            if (hang) op.copy(path = mapPath(op.path) { x, y -> x to (14.5 - (14.5 - y) * k) }) else op
         }
     }
 
@@ -645,9 +645,10 @@ class P77TallStructureTest {
             SpringCand("S3 春聯與吊繩右移 4 單位", "整組往墨丸靠 4 單位（%.1fdp）；菱形右角離頭約 6 單位".format(4 * units), { v ->
                 redrawMowan(v, spring, layout) { op -> if (op.part in hanging) op.copy(path = mapPath(op.path) { x, y -> (x + 4) to y }) else op }
             }, "同 S1"),
-            SpringCand("S4 「忌」右側安全間距", "「忌」那一行右邊讓出 12dp（`paddingRight`，置中位置往左 6dp）", { v ->
-                v.findViewById<TextView>(R.id.ji).apply { setPadding(paddingLeft, paddingTop, (12 * d).toInt(), paddingBottom) }; relayout(v)
-            }, "TALL 全部有「忌」的 golden（若只在 TALL 加）；App 日曆頁也用同一個版面檔"),
+            SpringCand("S4 墨丸往下 2dp", "墨丸的下邊距 24 → 22dp（整個墨丸含吊飾往下 2dp，大小不變；文字不動）", { v ->
+                val m = v.findViewById<View>(R.id.mowan_still)
+                m.layoutParams = (m.layoutParams as ViewGroup.MarginLayoutParams).apply { bottomMargin = (22 * d).toInt() }; relayout(v)
+            }, "TALL 全部（墨丸位置）；App 日曆頁另外設下邊距，不受影響"),
             SpringCand("S5 文字與墨丸之間多 3dp", "底部保留 84 → 87dp（文字往上 3dp，日期少 3dp 高）", { v ->
                 val column = v.findViewById<View>(R.id.ji).parent as LinearLayout
                 val spacer = column.getChildAt(column.childCount - 1)
