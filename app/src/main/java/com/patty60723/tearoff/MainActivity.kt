@@ -305,7 +305,8 @@ class MainActivity : Activity() {
         // 只有最上面那張、而且還有沒撕的頁時才能撕
         pad.tearable = newDate == topDate() && book.nextDate(today) != null
 
-        findViewById<Button>(R.id.today).visibility = if (newDate == topDate()) View.INVISIBLE else View.VISIBLE
+        // 看最上面那頁時不佔高度（P7-7 候選 A：自己一列，以前是 INVISIBLE 一直佔著導覽列中間）
+        findViewById<Button>(R.id.today).visibility = if (newDate == topDate()) View.GONE else View.VISIBLE
         findViewById<TextView>(R.id.yi_all).text = page.yi.joinToString("　")
         findViewById<TextView>(R.id.ji_all).text = page.ji.joinToString("　")
         findViewById<TextView>(R.id.details).text = buildString {
