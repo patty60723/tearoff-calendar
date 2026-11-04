@@ -15,7 +15,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.patty60723.tearoff.mowan.Festival
 import com.patty60723.tearoff.mowan.FestivalTheme
+import com.patty60723.tearoff.mowan.Detail
+import com.patty60723.tearoff.mowan.Mowan
+import com.patty60723.tearoff.mowan.MowanPainter
 import com.patty60723.tearoff.mowan.MowanSettings
+import com.patty60723.tearoff.mowan.MowanTimeline
+import com.patty60723.tearoff.mowan.PathData
 import com.patty60723.tearoff.story.StoryBook
 import com.patty60723.tearoff.weather.Mood
 import com.patty60723.tearoff.weather.WeatherService
@@ -281,8 +286,8 @@ class P77TallStructureTest {
      * 3. 分隔線上下 6dp → 2dp。
      * 4. 有節日名稱時，節日名稱移到英文月份那一行的右邊（兩個合成一行，節日名稱的字級不變；節日當天原本不顯示的英文月份也會顯示）。
      */
-    private fun t6(v: View, scale: Float) {
-        if (scale <= 1.3f) return
+    private fun t6(v: View, scale: Float, force: Boolean = false) {
+        if (!force && scale <= 1.3f) return
         val column = v.findViewById<View>(R.id.ji).parent as LinearLayout
         val dayTv = v.findViewById<TextView>(R.id.day)
         val sun = v.findViewById<TextView>(R.id.sun)
@@ -484,5 +489,282 @@ class P77TallStructureTest {
             report.append("- 用字形範圍量：最差 %.2f，在 (%d,%d)，背景 #%06X，那裡最上層是 `%s`\n\n".format(w2, a2.first, a2.second, p2 and 0xFFFFFF, topAt(v, a2.first, a2.second, tv)))
         }
         File(out, "4-wide-day-anomaly.md").writeText(report.toString())
+    }
+
+    // ---------- 5. T8：T6 ＋ 宜、忌必要時換兩行（2026-11-04 最後一輪） ----------
+
+    /**
+     * T8：字體放大（> 100%）時用另一個版面檔：T6 的結構（日期列右邊放天氣、節日與英文月份同一行、分隔線邊距 2dp、墨丸 36×48），
+     * 再讓「宜」「忌」最多兩行（`maxLines=2`，置中）；日期自動縮放改用 dp（30～300dp），字體放大不會把下限也放大。
+     * 都是版面檔屬性（RemoteViews 在 `CalendarWidget.build` 依字體倍率選版面檔），100% 不套用。
+     */
+    private fun t8(v: View, scale: Float) {
+        if (scale <= 1f) return
+        t6(v, scale, force = true)
+        for (id in intArrayOf(R.id.phrase, R.id.ji)) v.findViewById<TextView>(id).apply { maxLines = 2; gravity = Gravity.CENTER_HORIZONTAL }
+        v.findViewById<TextView>(R.id.day).setAutoSizeTextTypeUniformWithConfiguration(30, 300, 1, android.util.TypedValue.COMPLEX_UNIT_DIP)
+        relayout(v)
+    }
+
+    private val t8Caps = listOf(1.9f, 1.8f, 1.7f, 1.6f, 1.5f, 1.45f, 1.4f, 1.35f, 1.3f, 1.25f, 1.2f, 1.15f, 1.1f, 1.05f)
+
+    @Test
+    fun t8() {
+        val report = StringBuilder("# T8：T6 ＋ 宜、忌換兩行（最小 TALL 150×250dp）\n\n")
+        report.append("判斷同 §9：日期字形完整而且不小於同一天 100% 時的字形；宜、忌、農曆、天氣、節日、月份、星期的字形完整（含「…」省略）；文字彼此不碰；不碰墨丸與裝飾（實際有墨的像素範圍）。\n\n")
+        report.append("| 日子 | 字體 | 現況 | T6＋T7（上限 1.2） | T8（不限制倍率） | T8 能通過的最高倍率 |\n|---|---|---|---|---|---|\n")
+        val rows = mutableListOf<Pair<String, List<Bitmap>>>()
+        val notes = StringBuilder()
+        for ((day, dayName) in listOf(normal to "一般日", spring to "春節")) for (scale in listOf(1f, 1.3f, 1.5f, 2f)) {
+            val min = dayMin(day)
+            val now = widget(day, scale)
+            val vNow = verdict(now, min)
+            val s0 = shoot(now)
+            val t67 = widget(day, scale).also { t6(it, scale); cap(it, scale, 1.2f) }
+            val v67 = verdict(t67, min)
+            val v8w = widget(day, scale).also { t8(it, scale) }
+            val v8 = verdict(v8w, min)
+            val s8 = shoot(v8w)
+            if (scale == 1f && !s8.sameAs(s0)) notes.append("- $dayName 100%：T8 改了畫面（不應該）\n")
+            var best: Pair<Float, Verdict>? = null
+            var bestShot: Bitmap? = null
+            var lastFail: Verdict? = null
+            if (scale > 1f && !v8.pass) for (c in t8Caps.filter { it < scale }) {
+                val w = widget(day, scale).also { t8(it, scale); cap(it, scale, c) }
+                val r = verdict(w, min)
+                if (r.pass) { best = c to r; bestShot = shoot(w); break } else lastFail = r
+            }
+            val cell = when {
+                scale == 1f -> "（100% 不套用）"
+                v8.pass -> "不需要（${(scale * 100).toInt()}% 就通過）"
+                best != null -> "**%.2f 倍**：%s".format(best.first, f(best.second))
+                else -> "到 ${t8Caps.last()} 倍都**不通過**（${lastFail?.let { f(it) }}）"
+            }
+            report.append("| $dayName | ${(scale * 100).toInt()}% | ${f(vNow)} | ${if (scale <= 1.2f) "（不套用）" else f(v67)} | ${if (scale == 1f) "（不套用）" else f(v8)} | $cell |\n")
+            rows += "$dayName ${(scale * 100).toInt()}%" to listOfNotNull(s0, shoot(t67), s8, bestShot ?: s8)
+        }
+        report.append("\n" + notes)
+        report.append("\n第 4 欄的圖：能通過的最高倍率；都不通過時是 T8 不限制倍率。\n")
+        sheet("5-t8", "最小 TALL：現況／T6＋T7（1.2）／T8（不限制）／T8 最高可通過倍率", listOf("現況", "T6＋T7 1.2", "T8 不限制", "T8 最高倍率"), rows, colW = 220)
+        File(out, "5-t8.md").writeText(report.toString())
+    }
+
+    // ---------- 6. 春節 100%：墨丸（吊飾）碰到「忌」 ----------
+
+    /** 一個元件單獨畫出來、放回小工具座標的有墨像素（alpha > 32） */
+    private fun mask(root: View, part: View): BooleanArray {
+        val r = rectIn(root, part)
+        val b = Bitmap.createBitmap(root.width, root.height, Bitmap.Config.ARGB_8888)
+        Canvas(b).apply { translate(r.left.toFloat(), r.top.toFloat()); clipRect(0, 0, part.width, part.height); part.draw(this) }
+        val px = IntArray(b.width * b.height).also { b.getPixels(it, 0, b.width, 0, 0, b.width, b.height) }
+        return BooleanArray(px.size) { (px[it] ushr 24) > 32 }
+    }
+
+    data class Touch(val overlap: Int, val gapDp: Double, val at: Rect?)
+
+    /** 兩組有墨像素：重疊幾個像素、最近距離（dp，重疊時是 0）、重疊（或最近）的範圍 */
+    private fun touch(w: Int, a: BooleanArray, b: BooleanArray): Touch {
+        var n = 0
+        var box: Rect? = null
+        for (i in a.indices) if (a[i] && b[i]) { n++; val x = i % w; val y = i / w; box = (box ?: Rect(x, y, x + 1, y + 1)).apply { union(x, y, x + 1, y + 1) } }
+        if (n > 0) return Touch(n, 0.0, box)
+        val pa = a.indices.filter { a[it] }
+        val pb = b.indices.filter { b[it] }
+        var best = Double.MAX_VALUE
+        var at: Rect? = null
+        for (i in pa) { val ax = i % w; val ay = i / w
+            for (j in pb) { val dx = (j % w - ax).toDouble(); val dy = (j / w - ay).toDouble(); val dd = dx * dx + dy * dy
+                if (dd < best) { best = dd; at = Rect(minOf(ax, j % w), minOf(ay, j / w), maxOf(ax, j % w) + 1, maxOf(ay, j / w) + 1) } } }
+        return Touch(0, Math.sqrt(best) / d, at)
+    }
+
+    /** 小工具的墨丸重新畫一次：跟 CalendarWidget.setMowan 一樣的參數，[edit] 可以改節日背景（春聯與吊繩）的路徑 */
+    private fun redrawMowan(v: View, day: LocalDate, layout: PageLayout, edit: (Mowan.Op) -> Mowan.Op): Bitmap {
+        val book = StoryBook(context)
+        val density = context.resources.displayMetrics.density.coerceAtMost(3f)
+        val weather = WeatherService.current(context)?.let { MowanSettings.weatherOf(it.mood) } ?: Mowan.Weather.NONE
+        val wPx = (layout.characterDp * density).toInt()
+        val hPx = (layout.characterDp * 4 / 3 * density).toInt()
+        val drawnHeight = minOf(wPx / 120.0, hPx / 160.0) * 160.0
+        val frame = Mowan.frame(
+            Mowan.partsOf(book.parts), 0, MowanSettings.hatOn(context), weather, MowanTimeline.stillClock(weather),
+            still = true, bundleOn = MowanSettings.bundleOn(context), detail = Detail.of(drawnHeight, density.toDouble()),
+            festival = FestivalTheme.of(day), art = MowanSettings.art(context).copy(smallEnv = CalendarWidget.smallEnvFor(layout)),
+        )
+        val edited = Mowan.Frame(frame.ops.map(edit), frame.head, frame.canopy)
+        val bmp = Bitmap.createBitmap(wPx, hPx, Bitmap.Config.ARGB_8888).also { MowanPainter(edited).draw(Canvas(it), 0f, 0f, wPx.toFloat(), hPx.toFloat()) }
+        v.findViewById<ImageView>(R.id.mowan_still).setImageBitmap(bmp)
+        return bmp
+    }
+
+    private fun mapPath(p: PathData, f: (Double, Double) -> Pair<Double, Double>) = PathData(p.commands.map { c ->
+        when (c) {
+            is PathData.Cmd.MoveTo -> f(c.x, c.y).let { PathData.Cmd.MoveTo(it.first, it.second) }
+            is PathData.Cmd.LineTo -> f(c.x, c.y).let { PathData.Cmd.LineTo(it.first, it.second) }
+            is PathData.Cmd.ArcTo -> f(c.x, c.y).let { c.copy(x = it.first, y = it.second) }
+            is PathData.Cmd.QuadTo -> { val a = f(c.x1, c.y1); val b = f(c.x, c.y); PathData.Cmd.QuadTo(a.first, a.second, b.first, b.second) }
+            PathData.Cmd.Close -> c
+        }
+    })
+
+    private val hanging = setOf("couplet", "cplString")
+
+    private fun ys(p: PathData) = p.commands.mapNotNull { c -> when (c) { is PathData.Cmd.MoveTo -> c.y; is PathData.Cmd.LineTo -> c.y; is PathData.Cmd.ArcTo -> c.y; is PathData.Cmd.QuadTo -> c.y; else -> null } }
+
+    /** 吊繩縮短 [units]：裝訂環（春聯那組裡、整個在 y < −10 的小圓）往下移，吊繩（cplString）往下端（y 14.5）壓縮；春聯菱形不動 */
+    private fun shorten(v: View, units: Double) {
+        val k = 1 - units / (14.5 + 17.2)
+        redrawMowan(v, spring, PageLayout.TALL) { op ->
+            val ring = op.part == "couplet" && ys(op.path).let { it.isNotEmpty() && it.all { y -> y < -10 } }
+            if (op.part == "cplString" || ring) op.copy(path = mapPath(op.path) { x, y -> x to (14.5 - (14.5 - y) * k) }) else op
+        }
+    }
+
+    data class SpringCand(val id: String, val desc: String, val apply: (View) -> Unit, val goldens: String)
+
+    @Test
+    fun springCollision() {
+        val layout = PageLayout.TALL
+        val report = StringBuilder("# 春節 100%：墨丸與「忌」的碰撞（最小 TALL 150×250dp）\n\n")
+        report.append("量法：「忌」與墨丸各自單獨畫出來，取實際有墨的像素（alpha > 32），算重疊的像素數與最近距離。\n\n")
+        // 先確認重畫的墨丸跟小工具上的一模一樣
+        val base = widget(spring, 1f)
+        val real = shoot(base)
+        redrawMowan(base, spring, layout) { it }
+        val same = shoot(base).sameAs(real)
+        report.append("重畫的墨丸跟小工具上的${if (same) "**逐像素相同**" else "**不同（候選圖不可信）**"}。\n\n")
+        val units = 0.4 // 48dp 寬畫 120 單位
+        val cands = listOf(
+            SpringCand("現況", "—", {}, "—"),
+            SpringCand("S1 吊繩縮短 6 單位", "裝訂環與吊繩上段往下 6 單位（%.1fdp），春聯本身不動".format(6 * units), { v ->
+                shorten(v, 6.0)
+            }, "小工具 MEDIUM／WIDE／TALL 的春節（只改小尺寸的春聯時）"),
+            SpringCand("S2 吊繩縮短 10 單位", "同上，10 單位（%.1fdp）".format(10 * units), { v ->
+                shorten(v, 10.0)
+            }, "同 S1"),
+            SpringCand("S3 春聯與吊繩右移 4 單位", "整組往墨丸靠 4 單位（%.1fdp）；菱形右角離頭約 6 單位".format(4 * units), { v ->
+                redrawMowan(v, spring, layout) { op -> if (op.part in hanging) op.copy(path = mapPath(op.path) { x, y -> (x + 4) to y }) else op }
+            }, "同 S1"),
+            SpringCand("S4 「忌」右側安全間距", "「忌」那一行右邊讓出 12dp（`paddingRight`，置中位置往左 6dp）", { v ->
+                v.findViewById<TextView>(R.id.ji).apply { setPadding(paddingLeft, paddingTop, (12 * d).toInt(), paddingBottom) }; relayout(v)
+            }, "TALL 全部有「忌」的 golden（若只在 TALL 加）；App 日曆頁也用同一個版面檔"),
+            SpringCand("S5 文字與墨丸之間多 3dp", "底部保留 84 → 87dp（文字往上 3dp，日期少 3dp 高）", { v ->
+                val column = v.findViewById<View>(R.id.ji).parent as LinearLayout
+                val spacer = column.getChildAt(column.childCount - 1)
+                spacer.layoutParams = spacer.layoutParams.apply { height = (87 * d).toInt() }; relayout(v)
+            }, "TALL 與 App 日曆頁全部"),
+        )
+        report.append("| 候選 | 做法 | 重疊像素 | 最近距離 | 日期字形 | 會改的 golden | 判斷 |\n|---|---|---|---|---|---|---|\n")
+        val shots = mutableListOf<Bitmap>()
+        val zooms = mutableListOf<Bitmap>()
+        var zoomBox: Rect? = null
+        for (c in cands) {
+            val v = widget(spring, 1f)
+            c.apply(v)
+            val ji = v.findViewById<TextView>(R.id.ji)
+            val t = touch(v.width, mask(v, ji), mask(v, v.findViewById<View>(R.id.mowan_still)))
+            if (c.id == "現況") zoomBox = t.at
+            val r = verdict(v, dayMin(spring))
+            val ok = t.overlap == 0 && t.gapDp >= 1.0 && r.pass
+            report.append("| ${c.id} | ${c.desc} | ${t.overlap} | ${"%.1f".format(t.gapDp)}dp | ${"%.0f".format(r.dayDp)}dp | ${c.goldens} | ${if (ok) "不碰（≥ 1dp）" else "**仍碰到或太近**"}${if (r.pass) "" else "；${r.problems.joinToString("、")}"} |\n")
+            shots += shoot(v)
+        }
+        // 局部放大：碰撞位置周圍 24dp，放大 8 倍；紅＝「忌」與墨丸重疊的像素
+        val box = zoomBox ?: Rect(0, 0, 1, 1)
+        val cx = box.centerX(); val cy = box.centerY(); val half = (12 * d).toInt()
+        val crop = Rect(cx - half, cy - half, cx + half, cy + half).apply { intersect(0, 0, real.width, real.height) }
+        report.append("\n碰撞位置（現況）：小工具座標 (%.1f, %.1f)dp 附近，放大圖範圍 %s px。\n".format(cx / d, cy / d, crop.toShortString()))
+        for ((i, c) in cands.withIndex()) {
+            val v = widget(spring, 1f).also { c.apply(it) }
+            val img = shoot(v)
+            val a = mask(v, v.findViewById<TextView>(R.id.ji)); val b = mask(v, v.findViewById<View>(R.id.mowan_still))
+            val z = Bitmap.createBitmap(crop.width(), crop.height(), Bitmap.Config.ARGB_8888)
+            for (y in 0 until crop.height()) for (x in 0 until crop.width()) {
+                val idx = (crop.top + y) * img.width + crop.left + x
+                z.setPixel(x, y, if (a[idx] && b[idx]) 0xFFE0301E.toInt() else img.getPixel(crop.left + x, crop.top + y))
+            }
+            zooms += Bitmap.createScaledBitmap(z, z.width * 8, z.height * 8, false)
+            if (i == 0) File(out, "6-spring-zoom.png").outputStream().use { zooms[0].compress(Bitmap.CompressFormat.PNG, 100, it) }
+        }
+        sheet("6-spring-candidates", "春節 100% 最小 TALL：現況與候選（上：整張；下：碰撞處放大 8 倍，紅＝重疊）", cands.map { it.id.substringBefore(" ") }, listOf("整張" to shots, "放大" to zooms), colW = 220)
+        File(out, "6-spring-collision.md").writeText(report.toString())
+    }
+
+    // ---------- 7. WIDE 250×110dp：12 個月日期數字的實際對比 ----------
+
+    data class Worst(val ratio: Double, val day: LocalDate, val at: Pair<Int, Int>, val bg: Int, val color: Int, val onHills: Boolean)
+
+    /** 日期數字有墨的像素位置上，日期色對「拿掉日期後」那裡的背景的最差對比 */
+    private fun dayWorst(day: LocalDate, color: Int? = null): Worst {
+        AppClock.setFakeToday(context, day)
+        WeatherService.setFakeMood(context, Mood.SUNNY)
+        context.getSharedPreferences("weather", Context.MODE_PRIVATE).edit()
+            .putString("city", Cities.selected(context).name).putLong("fetchedAt", System.currentTimeMillis()).commit()
+        val v = CalendarWidget.build(context, Almanac.page(day), PageLayout.WIDE, wideWidthDp = 250f).apply(context, FrameLayout(context)).also { measure(it, (250 * d).toInt(), (110 * d).toInt()) }
+        val tv = v.findViewById<TextView>(R.id.day)
+        color?.let { tv.setTextColor(it) }
+        val ink = mask(v, tv)
+        val hills = mask(v, v.findViewById<View>(R.id.hills))
+        tv.visibility = View.INVISIBLE
+        val bg = shoot(v)
+        tv.visibility = View.VISIBLE
+        val px = IntArray(bg.width * bg.height).also { bg.getPixels(it, 0, bg.width, 0, 0, bg.width, bg.height) }
+        var worst = Double.MAX_VALUE; var at = 0; 
+        for (i in ink.indices) if (ink[i]) { val r = ratio(tv.currentTextColor, px[i]); if (r < worst) { worst = r; at = i } }
+        return Worst(worst, day, (at % bg.width) to (at / bg.width), px[at], tv.currentTextColor, hills[at])
+    }
+
+    private fun hex(c: Int) = "#%06X".format(c and 0xFFFFFF)
+
+    @Test
+    fun wideMonths() {
+        RuntimeEnvironment.setQualifiers("w411dp-h891dp-xxhdpi")
+        RuntimeEnvironment.setFontScale(1f)
+        val report = StringBuilder("# WIDE 最小尺寸（250×110dp）：12 個月日期數字的實際對比\n\n")
+        report.append("量法：2027 年每一天各畫一次；日期數字單獨畫出來取有墨的像素（alpha > 32），每個像素拿日期色跟**拿掉日期後那裡的背景**算對比，取最差。門檻 4.5:1、設計目標 4.8:1。\n\n")
+        report.append("| 月 | 日期色 | 最差（一般日） | 哪一天、位置 | 背景 | 在山丘上 | 紅字日最差 | 哪一天、背景 | 判斷 |\n|---|---|---|---|---|---|---|---|---|\n")
+        val failing = mutableListOf<Pair<Int, Worst>>()
+        for (m in 1..12) {
+            val days = generateSequence(LocalDate.of(2027, m, 1)) { it.plusDays(1) }.takeWhile { it.monthValue == m }.toList()
+            val all = days.map { it to dayWorst(it) }
+            val normalW = all.filter { !Almanac.page(it.first).isRedDay }.minByOrNull { it.second.ratio }?.second
+            val redW = all.filter { Almanac.page(it.first).isRedDay }.minByOrNull { it.second.ratio }?.second
+            val worst = listOfNotNull(normalW, redW).minOf { it.ratio }
+            val verdict = when { worst >= 4.8 -> "達設計目標"; worst >= 4.5 -> "過門檻、未達 4.8"; else -> "**不合格（< 4.5）**" }
+            report.append("| $m | ${hex(Palettes.forMonth(m).deep)} | ${normalW?.let { "%.2f".format(it.ratio) } ?: "—"} | ${normalW?.let { "${it.day.dayOfMonth} 日 (%.1f, %.1f)dp".format(it.at.first / d, it.at.second / d) } ?: "—"} | ${normalW?.let { hex(it.bg) } ?: "—"} | ${normalW?.let { if (it.onHills) "是" else "否" } ?: "—"} | ${redW?.let { "%.2f".format(it.ratio) } ?: "—"} | ${redW?.let { "${it.day.dayOfMonth} 日、${hex(it.bg)}${if (it.onHills) "（山丘）" else ""}" } ?: "—"} | $verdict |\n")
+            normalW?.takeIf { it.ratio < 4.8 }?.let { failing += m to it }
+            redW?.takeIf { it.ratio < 4.8 }?.let { failing += m to it }
+        }
+        // 8 月已核准的 #84693D
+        val aug = generateSequence(LocalDate.of(2027, 8, 1)) { it.plusDays(1) }.takeWhile { it.monthValue == 8 }.filter { !Almanac.page(it).isRedDay }
+            .map { dayWorst(it, 0xFF84693D.toInt()) }.minBy { it.ratio }
+        report.append("\n8 月改成已核准的 `#84693D` 後：最差 **%.2f**（%d 日、背景 %s%s）。\n".format(aug.ratio, aug.day.dayOfMonth, hex(aug.bg), if (aug.onHills) "，在山丘上" else ""))
+        // 候選：只針對未達 4.8 的月份（一般日用 deep、紅字日用 RED）
+        report.append("\n## 未達 4.8 的月份：局部修正候選\n\n")
+        report.append("- W1：只在 WIDE 的日期數字用加深色（`blend(INK, 原色, s)`，跟 WIDE 星期同一個做法），找最接近原色、而且最差像素達 4.5／4.8 的 s。\n")
+        report.append("- W2：日期色不變，WIDE 日期數字下方的山丘變淡：最差背景往紙色混合 t，找達 4.5／4.8 的最小 t（只估算，沒有畫）。\n\n")
+        report.append("| 月 | 哪種日子 | 現在 | W1 達 4.5 | W1 達 4.8 | W1 4.8 的實際驗證 | W2 達 4.5 | W2 達 4.8 |\n|---|---|---|---|---|---|---|---|\n")
+        val candShots = mutableListOf<Pair<String, List<Bitmap>>>()
+        for ((m, w) in failing.distinctBy { it.first to it.second.color }) {
+            fun w1(target: Double): Pair<Double, Int>? { for (k in 0..100) { val s = k / 100.0; val c = Palettes.blend(Palettes.INK, w.color, s.toFloat()); if (ratio(c, w.bg) >= target) return s to c }; return null }
+            fun w2(target: Double): Pair<Double, Int>? { for (k in 0..100) { val t = k / 100.0; val b = Palettes.blend(Palettes.PAPER, w.bg, t.toFloat()); if (ratio(w.color, b) >= target) return t to b }; return null }
+            val a45 = w1(4.5); val a48 = w1(4.8); val b45 = w2(4.5); val b48 = w2(4.8)
+            // 實際驗證：整個月用 W1 4.8 的顏色再掃一次
+            val red = w.color == Palettes.RED
+            val check = a48?.let { (_, c) -> generateSequence(LocalDate.of(2027, m, 1)) { it.plusDays(1) }.takeWhile { it.monthValue == m }.filter { Almanac.page(it).isRedDay == red }.map { dayWorst(it, c) }.minBy { it.ratio } }
+            report.append("| $m | ${if (red) "紅字日" else "一般日"} | %.2f（${hex(w.color)}） | ${a45?.let { "s=%.2f → ${hex(it.second)}".format(it.first) } ?: "—"} | ${a48?.let { "s=%.2f → ${hex(it.second)}".format(it.first) } ?: "—"} | ${check?.let { "最差 %.2f".format(it.ratio) } ?: "—"} | ${b45?.let { "t=%.2f".format(it.first) } ?: "—"} | ${b48?.let { "t=%.2f".format(it.first) } ?: "—"} |\n".format(w.ratio))
+            // 局部放大：最差那一天，現在／W1 4.8
+            fun crop(c: Int?): Bitmap {
+                AppClock.setFakeToday(context, w.day)
+                val v = CalendarWidget.build(context, Almanac.page(w.day), PageLayout.WIDE, wideWidthDp = 250f).apply(context, FrameLayout(context)).also { measure(it, (250 * d).toInt(), (110 * d).toInt()) }
+                c?.let { v.findViewById<TextView>(R.id.day).setTextColor(it) }
+                val img = shoot(v)
+                val r = rectIn(v, v.findViewById<TextView>(R.id.day)).apply { inset(-(4 * d).toInt(), -(4 * d).toInt()); intersect(0, 0, img.width, img.height) }
+                return Bitmap.createBitmap(img, r.left, r.top, r.width(), r.height())
+            }
+            candShots += "$m 月${if (red) "紅字" else ""} ${w.day.dayOfMonth} 日" to listOfNotNull(crop(null), a48?.let { crop(it.second) })
+        }
+        if (candShots.isNotEmpty()) sheet("7-wide-months", "WIDE 250×110 未達 4.8 的月份：現在／W1（達 4.8）", listOf("現在", "W1 4.8"), candShots, colW = 300)
+        File(out, "7-wide-months.md").writeText(report.toString())
     }
 }
