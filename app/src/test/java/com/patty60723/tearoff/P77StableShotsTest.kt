@@ -234,6 +234,9 @@ class P77StableShotsTest {
         return Pos(r.top, r.height(), GlyphInk.rectIn(c, a.findViewById(R.id.city)).top, GlyphInk.rectIn(c, story).top, GlyphInk.rectIn(c, a.findViewById(R.id.prev)).top)
     }
 
+    /** 存起來給總覽圖用：馬上縮成 300px 寬、放掉原圖（記憶體：CI #210 的 OutOfMemoryError） */
+    private fun thumb(b: Bitmap, w: Int = 300): Bitmap = Bitmap.createScaledBitmap(b, w, maxOf(1, b.height * w / b.width), true).also { if (it !== b) b.recycle() }
+
     private fun capture(a: MainActivity, h: Int): Bitmap {
         val c = a.content
         val full = Bitmap.createBitmap(c.width, c.height, Bitmap.Config.ARGB_8888).also { Canvas(it).apply { drawColor(0xFFEDE8E0.toInt()); c.draw(this) } }
@@ -275,7 +278,7 @@ class P77StableShotsTest {
                 val ps = mutableListOf<Pos>()
                 val shots = mutableListOf<Bitmap>()
                 val probs = mutableSetOf<String>()
-                fun snap() { relayout(a); ps += pos(a); probs += ui(a); shots += capture(a, 99999) }
+                fun snap() { relayout(a); val p = pos(a); ps += p; probs += ui(a); shots += thumb(capture(a, p.storyTop + (24 * d).toInt())) }
                 snap()
                 pad(a).peelAway(); ShadowLooper.idleMainLooper(2, TimeUnit.SECONDS); cand.each(a); snap()
                 a.findViewById<Button>(R.id.prev).performClick(); cand.each(a); snap()
@@ -286,8 +289,7 @@ class P77StableShotsTest {
                 shotsAll += shots
             }
             // 截圖：每個候選同樣的高度（到故事卡上緣下面 24dp），看得出位移
-            val cropH = all.maxOf { it.second.maxOf { p -> p.storyTop } } + (24 * d).toInt()
-            for ((i, cand) in cands.withIndex()) rows += cand.name to shotsAll[i].map { Bitmap.createBitmap(it, 0, 0, it.width, minOf(cropH, it.height)) }
+            for ((i, cand) in cands.withIndex()) rows += cand.name to shotsAll[i]
             sheets[cfg.name] = rows
             report.append("\n")
         }
@@ -405,7 +407,7 @@ class P77StableShotsTest {
                 if (cfg == cfgs.first()) navRatio[t.id] = "%.2f".format(worst(a, a.findViewById(R.id.prev)))
                 val story = a.findViewById<View>(R.id.story_mowan).parent as View
                 val pageBottom = GlyphInk.rectIn(a.content, pad(a)).top + (120 * d).toInt()
-                shots += capture(a, minOf(pageBottom, GlyphInk.rectIn(a.content, story).top))
+                shots += thumb(capture(a, minOf(pageBottom, GlyphInk.rectIn(a.content, story).top)), 260)
             }
             report.append("| ${t.name} | ${cells.getValue(t.id).joinToString(" | ")} | ${navRatio[t.id]} |\n")
             rows += t.name to shots
@@ -570,7 +572,7 @@ class P77StableShotsTest {
                 setupCombo(a, c); eachCombo(a, c); relayout(a)
                 val ps = mutableListOf<Pos>(); val shots = mutableListOf<Bitmap>(); val probs = mutableSetOf<String>()
                 var order = ""
-                fun snap() { relayout(a); ps += pos(a); probs += ui(a); a.findViewById<Button>(R.id.tear).takeIf { it.visibility == View.VISIBLE && it.isEnabled }?.let { t -> GlyphInk.state(a.content, t).takeIf { it != "完整" }?.let { probs += "撕頁按鈕$it" }; if (t.height / d < 47.5f) probs += "撕頁按鈕只有 %.0fdp 高".format(t.height / d) }; shots += capture(a, 99999) }
+                fun snap() { relayout(a); ps += pos(a); probs += ui(a); a.findViewById<Button>(R.id.tear).takeIf { it.visibility == View.VISIBLE && it.isEnabled }?.let { t -> GlyphInk.state(a.content, t).takeIf { it != "完整" }?.let { probs += "撕頁按鈕$it" }; if (t.height / d < 47.5f) probs += "撕頁按鈕只有 %.0fdp 高".format(t.height / d) }; shots += thumb(capture(a, ps.last().storyTop + (40 * d).toInt())) }
                 snap(); order = talkback(a)
                 // T2：用上方那一格的撕頁按鈕撕；其他用手勢（peelAway 跟按鈕一樣）
                 if (c.tear == TearAlt.T2) a.findViewById<Button>(R.id.tear).performClick() else pad(a).peelAway()
@@ -581,8 +583,7 @@ class P77StableShotsTest {
                 report.append("| ${c.name} | ${ps.joinToString("→") { "%.0f".format(it.pageTop / d) }} | ${ps.joinToString("→") { "%.0f".format(it.pageH / d) }} | ${ps.joinToString("→") { "%.0f".format(it.storyTop / d) }} | ${span { it.pageTop }}／${span { it.pageH }}／${span { it.storyTop }}dp | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | $order |\n")
                 shotsAll += shots; storyMax += ps.maxOf { it.storyTop }
             }
-            val cropH = storyMax.max() + (40 * d).toInt()
-            for ((i, c) in combos.withIndex()) rows += c.name.substringBefore("：") to shotsAll[i].map { Bitmap.createBitmap(it, 0, 0, it.width, minOf(cropH, it.height)) }
+            for ((i, c) in combos.withIndex()) rows += c.name.substringBefore("：") to shotsAll[i]
             sheets[cfg.name] = rows
             report.append("\n")
         }
@@ -613,7 +614,7 @@ class P77StableShotsTest {
                 val t = a.findViewById<Button>(R.id.today)
                 cells += "%.0f×%.0fdp、%s、對比 %.2f".format(t.width / d, t.height / d, GlyphInk.state(a.content, t), worst(a, t))
                 val top = GlyphInk.rectIn(a.content, pad(a)).top + (60 * d).toInt()
-                shots += capture(a, top)
+                shots += thumb(capture(a, top), 280)
             }
             report.append("| $name | ${cells.joinToString(" | ")} |\n")
             rows += name to shots
@@ -641,10 +642,10 @@ class P77StableShotsTest {
                     val screenH = a.window.decorView.height
                     val scrollH = (a.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as ScrollView).height
                     val need = (p.storyTop + (40 * d).toInt() - scrollH).coerceAtLeast(0)
-                    report.append("| ${cfg.name} | $label | ${if (recommended) "推薦（A1＋R2）" else "現況 PR #4"} | %.0fdp | %.0fdp | %.0fdp | %.0fdp | %.0fdp |\n".format(p.pageH / d, p.storyTop / d, a.content.height / d, screenH / d, need / d))
-                    shots += capture(a, 99999)
+                    report.append("| ${cfg.name} | $label | ${if (recommended) "R2（A1＋描邊＋H1＋T2）" else "現況 PR #4"} | " + "%.0fdp | %.0fdp | %.0fdp | %.0fdp | %.0fdp |\n".format(p.pageH / d, p.storyTop / d, a.content.height / d, screenH / d, need / d))
+                    shots += thumb(capture(a, 99999))
                 }
-                rows += "${cfg.name} ${if (recommended) "推薦" else "現況"}" to shots
+                rows += "${cfg.name} ${if (recommended) "R2" else "現況"}" to shots
             }
         }
         File(out, "6-a1-full.md").writeText(report.toString())
