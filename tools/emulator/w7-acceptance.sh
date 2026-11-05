@@ -355,7 +355,7 @@ scroll_up() {
 }
 center_tap() { set -- $1; adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 1.5; }
 height_of() { set -- $1; echo $(( $4 - $2 )); }
-story_page() { adb shell run-as $PKG cat shared_prefs/story.xml 2>/dev/null | tr -d '\r' | grep -o 'name="page" value="[0-9]*"' | grep -o '[0-9]*$'; }
+story_page() { adb shell run-as $PKG cat shared_prefs/story.xml 2>/dev/null | tr -d '\r' | grep -o 'name="page" value="[0-9]*"' | tr -dc '0-9'; }
 adb shell settings put system font_scale 2.0
 adb shell am force-stop $PKG
 # 今天那頁還沒撕：最上面是前一天（沒有天氣三行），可以撕
