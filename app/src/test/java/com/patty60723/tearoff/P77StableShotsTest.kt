@@ -63,6 +63,7 @@ class P77StableShotsTest {
 
     @After
     fun cleanUp() {
+        close()
         WeatherService.setFakeMood(context, null)
         AppClock.setFakeToday(context, null)
         RuntimeEnvironment.setFontScale(1f)
@@ -86,7 +87,17 @@ class P77StableShotsTest {
         context.getSharedPreferences("weather", Context.MODE_PRIVATE).edit()
             .putString("city", Cities.selected(context).name).putLong("fetchedAt", System.currentTimeMillis()).commit()
         StoryBook(context).apply { jumpTo(13, day); if (torn) tear(day) }
-        return Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        // 開過的 Activity 都記下來，用完就 destroy（不然一直留在記憶體裡：CI #210 的 OutOfMemoryError、#211 卡住）
+        close()
+        return Robolectric.buildActivity(MainActivity::class.java).setup().also { opened += it }.get()
+    }
+
+    private val opened = mutableListOf<org.robolectric.android.controller.ActivityController<MainActivity>>()
+
+    private fun close() {
+        for (c in opened) runCatching { c.pause().stop().destroy() }
+        opened.clear()
+        System.gc()
     }
 
     private fun relayout(a: MainActivity) {
