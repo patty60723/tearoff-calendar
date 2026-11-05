@@ -346,4 +346,74 @@ class P77StableShotsTest {
         }
         File(out, "$name.png").outputStream().use { sheet.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
+
+    // ---------- 2026-11-05 審核：「回到最上面那頁」的顏色（紅色太突出，不是警告） ----------
+
+    private fun lum(c: Int): Double {
+        fun ch(x: Int): Double { val s = x / 255.0; return if (s <= 0.03928) s / 12.92 else Math.pow((s + 0.055) / 1.055, 2.4) }
+        return 0.2126 * ch((c shr 16) and 0xFF) + 0.7152 * ch((c shr 8) and 0xFF) + 0.0722 * ch(c and 0xFF)
+    }
+
+    private fun ratio(a: Int, b: Int): Double { val x = lum(a); val y = lum(b); return (maxOf(x, y) + 0.05) / (minOf(x, y) + 0.05) }
+
+    /** 按鈕文字實際畫到的像素位置上，文字色對背景（拿掉這個按鈕的文字後）的最差對比 */
+    private fun worst(a: MainActivity, b: TextView): Double {
+        val c = a.content
+        val ink = GlyphInk.mask(c, b)
+        val keep = b.currentTextColor
+        b.setTextColor(0x00000000)
+        val bg = capture(a, 99999)
+        b.setTextColor(keep)
+        val px = IntArray(bg.width * bg.height).also { bg.getPixels(it, 0, bg.width, 0, 0, bg.width, bg.height) }
+        var w = Double.MAX_VALUE
+        for (i in ink.indices) if (ink[i] && i < px.size) w = minOf(w, ratio(keep, px[i]))
+        return w
+    }
+
+    data class Tone(val id: String, val name: String, val today: Int, val nav: Int?)
+
+    private val tones = listOf(
+        Tone("red", "現況：紅（#B8322A）", 0xFFB8322A.toInt(), null),
+        Tone("K1", "K1：同前一天／後一天（ink_soft #8C8378）", 0xFF8C8378.toInt(), null),
+        Tone("K2", "K2：同城市入口（ink #2E2A26）", 0xFF2E2A26.toInt(), null),
+        Tone("K3", "K3：深灰（ink_mid #4A433D）", 0xFF4A433D.toInt(), null),
+        Tone("K3n", "K3＋：深灰，前一天／後一天也改深灰", 0xFF4A433D.toInt(), 0xFF4A433D.toInt()),
+        Tone("K4", "K4：當月月份色（10 月 deep #8C5530）", 0xFF8C5530.toInt(), null),
+    )
+
+    @Test
+    fun todayButtonTones() {
+        val report = StringBuilder("# 「回到最上面那頁」的顏色候選（版面用 A1＋Z′，看昨天那頁的狀態）\n\n")
+        report.append("對比：按鈕文字實際畫到的像素背後的背景（桌面色 #EDE8E0），最差像素。門檻 4.5、設計目標 4.8。\n\n")
+        report.append("| 候選 | " + cfgs.joinToString(" | ") { it.name } + " | 前一天／後一天 |\n|---|" + "---|".repeat(cfgs.size) + "---|\n")
+        val rows = mutableListOf<Pair<String, List<Bitmap>>>()
+        val cells = HashMap<String, MutableList<String>>()
+        val navRatio = HashMap<String, String>()
+        for (t in tones) {
+            val shots = mutableListOf<Bitmap>()
+            for (cfg in cfgs) {
+                val a = open(cfg, normal, torn = true)
+                relayout(a)
+                val z = cands.first { it.id == "Z2" }
+                z.setup(a); z.each(a); relayout(a)
+                a.findViewById<Button>(R.id.prev).performClick(); z.each(a); relayout(a)
+                val today = a.findViewById<Button>(R.id.today)
+                today.setTextColor(t.today)
+                t.nav?.let { c -> a.findViewById<Button>(R.id.prev).setTextColor(c); a.findViewById<Button>(R.id.next).setTextColor(c) }
+                relayout(a)
+                cells.getOrPut(t.id) { mutableListOf() } += "%.2f".format(worst(a, today))
+                if (cfg == cfgs.first()) navRatio[t.id] = "%.2f".format(worst(a, a.findViewById(R.id.prev)))
+                val story = a.findViewById<View>(R.id.story_mowan).parent as View
+                val pageBottom = GlyphInk.rectIn(a.content, pad(a)).top + (120 * d).toInt()
+                shots += capture(a, minOf(pageBottom, GlyphInk.rectIn(a.content, story).top))
+            }
+            report.append("| ${t.name} | ${cells.getValue(t.id).joinToString(" | ")} | ${navRatio[t.id]} |\n")
+            rows += t.name to shots
+        }
+        // 月份色（K4）每個月對桌面色的對比
+        report.append("\n## K4：每個月的月份色（deep）對桌面色 #EDE8E0\n\n| 月 | deep | 對比 |\n|---|---|---|\n")
+        for (m in 1..12) { val c = if (m == 8) 0xFF84693D.toInt() else Palettes.forMonth(m).deep; report.append("| $m | #%06X | %.2f |\n".format(c and 0xFFFFFF, ratio(c, 0xFFEDE8E0.toInt()))) }
+        File(out, "3-today-tones.md").writeText(report.toString())
+        sheet("3-today-tones", "「回到最上面那頁」的顏色（A1＋Z′，看昨天那頁）：" + cfgs.joinToString("｜") { it.name }, cfgs.map { it.name }, rows, colW = 260)
+    }
 }
