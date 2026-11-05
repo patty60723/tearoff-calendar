@@ -101,9 +101,11 @@ class PageReserveTest {
         val cuts = (texts + ("天氣" to sun)).filter { GlyphInk.clipped(page, it.second) > 0 }.map { it.first }
         val day = page.findViewById<TextView>(R.id.day)
         val dayDp = GlyphInk.glyphs(page, day).maxOf { it.height() } / d.toDouble()
-        val ji = GlyphInk.glyphs(page, page.findViewById(R.id.ji)).maxOf { it.bottom }
-        val sunTop = GlyphInk.glyphs(page, sun).minOf { it.top }
-        return State(overlaps, cuts, dayDp, (sunTop - ji) / d.toDouble(), p.height / d.toDouble(), p.extraHeight / d.toDouble())
+        // 「忌」可能是空的（那天沒有忌）：間距改量到上面最近一行有字的（農曆）
+        val above = listOf(R.id.ji, R.id.lunar, R.id.phrase).firstNotNullOfOrNull { id -> GlyphInk.glyphs(page, page.findViewById(id)).maxOfOrNull { it.bottom } }
+        val sunTop = GlyphInk.glyphs(page, sun).minOfOrNull { it.top }
+        val gap = if (above != null && sunTop != null) (sunTop - above) / d.toDouble() else Double.NaN
+        return State(overlaps, cuts, dayDp, gap, p.height / d.toDouble(), p.extraHeight / d.toDouble())
     }
 
     /** 模擬實作前（底部保留 84dp、頁面不加高）：拿來比日期字形與 100% 的畫面 */
