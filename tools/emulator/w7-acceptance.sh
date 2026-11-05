@@ -17,7 +17,7 @@ PASS_N=0
 FAIL_N=0
 WARN_N=0
 # 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
-EXPECTED_CHECKS=40
+EXPECTED_CHECKS=44
 check() { # check <名稱> <條件結果 0/1> <說明>
   if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
   else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
@@ -420,6 +420,69 @@ dump_ui p77-6-after || true
 m1=$(bounds_of p77-6-after story_mowan); b1=$(bounds_of p77-6-after story_bundle)
 adb exec-out screencap -p > "$OUT/shots/p77-6-card-full.png"
 check "字體 2.0：捲到最底點故事卡墨丸，墨丸與包袱入口不位移" "$([ -n "$m0" ] && [ "$m0" = "$m1" ] && [ "$b0" = "$b1" ] && echo 0 || echo 1)" "墨丸 ${m0:-?} → ${m1:-?}；包袱 ${b0:-?} → ${b1:-?}"
+adb shell settings put system font_scale 1.0
+
+log ""
+log "== 8c. P7-7 字體 2.0 的錄影（給人看）：411dp／320dp 正常速度撕頁、翻到昨天再回來、日出日落與山丘放大 =="
+# 411dp＝密度 420、320dp＝密度 540（1080px 寬）。錄影是即時的（正常速度）；模擬器用軟體繪圖，流暢度不代表實機
+for dpi in 420 540; do
+  wdp=$(( 1080 * 160 / dpi ))
+  adb shell wm density $dpi
+  adb shell settings put system font_scale 2.0
+  adb shell am force-stop $PKG
+  write_prefs story "  <int name=\"page\" value=\"14\" />
+  <string name=\"lastTornDate\">$YESTERDAY</string>
+  <string name=\"lastText\">$(story_text 14)</string>"
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
+  <boolean name=\"bundleOn\" value=\"true\" />"
+  write_prefs weather "  <string name=\"fakeMood\">SUNNY</string>"
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  scroll_up
+  n="p77v-${wdp}dp"
+  dump_ui "$n-0" || true
+  pg=$(top_bounds "$n-0" page)
+  adb exec-out screencap -p > "$OUT/shots/$n-0-before.png"
+  p0=$(story_page)
+  adb shell screenrecord --time-limit 16 /sdcard/p77.mp4 &
+  rec=$!
+  sleep 1.5
+  if [ -n "$pg" ]; then
+    set -- $pg
+    # 正常速度的手指撕頁：右下角往左上拖 0.6 秒
+    adb shell input swipe $(( $3 - 24 )) $(( $4 - 24 )) $(( $1 + 40 )) $(( $2 + 40 )) 600
+  fi
+  sleep 3
+  p1=$(story_page)
+  adb exec-out screencap -p > "$OUT/shots/$n-1-torn.png"
+  dump_ui "$n-1" || true
+  pt=$(top_bounds "$n-1" page); pv=$(top_bounds "$n-1" prev); sun=$(top_bounds "$n-1" sun)
+  [ -n "$pv" ] && center_tap "$pv"
+  sleep 1
+  adb exec-out screencap -p > "$OUT/shots/$n-2-yesterday.png"
+  dump_ui "$n-2" || true
+  py=$(top_bounds "$n-2" page); nx=$(top_bounds "$n-2" next)
+  [ -n "$nx" ] && center_tap "$nx"
+  sleep 1.5
+  dump_ui "$n-3" || true
+  pb=$(top_bounds "$n-3" page)
+  adb exec-out screencap -p > "$OUT/shots/$n-3-back.png"
+  wait $rec
+  adb pull /sdcard/p77.mp4 "$OUT/video/$n.mp4" >/dev/null 2>&1 || warn "錄影 $n 沒有拉回來"
+  # 影格總覽（每秒 4 張）：看有沒有閃爍、跳動
+  [ -s "$OUT/video/$n.mp4" ] && ffmpeg -loglevel error -y -i "$OUT/video/$n.mp4" -vf "fps=4,scale=216:-1,tile=8x8:padding=4:color=white" -frames:v 1 "$OUT/shots/$n-frames.png" || warn "影格總覽 $n 沒做出來"
+  # 日出日落與山丘放大（撕完、有天氣三行的今天那頁）：左下角，放大 2 倍
+  if [ -n "$sun" ] && [ -n "$pt" ]; then
+    set -- $sun; sx=$1; sy=$2; set -- $pt
+    convert "$OUT/shots/$n-1-torn.png" -crop "$(( $3 - $1 ))x$(( $4 - sy + 20 ))+$1+$(( sy - 20 ))" +repage -resize 200% "$OUT/shots/$n-sun-zoom.png" || warn "放大圖 $n 失敗"
+  else
+    warn "放大圖 $n：找不到天氣或頁面位置"
+  fi
+  hh() { [ -n "$1" ] && height_of "$1" || echo "?"; }
+  check "${wdp}dp 字體 2.0 錄影：手指撕頁成功" "$([ -n "$p0" ] && [ "$p1" = $(( p0 + 1 )) ] && echo 0 || echo 1)" "頁數 ${p0:-?} → ${p1:-?}；頁面高 撕之前 $(hh "$pg") → 撕完 $(hh "$pt") px"
+  check "${wdp}dp 字體 2.0 錄影：翻到昨天再回來，頁面高度一樣" "$([ -n "$pt" ] && [ -n "$pb" ] && [ "$(height_of "$pt")" = "$(height_of "$pb")" ] && echo 0 || echo 1)" "今天 $(hh "$pt")、昨天 $(hh "$py")、回來 $(hh "$pb") px"
+done
+adb shell wm density reset
 adb shell settings put system font_scale 1.0
 
 log ""
