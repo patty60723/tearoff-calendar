@@ -416,4 +416,238 @@ class P77StableShotsTest {
         File(out, "3-today-tones.md").writeText(report.toString())
         sheet("3-today-tones", "「回到最上面那頁」的顏色（A1＋Z′，看昨天那頁）：" + cfgs.joinToString("｜") { it.name }, cfgs.map { it.name }, rows, colW = 260)
     }
+
+    // ---------- 2026-11-05 設計審核第 2 輪：按鈕樣式、說明文字策略、撕頁替代按鈕、A1 整頁 ----------
+
+    private val INK = 0xFF2E2A26.toInt()
+    private val INK_MID = 0xFF4A433D.toInt()
+    private val INK_SOFT = 0xFF8C8378.toInt()
+
+    enum class Style { TEXT, OUTLINE, ARROW }
+
+    /** 按鈕樣式（都用現有色票）：暖灰文字（ink_mid）、淡色描邊（1dp ink_soft、圓角）、文字＋箭頭 */
+    private fun style(b: Button, st: Style, label: String) {
+        b.setTextColor(INK_MID)
+        b.text = if (st == Style.ARROW) "↑ $label" else label
+        b.isAllCaps = false
+        if (st == Style.OUTLINE) {
+            b.background = android.graphics.drawable.GradientDrawable().apply {
+                setStroke((1 * d).toInt().coerceAtLeast(1), INK_SOFT); cornerRadius = 20 * d; setColor(0x00000000)
+            }
+            b.setPadding((18 * d).toInt(), 0, (18 * d).toInt(), 0)
+            b.layoutParams = (b.layoutParams as FrameLayout.LayoutParams).apply { width = ViewGroup.LayoutParams.WRAP_CONTENT; gravity = Gravity.CENTER }
+        }
+        b.minHeight = (48 * d).toInt(); b.minimumHeight = (48 * d).toInt()
+    }
+
+    /** 說明文字：H1 永遠顯示精簡操作說明；H2 回訪使用者（首次教學之後）只顯示狀態（文青文案） */
+    enum class Hint { H1, H2 }
+
+    private fun hintText(a: MainActivity, h: Hint): String? {
+        val t = a.findViewById<TextView>(R.id.hint).text.toString()
+        return when {
+            t == a.getString(R.string.hint_tear) -> if (h == Hint.H1) "從左下角或右下角往上撕" else "從角落輕輕往上撕"
+            t == a.getString(R.string.tear_done) -> if (h == Hint.H1) "明天再來撕下一頁" else "明天再見"
+            t.startsWith("還有") -> { val n = t.filter { it.isDigit() }; if (h == Hint.H1) "還有 $n 頁沒撕" else "還有 $n 頁等著你" }
+            else -> null
+        }
+    }
+
+    /** 撕頁替代按鈕：T1 頁面下方固定高度，撕完顯示低調的完成狀態；T2 整合進上方共用的那一格；T3 保留位置但不顯示（上一輪） */
+    enum class TearAlt { T1, T2, T3 }
+
+    data class Combo(val id: String, val name: String, val style: Style, val hint: Hint, val tear: TearAlt, val label: String = "回到最上面那頁")
+
+    private val combos = listOf(
+        Combo("R1", "R1：暖灰文字＋H1＋T1（頁面下方顯示完成狀態）", Style.TEXT, Hint.H1, TearAlt.T1),
+        Combo("R2", "R2：淡色描邊＋H1＋T2（撕頁整合到上方那一格）", Style.OUTLINE, Hint.H1, TearAlt.T2),
+        Combo("R3", "R3：文字＋箭頭＋H2（回訪文案）＋T2", Style.ARROW, Hint.H2, TearAlt.T2),
+        Combo("R4", "R4：暖灰文字＋H1＋T3（保留空位，上一輪）", Style.TEXT, Hint.H1, TearAlt.T3),
+    )
+
+    /** 上方共用那一格：說明文字、「回到最上面那頁」、（T2）撕頁按鈕三選一；格子高度＝三者最高 */
+    private fun setupCombo(a: MainActivity, c: Combo) {
+        val hint = a.findViewById<TextView>(R.id.hint)
+        val today = a.findViewById<Button>(R.id.today)
+        val tear = a.findViewById<Button>(R.id.tear)
+        val content = a.content
+        val at = content.indexOfChild(hint)
+        content.removeView(hint)
+        (today.parent as ViewGroup).removeView(today)
+        val frame = FrameLayout(a).apply { tag = "slot" }
+        frame.addView(hint, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+        frame.addView(today, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+        if (c.tear == TearAlt.T2) {
+            (tear.parent as ViewGroup).removeView(tear)
+            frame.addView(tear, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+            tear.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            style(tear, c.style, "撕下這一頁")
+            tear.contentDescription = "撕下這一頁（也可以從頁面左下角或右下角往上撕）"
+        } else {
+            tear.setTextColor(INK_MID)
+        }
+        content.addView(frame, at, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        style(today, c.style, c.label)
+        today.contentDescription = c.label
+        a.findViewById<Button>(R.id.prev).setTextColor(INK_MID)
+        a.findViewById<Button>(R.id.next).setTextColor(INK_MID)
+        relayout(a)
+        val w = content.width - content.paddingLeft - content.paddingRight
+        val strings = if (c.hint == Hint.H1) listOf("從左下角或右下角往上撕", "還有 9 頁沒撕", "明天再來撕下一頁", a.getString(R.string.hint_cover)) else listOf("從角落輕輕往上撕", "還有 9 頁等著你", "明天再見", a.getString(R.string.hint_cover))
+        fun h(v: TextView, txt: CharSequence? = null): Int {
+            val keep = v.text; val vis = v.visibility
+            if (txt != null) v.text = txt
+            v.visibility = View.VISIBLE
+            val lp = v.layoutParams
+            v.measure(if (lp.width == ViewGroup.LayoutParams.WRAP_CONTENT) View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.AT_MOST) else View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            v.text = keep; v.visibility = vis
+            return v.measuredHeight
+        }
+        var hh = maxOf(strings.maxOf { h(hint, it) }, h(today))
+        if (c.tear == TearAlt.T2) hh = maxOf(hh, h(tear))
+        frame.layoutParams = frame.layoutParams.apply { height = hh }
+    }
+
+    private fun eachCombo(a: MainActivity, c: Combo) {
+        fixPageHeight(a)
+        val hint = a.findViewById<TextView>(R.id.hint)
+        val today = a.findViewById<Button>(R.id.today)
+        val tear = a.findViewById<Button>(R.id.tear)
+        val p = pad(a)
+        hintText(a, c.hint)?.let { hint.text = it }
+        val browsing = today.visibility == View.VISIBLE
+        // 看別天：按鈕；朗讀時補上現在看的日期（資訊不丟）
+        if (browsing) today.contentDescription = "${c.label}（現在在看 ${a.findViewById<TextView>(R.id.hint).text.filter { it.isDigit() || it == '/' }}）"
+        when (c.tear) {
+            TearAlt.T2 -> {
+                tear.visibility = if (!browsing && p.tearable) View.VISIBLE else View.GONE
+                hint.visibility = if (browsing || tear.visibility == View.VISIBLE) View.INVISIBLE else View.VISIBLE
+            }
+            TearAlt.T1 -> {
+                hint.visibility = if (browsing) View.INVISIBLE else View.VISIBLE
+                if (p.tearable) { tear.text = a.getString(R.string.tear_button); tear.isEnabled = true; tear.setTextColor(INK_MID) }
+                else { tear.visibility = View.VISIBLE; tear.text = "今天這頁撕過了"; tear.isEnabled = false; tear.setTextColor(INK_MID) }
+            }
+            TearAlt.T3 -> {
+                hint.visibility = if (browsing) View.INVISIBLE else View.VISIBLE
+                if (tear.visibility == View.GONE) tear.visibility = View.INVISIBLE
+            }
+        }
+        if (browsing) today.visibility = View.VISIBLE else today.visibility = View.GONE
+    }
+
+    /** 可以朗讀／操作的元件，依畫面順序（TalkBack 大致的順序） */
+    private fun talkback(a: MainActivity): String {
+        val c = a.content
+        val items = mutableListOf<Pair<Int, String>>()
+        fun walk(v: View) {
+            if (v.visibility != View.VISIBLE) return
+            if (v is TearPageView) { items += GlyphInk.rectIn(c, v).top to "［日曆頁］"; return }
+            if (v is TextView && v.text.isNotEmpty()) {
+                val r = GlyphInk.rectIn(c, v)
+                val label = (v.contentDescription ?: v.text).toString().replace("\n", " ")
+                items += r.top to (if (v is Button) "按鈕「$label」${if (!v.isEnabled) "（停用）" else ""}" else "「$label」")
+            }
+            if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i))
+        }
+        walk(c)
+        return items.sortedBy { it.first }.take(7).joinToString(" → ") { it.second }
+    }
+
+    @Test
+    fun round2Combos() {
+        val report = StringBuilder("# 第 2 輪候選：A1＋共用一格（Z′ 概念）的組合\n\n")
+        report.append("前一天／後一天、回到最上面那頁、撕頁按鈕都改成暖灰（ink_mid #4A433D，桌面色上 7.97）：現在的前一天／後一天（ink_soft）只有 3.06。\n\n")
+        val sheets = LinkedHashMap<String, MutableList<Pair<String, List<Bitmap>>>>()
+        for (cfg in cfgs) {
+            report.append("## ${cfg.name}\n\n| 組合 | 日曆上緣 | 日曆高 | 故事卡上緣 | 位移（日曆／高度／故事卡） | 按鈕與文字 | 撕頁前的朗讀順序 |\n|---|---|---|---|---|---|---|\n")
+            val rows = mutableListOf<Pair<String, List<Bitmap>>>()
+            val shotsAll = mutableListOf<List<Bitmap>>()
+            val storyMax = mutableListOf<Int>()
+            for (c in combos) {
+                val a = open(cfg, normal, torn = false)
+                relayout(a)
+                setupCombo(a, c); eachCombo(a, c); relayout(a)
+                val ps = mutableListOf<Pos>(); val shots = mutableListOf<Bitmap>(); val probs = mutableSetOf<String>()
+                var order = ""
+                fun snap() { relayout(a); ps += pos(a); probs += ui(a); a.findViewById<Button>(R.id.tear).takeIf { it.visibility == View.VISIBLE && it.isEnabled }?.let { t -> GlyphInk.state(a.content, t).takeIf { it != "完整" }?.let { probs += "撕頁按鈕$it" }; if (t.height / d < 47.5f) probs += "撕頁按鈕只有 %.0fdp 高".format(t.height / d) }; shots += capture(a, 99999) }
+                snap(); order = talkback(a)
+                // T2：用上方那一格的撕頁按鈕撕；其他用手勢（peelAway 跟按鈕一樣）
+                if (c.tear == TearAlt.T2) a.findViewById<Button>(R.id.tear).performClick() else pad(a).peelAway()
+                ShadowLooper.idleMainLooper(2, TimeUnit.SECONDS); eachCombo(a, c); snap()
+                a.findViewById<Button>(R.id.prev).performClick(); eachCombo(a, c); snap()
+                a.findViewById<Button>(R.id.today).performClick(); eachCombo(a, c); snap()
+                fun span(f: (Pos) -> Int) = "%.0f".format((ps.maxOf(f) - ps.minOf(f)) / d)
+                report.append("| ${c.name} | ${ps.joinToString("→") { "%.0f".format(it.pageTop / d) }} | ${ps.joinToString("→") { "%.0f".format(it.pageH / d) }} | ${ps.joinToString("→") { "%.0f".format(it.storyTop / d) }} | ${span { it.pageTop }}／${span { it.pageH }}／${span { it.storyTop }}dp | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | $order |\n")
+                shotsAll += shots; storyMax += ps.maxOf { it.storyTop }
+            }
+            val cropH = storyMax.max() + (40 * d).toInt()
+            for ((i, c) in combos.withIndex()) rows += c.name.substringBefore("：") to shotsAll[i].map { Bitmap.createBitmap(it, 0, 0, it.width, minOf(cropH, it.height)) }
+            sheets[cfg.name] = rows
+            report.append("\n")
+        }
+        File(out, "4-round2.md").writeText(report.toString())
+        for ((n, rows) in sheets) sheet("4-round2-${n.replace("・", "-").replace("%", "")}", "${n}：撕頁前｜撕頁後｜昨天｜回到今天（R1～R4）", states, rows)
+    }
+
+    /** 按鈕樣式 × 文案（看昨天那頁）：直接比較 */
+    @Test
+    fun buttonStyles() {
+        val variants = listOf(
+            "暖灰文字「回到最上面那頁」" to Combo("a", "", Style.TEXT, Hint.H1, TearAlt.T2),
+            "淡色描邊「回到最上面那頁」" to Combo("b", "", Style.OUTLINE, Hint.H1, TearAlt.T2),
+            "文字＋箭頭「↑ 回到最上面那頁」" to Combo("c", "", Style.ARROW, Hint.H1, TearAlt.T2),
+            "暖灰文字「回到最新頁」" to Combo("d", "", Style.TEXT, Hint.H1, TearAlt.T2, label = "回到最新頁"),
+            "現況：紅色" to null,
+        )
+        val rows = mutableListOf<Pair<String, List<Bitmap>>>()
+        val report = StringBuilder("# 按鈕樣式 × 文案（看昨天那頁）\n\n| 樣式 | " + cfgs.joinToString(" | ") { it.name } + " |\n|---|" + "---|".repeat(cfgs.size) + "\n")
+        for ((name, c) in variants) {
+            val shots = mutableListOf<Bitmap>(); val cells = mutableListOf<String>()
+            for (cfg in cfgs) {
+                val a = open(cfg, normal, torn = true)
+                relayout(a)
+                if (c != null) { setupCombo(a, c); eachCombo(a, c) }
+                relayout(a)
+                a.findViewById<Button>(R.id.prev).performClick(); if (c != null) eachCombo(a, c); relayout(a)
+                val t = a.findViewById<Button>(R.id.today)
+                cells += "%.0f×%.0fdp、%s、對比 %.2f".format(t.width / d, t.height / d, GlyphInk.state(a.content, t), worst(a, t))
+                val top = GlyphInk.rectIn(a.content, pad(a)).top + (60 * d).toInt()
+                shots += capture(a, top)
+            }
+            report.append("| $name | ${cells.joinToString(" | ")} |\n")
+            rows += name to shots
+        }
+        File(out, "5-button-styles.md").writeText(report.toString())
+        sheet("5-button-styles", "按鈕樣式（看昨天那頁）：" + cfgs.joinToString("｜") { it.name }, cfgs.map { it.name }, rows, colW = 280)
+    }
+
+    /** A1 整頁（字體 200%）：今天、昨天、節日；跟現況比；故事卡要捲多少 */
+    @Test
+    fun a1FullPages() {
+        val report = StringBuilder("# A1 整頁（字體 200%）：今天、昨天、節日\n\n| 設定 | 畫面 | 方案 | 日曆高 | 故事卡上緣 | 首頁內容總高 | 螢幕高 | 故事卡要捲多少才看得到上緣 |\n|---|---|---|---|---|---|---|---|\n")
+        val rows = mutableListOf<Pair<String, List<Bitmap>>>()
+        for (cfg in cfgs.filter { it.fontScale == 2f }) {
+            for (recommended in listOf(false, true)) {
+                val shots = mutableListOf<Bitmap>()
+                for ((label, day, back) in listOf(Triple("今天", normal, false), Triple("昨天", normal, true), Triple("春節（今天）", spring, false))) {
+                    val a = open(cfg, day, torn = true)
+                    relayout(a)
+                    val c = combos.first { it.id == "R2" }
+                    if (recommended) { setupCombo(a, c); eachCombo(a, c) }
+                    relayout(a)
+                    if (back) { a.findViewById<Button>(R.id.prev).performClick(); if (recommended) eachCombo(a, c); relayout(a) }
+                    val p = pos(a)
+                    val screenH = a.window.decorView.height
+                    val scrollH = (a.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as ScrollView).height
+                    val need = (p.storyTop + (40 * d).toInt() - scrollH).coerceAtLeast(0)
+                    report.append("| ${cfg.name} | $label | ${if (recommended) "推薦（A1＋R2）" else "現況 PR #4"} | %.0fdp | %.0fdp | %.0fdp | %.0fdp | %.0fdp |\n".format(p.pageH / d, p.storyTop / d, a.content.height / d, screenH / d, need / d))
+                    shots += capture(a, 99999)
+                }
+                rows += "${cfg.name} ${if (recommended) "推薦" else "現況"}" to shots
+            }
+        }
+        File(out, "6-a1-full.md").writeText(report.toString())
+        sheet("6-a1-full", "A1 整頁（字體 200%）：今天｜昨天｜春節", listOf("今天", "昨天", "春節（今天）"), rows, colW = 300)
+    }
 }
