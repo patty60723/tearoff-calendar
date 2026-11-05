@@ -44,7 +44,10 @@ import java.time.LocalDate
 @Config(qualifiers = "w411dp-h891dp-xxhdpi")
 class V3PngGoldenTest {
     companion object {
-        /** 2026-10-30 人工審核通過（54 張，含 WIDE 正式修正）後鎖定：不一致就失敗 */
+        /**
+         * 2026-10-30 人工審核通過（54 張，含 WIDE 正式修正）後鎖定：不一致就失敗。
+         * 2026-11-05：P7-7 英文月份 #746D64 核准，換了 17 張（WIDE 9、TALL 4、日曆頁 4），其他 37 張不變。
+         */
         const val LOCKED = true
 
         /** 每個顏色通道容許的差距（壓縮、四捨五入）；超過就算這個像素不同 */
