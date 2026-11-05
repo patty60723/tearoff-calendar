@@ -768,4 +768,68 @@ class P77TallStructureTest {
         if (candShots.isNotEmpty()) sheet("7-wide-months", "WIDE 250×110 未達 4.8 的月份：現在／W1（達 4.8）", listOf("現在", "W1 4.8"), candShots, colW = 300)
         File(out, "7-wide-months.md").writeText(report.toString())
     }
+
+    // ---------- 8. W1（WIDE 日期局部加深）在 4 種 WIDE 大小的驗證（2026-11-05 後續分流） ----------
+
+    /** 日期數字有墨的像素位置與那裡「拿掉日期後」的背景色（同一天、同一個大小只畫一次，任何日期色都能拿來算） */
+    private fun inkBackground(day: LocalDate, w: Int, h: Int): Pair<IntArray, IntArray> {
+        AppClock.setFakeToday(context, day)
+        WeatherService.setFakeMood(context, Mood.SUNNY)
+        context.getSharedPreferences("weather", Context.MODE_PRIVATE).edit()
+            .putString("city", Cities.selected(context).name).putLong("fetchedAt", System.currentTimeMillis()).commit()
+        val v = CalendarWidget.build(context, Almanac.page(day), PageLayout.WIDE, wideWidthDp = w.toFloat()).apply(context, FrameLayout(context)).also { measure(it, (w * d).toInt(), (h * d).toInt()) }
+        val tv = v.findViewById<TextView>(R.id.day)
+        val ink = mask(v, tv)
+        tv.visibility = View.INVISIBLE
+        val bg = shoot(v)
+        val px = IntArray(bg.width * bg.height).also { bg.getPixels(it, 0, bg.width, 0, 0, bg.width, bg.height) }
+        val idx = ink.indices.filter { ink[it] }.toIntArray()
+        return idx to IntArray(idx.size) { px[idx[it]] }
+    }
+
+    private fun worstOf(bgs: IntArray, color: Int) = bgs.minOfOrNull { ratio(color, it) } ?: Double.MAX_VALUE
+
+    @Test
+    fun wideW1AllSizes() {
+        RuntimeEnvironment.setQualifiers("w411dp-h891dp-xxhdpi")
+        RuntimeEnvironment.setFontScale(1f)
+        val sizes = listOf(250 to 110, 300 to 130, 350 to 170, 400 to 200)
+        val year = generateSequence(LocalDate.of(2027, 1, 1)) { it.plusDays(1) }.takeWhile { it.year == 2027 }.toList()
+        // 每一天 × 每個大小：日期下面的背景（一次）
+        val bg = HashMap<Pair<LocalDate, Int>, IntArray>()
+        for (day in year) for ((i, wh) in sizes.withIndex()) bg[day to i] = inkBackground(day, wh.first, wh.second).second
+        fun base(m: Int, red: Boolean) = if (red) Palettes.RED else if (m == 8) 0xFF84693D.toInt() else Palettes.forMonth(m).deep
+        // W1：在最小尺寸（250×110）把每個月最差的那一天拉到 4.8 的最小加深量；已經 ≥ 4.8 就不改
+        fun w1(m: Int, red: Boolean): Pair<Double, Int> {
+            val days = year.filter { it.monthValue == m && Almanac.page(it).isRedDay == red }
+            val b = base(m, red)
+            if (days.isEmpty()) return 0.0 to b
+            for (k in 0..100) {
+                val c = Palettes.blend(Palettes.INK, b, (k / 100.0).toFloat())
+                if (days.all { worstOf(bg.getValue(it to 0), c) >= 4.8 }) return k / 100.0 to c
+            }
+            return 1.0 to Palettes.INK
+        }
+        val report = StringBuilder("# W1（WIDE 日期局部加深）：4 種 WIDE 大小 × 12 個月 × 一般日／紅字日\n\n")
+        report.append("對比標準：**日期數字一律用 4.5:1 當最低門檻、4.8:1 當設計目標**（不套用 WCAG 大字 3:1 的例外：日期是這個畫面最主要的資訊，而且最差的地方是字形下緣疊在山丘上）。\n")
+        report.append("量法：日期數字有墨的像素位置上，日期色對拿掉日期後的背景；2027 年每一天 × 每個大小。8 月以已核准的 #84693D 為基準。\n")
+        report.append("W1 的加深量 s 在最小尺寸 250×110 決定（整個月每一天都 ≥ 4.8 的最小 s），其他大小沿用同一個顏色。\n\n")
+        report.append("| 月 | 日子 | 現在的顏色 | W1（s） | " + sizes.joinToString(" | ") { "${it.first}×${it.second} 現在 → W1" } + " |\n|---|---|---|---|" + "---|".repeat(sizes.size) + "\n")
+        val fails = mutableListOf<String>()
+        for (m in 1..12) for (red in listOf(false, true)) {
+            val days = year.filter { it.monthValue == m && Almanac.page(it).isRedDay == red }
+            if (days.isEmpty()) continue
+            val b = base(m, red)
+            val (sv, c) = w1(m, red)
+            val cells = sizes.indices.map { i ->
+                val now = days.minOf { worstOf(bg.getValue(it to i), b) }
+                val after = days.minOf { worstOf(bg.getValue(it to i), c) }
+                if (after < 4.5) fails += "$m 月${if (red) "紅字日" else "一般日"} ${sizes[i]} W1 後 %.2f".format(after)
+                "%.2f → **%.2f**".format(now, after)
+            }
+            report.append("| $m | ${if (red) "紅字日" else "一般日"} | ${hex(b)} | ${if (sv == 0.0) "不改" else "${hex(c)}（%.2f）".format(sv)} | ${cells.joinToString(" | ")} |\n")
+        }
+        report.append("\n" + if (fails.isEmpty()) "**W1 之後：4 種大小、12 個月、一般日與紅字日的最差像素都 ≥ 4.5。**\n" else "**W1 之後仍未達 4.5：**\n" + fails.joinToString("\n") { "- $it" } + "\n")
+        File(out, "8-wide-w1-sizes.md").writeText(report.toString())
+    }
 }
