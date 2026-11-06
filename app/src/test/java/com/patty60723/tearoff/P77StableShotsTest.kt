@@ -671,7 +671,7 @@ class P77StableShotsTest {
      *   可以撕 →「撕下這一頁」；看別天 →「回到最上面那頁」；撕完 →「明天再來撕下一頁」（低調狀態）。
      *   手勢說明只在首次使用時出現（寫在「撕下這一頁」按鈕裡，第二行小字）。按鈕是暖灰文字、沒有外框；城市入口也改暖灰。
      */
-    enum class Visual { V1, V2 }
+    enum class Visual { V1, V2, V2B }
 
     private fun firstUseLabel(): CharSequence {
         val sb = android.text.SpannableStringBuilder("撕下這一頁\n也可以從左下角或右下角往上撕")
@@ -706,11 +706,12 @@ class P77StableShotsTest {
             hint.visibility = View.GONE
             (hint.parent as ViewGroup).removeView(hint)
             at = content.indexOfChild(pad(a)) + 1
+            // V2、V2B：上方只留導覽與城市
             a.findViewById<TextView>(R.id.city).setTextColor(INK_MID)
         }
         for (x in listOf<View>(hint, today, tear)) frame.addView(x, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         content.addView(frame, at, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        val st = if (v == Visual.V1) Style.OUTLINE else Style.TEXT
+        val st = if (v == Visual.V2) Style.TEXT else Style.OUTLINE
         tear.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
         style(today, st, "回到最上面那頁")
         style(tear, st, "撕下這一頁")
@@ -750,7 +751,7 @@ class P77StableShotsTest {
         // 說明／狀態：V1 顯示精簡說明；V2 只在撕完時顯示「明天再來撕下一頁」
         hint.visibility = when {
             browsing || tearable -> View.GONE
-            v == Visual.V2 && hint.text != "明天再來撕下一頁" -> View.INVISIBLE
+            v != Visual.V1 && hint.text != "明天再來撕下一頁" -> View.INVISIBLE
             else -> View.VISIBLE
         }
     }
@@ -819,7 +820,7 @@ class P77StableShotsTest {
         for (cfg in cfgs) {
             report.append("## ${cfg.name}\n\n| 候選 | 日曆上緣 | 日曆高 | 故事卡上緣 | 位移（日曆／高度／故事卡） | 春節日曆高 | 文字與觸控 | 焦點問題 | 觸控區域（撕頁前，dp） |\n|---|---|---|---|---|---|---|---|---|\n")
             val rows = mutableListOf<Pair<String, List<Bitmap>>>()
-            for ((v, first) in listOf(Visual.V1 to false, Visual.V2 to false, Visual.V2 to true)) {
+            for ((v, first) in listOf(Visual.V1 to false, Visual.V2 to false, Visual.V2B to false, Visual.V2 to true)) {
                 val a = open(cfg, normal, torn = false)
                 relayout(a)
                 setupVisual(a, v, first); eachVisual(a, v, first); relayout(a)
@@ -852,8 +853,8 @@ class P77StableShotsTest {
                 val sh = sp.storyTop + (40 * d).toInt()
                 shots += thumb(annotate(sa, capture(sa, sh), sh))
                 fun span(f: (Pos) -> Int) = "%.0f".format((ps.maxOf(f) - ps.minOf(f)) / d)
-                report.append("| $v | ${ps.joinToString("→") { "%.0f".format(it.pageTop / d) }} | ${ps.joinToString("→") { "%.0f".format(it.pageH / d) }} | ${ps.joinToString("→") { "%.0f".format(it.storyTop / d) }} | ${span { it.pageTop }}／${span { it.pageH }}／${span { it.storyTop }}dp | ${"%.0f".format(sp.pageH / d)}（上緣 ${"%.0f".format(sp.pageTop / d)}、故事卡 ${"%.0f".format(sp.storyTop / d)}） | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | ${focus.ifEmpty { setOf("無") }.joinToString("、")} | $targets |\n")
-                rows += v.name to shots
+                report.append("| ${if (v == Visual.V2B) "V2b（V2＋按鈕描邊）" else v.name} | ${ps.joinToString("→") { "%.0f".format(it.pageTop / d) }} | ${ps.joinToString("→") { "%.0f".format(it.pageH / d) }} | ${ps.joinToString("→") { "%.0f".format(it.storyTop / d) }} | ${span { it.pageTop }}／${span { it.pageH }}／${span { it.storyTop }}dp | ${"%.0f".format(sp.pageH / d)}（上緣 ${"%.0f".format(sp.pageTop / d)}、故事卡 ${"%.0f".format(sp.storyTop / d)}） | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | ${focus.ifEmpty { setOf("無") }.joinToString("、")} | $targets |\n")
+                rows += (if (v == Visual.V2B) "V2b（V2＋按鈕描邊）" else v.name) to shots
             }
             sheets[cfg.name] = rows
             report.append("\n")
