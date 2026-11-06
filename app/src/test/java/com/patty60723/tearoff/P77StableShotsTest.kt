@@ -839,7 +839,7 @@ class P77StableShotsTest {
                 if (first) {
                     // 首次使用：只看撕頁前（引導）這一張
                     rows += "V2 首次使用（引導）" to shots
-                    report.append("| V2 首次使用（引導） | %.0f | %.0f | %.0f | — | — | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | ${focus.ifEmpty { setOf("無") }.joinToString("、")} | $targets |\n".format(ps[0].pageTop / d, ps[0].pageH / d, ps[0].storyTop / d))
+                    report.append("| V2 首次使用（引導） | " + "%.0f | %.0f | %.0f".format(ps[0].pageTop / d, ps[0].pageH / d, ps[0].storyTop / d) + " | — | — | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | ${focus.ifEmpty { setOf("無") }.joinToString("、")} | $targets |\n")
                     continue
                 }
                 a.findViewById<Button>(R.id.tear).performClick(); ShadowLooper.idleMainLooper(2, TimeUnit.SECONDS); eachVisual(a, v, first); snap()
