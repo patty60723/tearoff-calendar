@@ -662,4 +662,203 @@ class P77StableShotsTest {
         File(out, "6-a1-full.md").writeText(report.toString())
         sheet("6-a1-full", "A1 整頁（字體 200%）：今天｜昨天｜春節", listOf("今天", "昨天", "春節（今天）"), rows, colW = 300)
     }
+
+    // ---------- 2026-11-06 視覺精修：V1 保守精簡、V2 極簡手帳 ----------
+
+    /**
+     * V1 保守精簡：上方共用一格（說明文字／「撕下這一頁」／「回到最上面那頁」三選一，淡色描邊按鈕）＋精簡說明＋導覽改暖灰。
+     * V2 極簡手帳：上方只留導覽與城市；共用的那一格搬到日曆頁下面（原本「或按這裡撕下」的位置）：
+     *   可以撕 →「撕下這一頁」；看別天 →「回到最上面那頁」；撕完 →「明天再來撕下一頁」（低調狀態）。
+     *   手勢說明只在首次使用時出現（寫在「撕下這一頁」按鈕裡，第二行小字）。按鈕是暖灰文字、沒有外框；城市入口也改暖灰。
+     */
+    enum class Visual { V1, V2 }
+
+    private fun firstUseLabel(): CharSequence {
+        val sb = android.text.SpannableStringBuilder("撕下這一頁\n也可以從左下角或右下角往上撕")
+        sb.setSpan(android.text.style.RelativeSizeSpan(0.8f), 6, sb.length, 0)
+        return sb
+    }
+
+    private fun tearLabel(a: MainActivity, first: Boolean): CharSequence {
+        val n = StoryBook(context).pendingPages(AppClock.today(context))
+        return when {
+            first -> firstUseLabel()
+            n > 1 -> "撕下這一頁（還有 $n 頁）"
+            else -> "撕下這一頁"
+        }
+    }
+
+    private fun setupVisual(a: MainActivity, v: Visual, first: Boolean) {
+        val content = a.content
+        val hint = a.findViewById<TextView>(R.id.hint)
+        val today = a.findViewById<Button>(R.id.today)
+        val tear = a.findViewById<Button>(R.id.tear)
+        val prev = a.findViewById<Button>(R.id.prev); val next = a.findViewById<Button>(R.id.next)
+        prev.setTextColor(INK_MID); next.setTextColor(INK_MID)
+        (today.parent as ViewGroup).removeView(today)
+        (tear.parent as ViewGroup).removeView(tear)
+        val frame = FrameLayout(a).apply { tag = "slot" }
+        val at: Int
+        if (v == Visual.V1) {
+            at = content.indexOfChild(hint)
+            content.removeView(hint)
+        } else {
+            hint.visibility = View.GONE
+            (hint.parent as ViewGroup).removeView(hint)
+            at = content.indexOfChild(pad(a)) + 1
+            a.findViewById<TextView>(R.id.city).setTextColor(INK_MID)
+        }
+        for (x in listOf<View>(hint, today, tear)) frame.addView(x, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+        content.addView(frame, at, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        val st = if (v == Visual.V1) Style.OUTLINE else Style.TEXT
+        tear.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        style(today, st, "回到最上面那頁")
+        style(tear, st, "撕下這一頁")
+        if (first) tear.text = firstUseLabel()
+        tear.contentDescription = "撕下這一頁（也可以從頁面左下角或右下角往上撕）"
+        hint.setTextColor(INK_MID)
+        relayout(a)
+        // 格子高度＝所有狀態裡最高的（V2 首次使用時按鈕兩行；首次期間結束後，下次打開 App 才重算，不會在操作中變）
+        val w = content.width - content.paddingLeft - content.paddingRight
+        fun h(x: TextView, txt: CharSequence?): Int {
+            val keep = x.text; val vis = x.visibility
+            if (txt != null) x.text = txt
+            x.visibility = View.VISIBLE
+            val lp = x.layoutParams
+            x.measure(if (lp.width == ViewGroup.LayoutParams.WRAP_CONTENT) View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.AT_MOST) else View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            x.text = keep; x.visibility = vis
+            return x.measuredHeight
+        }
+        val statuses = if (v == Visual.V1) listOf("從左下角或右下角往上撕", "還有 9 頁沒撕", "明天再來撕下一頁", a.getString(R.string.hint_cover)) else listOf("明天再來撕下一頁")
+        val tears = if (v == Visual.V1) listOf<CharSequence>("撕下這一頁（還有 9 頁）") else listOf<CharSequence>("撕下這一頁（還有 9 頁）") + (if (first) listOf(firstUseLabel()) else emptyList())
+        val hh = maxOf(statuses.maxOf { h(hint, it) }, h(today, null), tears.maxOf { h(tear, it) })
+        frame.layoutParams = frame.layoutParams.apply { height = hh }
+    }
+
+    private fun eachVisual(a: MainActivity, v: Visual, first: Boolean) {
+        fixPageHeight(a)
+        val hint = a.findViewById<TextView>(R.id.hint)
+        val today = a.findViewById<Button>(R.id.today)
+        val tear = a.findViewById<Button>(R.id.tear)
+        val browsing = today.visibility == View.VISIBLE
+        val tearable = pad(a).tearable && !browsing
+        hintText(a, Hint.H1)?.let { hint.text = it }
+        if (browsing) today.contentDescription = "回到最上面那頁（現在在看 ${a.findViewById<TextView>(R.id.hint).text.filter { it.isDigit() || it == '/' }}）"
+        tear.visibility = if (tearable) View.VISIBLE else View.GONE
+        if (tearable) tear.text = tearLabel(a, first)
+        today.visibility = if (browsing) View.VISIBLE else View.GONE
+        // 說明／狀態：V1 顯示精簡說明；V2 只在撕完時顯示「明天再來撕下一頁」
+        hint.visibility = when {
+            browsing || tearable -> View.GONE
+            v == Visual.V2 && hint.text != "明天再來撕下一頁" -> View.INVISIBLE
+            else -> View.VISIBLE
+        }
+    }
+
+    /** 觸控區域：所有看得到、可以點的元件（含日曆頁的兩個撕頁角落），以首頁內容座標回傳 */
+    private fun touchTargets(a: MainActivity): List<Pair<String, android.graphics.Rect>> {
+        val c = a.content
+        val out = mutableListOf<Pair<String, android.graphics.Rect>>()
+        fun walk(v: View) {
+            if (v.visibility != View.VISIBLE) return
+            if (v is TearPageView) {
+                val r = GlyphInk.rectIn(c, v)
+                val zone = (r.width() * 0.35f).toInt()
+                if (v.tearable) {
+                    out += "撕頁角（左下）" to android.graphics.Rect(r.left, r.bottom - zone, r.left + zone, r.bottom)
+                    out += "撕頁角（右下）" to android.graphics.Rect(r.right - zone, r.bottom - zone, r.right, r.bottom)
+                }
+                return
+            }
+            if (v.isClickable && v.isEnabled && v !is ScrollView && v !== c) {
+                val name = when (v.id) {
+                    R.id.prev -> "前一天"; R.id.next -> "後一天"; R.id.today -> "回到最上面那頁"; R.id.tear -> "撕下這一頁"; R.id.city -> "城市"
+                    R.id.story_mowan -> "墨丸（天氣彩蛋）"; R.id.story_bundle -> "包袱"; else -> null
+                }
+                if (name != null) out += name to GlyphInk.rectIn(c, v)
+            }
+            if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i))
+        }
+        walk(c)
+        return out
+    }
+
+    /** 無障礙焦點：可以點或可聚焦、卻看不到（INVISIBLE、在 GONE／INVISIBLE 的上層裡）或停用的元件 */
+    private fun hiddenFocus(a: MainActivity): List<String> {
+        val bad = mutableListOf<String>()
+        fun walk(v: View, shown: Boolean) {
+            val vis = shown && v.visibility == View.VISIBLE
+            if ((v.isClickable || v.isFocusable) && v is TextView && v.importantForAccessibility != View.IMPORTANT_FOR_ACCESSIBILITY_NO) {
+                val n = (v.contentDescription ?: v.text).toString().take(10)
+                if (!vis && v.visibility == View.INVISIBLE) bad += "「$n」INVISIBLE 但可聚焦"
+                if (vis && !v.isEnabled) bad += "「$n」停用"
+            }
+            if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i), vis)
+        }
+        walk(a.content, true)
+        return bad
+    }
+
+    private fun annotate(a: MainActivity, b: Bitmap, h: Int): Bitmap {
+        val out = b.copy(Bitmap.Config.ARGB_8888, true)
+        val cv = Canvas(out)
+        val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2 * d; color = 0xFF2B7BD0.toInt(); pathEffect = android.graphics.DashPathEffect(floatArrayOf(5 * d, 3 * d), 0f) }
+        val corner = Paint(line).apply { color = 0xFFE08A1E.toInt() }
+        for ((n, r) in touchTargets(a)) if (r.top < h) cv.drawRect(r, if (n.startsWith("撕頁角")) corner else line)
+        return out
+    }
+
+    data class VState(val name: String, val act: (MainActivity) -> Unit)
+
+    @Test
+    fun visualCandidates() {
+        val report = StringBuilder("# 視覺精修候選 V1（保守精簡）、V2（極簡手帳）\n\n")
+        report.append("藍色虛線＝可以點的元件；橘色虛線＝日曆頁的撕頁角（手指從這裡往上撕）。四個狀態＋春節（今天那頁、較長內容）。\n\n")
+        val sheets = LinkedHashMap<String, MutableList<Pair<String, List<Bitmap>>>>()
+        val cols = listOf("撕頁前", "撕頁後", "昨天", "回到今天", "春節（今天）")
+        for (cfg in cfgs) {
+            report.append("## ${cfg.name}\n\n| 候選 | 日曆上緣 | 日曆高 | 故事卡上緣 | 位移（日曆／高度／故事卡） | 春節日曆高 | 文字與觸控 | 焦點問題 | 觸控區域（撕頁前，dp） |\n|---|---|---|---|---|---|---|---|---|\n")
+            val rows = mutableListOf<Pair<String, List<Bitmap>>>()
+            for ((v, first) in listOf(Visual.V1 to false, Visual.V2 to false, Visual.V2 to true)) {
+                val a = open(cfg, normal, torn = false)
+                relayout(a)
+                setupVisual(a, v, first); eachVisual(a, v, first); relayout(a)
+                val ps = mutableListOf<Pos>(); val shots = mutableListOf<Bitmap>(); val probs = mutableSetOf<String>(); val focus = mutableSetOf<String>()
+                var targets = ""
+                fun snap() {
+                    relayout(a); val p = pos(a); ps += p; probs += ui(a); focus += hiddenFocus(a)
+                    a.findViewById<Button>(R.id.tear).takeIf { it.visibility == View.VISIBLE }?.let { t ->
+                        GlyphInk.state(a.content, t).takeIf { it != "完整" }?.let { probs += "撕下這一頁$it" }
+                        if (t.height / d < 47.5f) probs += "撕下這一頁只有 %.0fdp 高".format(t.height / d)
+                    }
+                    val h = p.storyTop + (40 * d).toInt()
+                    shots += thumb(annotate(a, capture(a, h), h))
+                }
+                snap()
+                targets = touchTargets(a).filter { !it.first.startsWith("墨丸") && it.first != "包袱" }.joinToString("、") { "${it.first} %.0f×%.0f".format(it.second.width() / d, it.second.height() / d) }
+                if (first) {
+                    // 首次使用：只看撕頁前（引導）這一張
+                    rows += "V2 首次使用（引導）" to shots
+                    report.append("| V2 首次使用（引導） | %.0f | %.0f | %.0f | — | — | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | ${focus.ifEmpty { setOf("無") }.joinToString("、")} | $targets |\n".format(ps[0].pageTop / d, ps[0].pageH / d, ps[0].storyTop / d))
+                    continue
+                }
+                a.findViewById<Button>(R.id.tear).performClick(); ShadowLooper.idleMainLooper(2, TimeUnit.SECONDS); eachVisual(a, v, first); snap()
+                a.findViewById<Button>(R.id.prev).performClick(); eachVisual(a, v, first); snap()
+                a.findViewById<Button>(R.id.today).performClick(); eachVisual(a, v, first); snap()
+                // 春節（今天那頁）：另外開，同樣的組裝
+                val sa = open(cfg, spring, torn = true)
+                relayout(sa); setupVisual(sa, v, false); eachVisual(sa, v, false); relayout(sa)
+                val sp = pos(sa); probs += ui(sa); focus += hiddenFocus(sa)
+                val sh = sp.storyTop + (40 * d).toInt()
+                shots += thumb(annotate(sa, capture(sa, sh), sh))
+                fun span(f: (Pos) -> Int) = "%.0f".format((ps.maxOf(f) - ps.minOf(f)) / d)
+                report.append("| $v | ${ps.joinToString("→") { "%.0f".format(it.pageTop / d) }} | ${ps.joinToString("→") { "%.0f".format(it.pageH / d) }} | ${ps.joinToString("→") { "%.0f".format(it.storyTop / d) }} | ${span { it.pageTop }}／${span { it.pageH }}／${span { it.storyTop }}dp | ${"%.0f".format(sp.pageH / d)}（上緣 ${"%.0f".format(sp.pageTop / d)}、故事卡 ${"%.0f".format(sp.storyTop / d)}） | ${probs.ifEmpty { setOf("完整、≥ 48dp") }.joinToString("、")} | ${focus.ifEmpty { setOf("無") }.joinToString("、")} | $targets |\n")
+                rows += v.name to shots
+            }
+            sheets[cfg.name] = rows
+            report.append("\n")
+        }
+        File(out, "7-visual.md").writeText(report.toString())
+        for ((n, rows) in sheets) sheet("7-visual-${n.replace("・", "-").replace("%", "")}", "${n}：撕頁前｜撕頁後｜昨天｜回到今天｜春節（藍＝可以點、橘＝撕頁角）", cols, rows, colW = 260)
+    }
 }
