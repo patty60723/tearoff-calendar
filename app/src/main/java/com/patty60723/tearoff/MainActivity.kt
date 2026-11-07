@@ -413,17 +413,27 @@ class MainActivity : Activity() {
     }
 
     /**
-     * P7-7 候選 C：左下的天氣三行（今天那頁有天氣、日出、日落）在大字體時比底部保留（84dp）高，會蓋到「忌」。
-     * 需要的空間＝三行的高度＋下邊距＋4dp；不夠時把底部保留加高到需要的高度，回傳多出來的高度（頁面加高同樣多，日期數字的空間不變）。
-     * 字體 100% 時夠用，回傳 0、什麼都不改。
+     * P7-7 A1：左下的天氣三行（天氣、日出、日落）在大字體時比底部保留（84dp）高，會蓋到「忌」。
+     * **每一頁都照「天氣三行」算**（不管這一頁實際有幾行：只有今天有天氣），所以同一個螢幕寬與字體下每一頁一樣高——
+     * 撕頁前後、翻頁、撕頁動畫裡的下一頁都不會變高變矮，日期數字也不會在動畫裡忽大忽小。
+     * 需要的空間＝三行的高度＋下邊距＋4dp；不夠時把底部保留加高，回傳多出來的高度（頁面加高同樣多，日期數字的空間不變）。
+     * 字體 100% 時夠用，回傳 0、什麼都不改。之後天氣文字如果變成四行，這裡的樣本要一起改。
      */
     private fun reserveForSun(page: View): Int {
         val sun = page.findViewById<TextView>(R.id.sun) ?: return 0
         val space = page.findViewById<View>(R.id.bottom_space) ?: return 0
-        if (sun.visibility == View.GONE || sun.text.isNullOrEmpty()) return 0
-        sun.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        val probe = TextView(this).apply {
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, sun.textSize)
+            typeface = sun.typeface
+            letterSpacing = sun.letterSpacing
+            setLineSpacing(sun.lineSpacingExtra, sun.lineSpacingMultiplier)
+            includeFontPadding = sun.includeFontPadding
+            setPadding(sun.paddingLeft, sun.paddingTop, sun.paddingRight, sun.paddingBottom)
+            text = SUN_SAMPLE
+        }
+        probe.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
         val margin = (sun.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
-        val need = sun.measuredHeight + margin + (4 * resources.displayMetrics.density).toInt()
+        val need = probe.measuredHeight + margin + (4 * resources.displayMetrics.density).toInt()
         val have = space.layoutParams.height
         if (need <= have) return 0
         space.layoutParams = space.layoutParams.apply { height = need }
@@ -538,5 +548,7 @@ class MainActivity : Activity() {
 
     private companion object {
         const val KEY_DATE = "date"
+        /** A1 的固定樣本：天氣三行（天氣、日出、日落）。實際文字長短不影響高度，只看行數 */
+        const val SUN_SAMPLE = "晴 25°\n日出 06:03\n日落 17:11"
     }
 }

@@ -181,12 +181,18 @@ class PageReserveTest {
             assertEquals("${cfg.name} 撕完頁數 +1", pageBefore + 1, pageAfter)
             assertTrue("${cfg.name} 故事卡更新", storyAfter != storyBefore)
             assertEquals("${cfg.name} 撕完的頁面高度＝寬 × 1.45 ＋ 新那頁的加高", (p.width * p.aspect).toInt() + p.extraHeight, p.height)
+            // A1：撕之前、撕之後同樣高；動畫裡的下一頁（截圖）跟撕完的頁面逐像素相同（日期不會在動畫裡忽大忽小）
+            assertEquals("${cfg.name} A1：撕之前、撕之後頁面一樣高", h0, p.height)
+            val after = Bitmap.createBitmap(p.width, p.height, Bitmap.Config.ARGB_8888).also { p.getChildAt(0).draw(Canvas(it)) }
+            // 比上半部（月份、日期數字、宜）：墨丸的成長部位可能在撕完那一刻解鎖，不比
+            val top = (p.height * 0.55f).toInt()
+            assertTrue("${cfg.name} 撕頁動畫裡的下一頁（上半部）＝撕完的頁面", Bitmap.createBitmap(after, 0, 0, after.width, top).sameAs(Bitmap.createBitmap(b, 0, 0, b.width, top)))
             val s = state(a)
             assertTrue("${cfg.name} 撕完不碰撞：${s.overlaps}", s.overlaps.isEmpty())
             report.append("| ${cfg.name} | ${f(h0 / d.toDouble())}dp（+${f(e0 / d.toDouble())}） | ${b.width}×${b.height}px（跟撕之前的頁面一樣） | ${f(p.height / d.toDouble())}dp（+${f(p.extraHeight / d.toDouble())}） | 更新 | $pageBefore → $pageAfter |\n")
             shots += "${cfg.name} 撕完" to shoot(p)
         }
-        report.append("\n撕之前是前一天那頁（沒有天氣行），撕完是今天那頁（有天氣三行）：頁面在撕完那一刻加高（上表），撕的動畫裡下一頁是用撕之前的大小畫的。\n")
+        report.append("\nA1：每一頁都照天氣三行保留空間，撕之前（前一天那頁）與撕完（今天那頁）一樣高；撕頁動畫裡的下一頁跟撕完的頁面逐像素相同。\n")
         File(out, "2-tear.md").writeText(report.toString())
         sheet("2-tear", shots)
     }
@@ -205,6 +211,7 @@ class PageReserveTest {
             a.findViewById<Button>(R.id.prev).performClick(); relayout(a)
             val yesterday = h()
             assertEquals("$dayName ${cfg.name} 前一天", expect(), yesterday)
+            assertEquals("$dayName ${cfg.name} A1：昨天跟今天一樣高", today, yesterday)
             assertTrue("$dayName ${cfg.name} 前一天不碰撞", state(a).overlaps.isEmpty())
             a.findViewById<Button>(R.id.next).performClick(); relayout(a)
             val back = h()
@@ -215,7 +222,7 @@ class PageReserveTest {
             assertEquals("$dayName ${cfg.name} 回到最上面那頁高度一樣", today, top)
             report.append("| $dayName | ${cfg.name} | ${f(today / d.toDouble())}dp | ${f(yesterday / d.toDouble())}dp | ${f(back / d.toDouble())}dp | ${f(top / d.toDouble())}dp |\n")
         }
-        report.append("\n今天那頁有天氣三行、別天只有日出日落兩行：大字體時翻頁頁面高度會變（上表的差）。字體 100% 時都是寬 × 1.45。\n")
+        report.append("\nA1：今天、前一天、回來、回到最上面那頁都一樣高。字體 100% 時都是寬 × 1.45。\n")
         File(out, "3-flip.md").writeText(report.toString())
     }
 
