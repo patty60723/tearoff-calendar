@@ -114,6 +114,9 @@ class MainActivity : Activity() {
         slot.layoutParams = slot.layoutParams.apply { height = h }
     }
 
+    /** A1 的加高（這台裝置的寬度與字體下固定）：給封面用，跟日曆頁一樣高 */
+    private val pageExtra: Int by lazy { (pageView(AppClock.today(this)).getTag(R.id.bottom_space) as? Int) ?: 0 }
+
     /** 首次引導（P7-7）：成功撕下第一頁以後就不再顯示；記在設定裡。之前就撕過頁的使用者視為已完成 */
     private val guideDone: Boolean
         get() = getSharedPreferences(PREFS_UI, MODE_PRIVATE).getBoolean(KEY_GUIDE_DONE, false) || book.page > 0
@@ -332,8 +335,8 @@ class MainActivity : Activity() {
 
         pad.removeAllViews()
         val view = if (newDate == null) coverView() else pageView(newDate)
-        // 這一頁需要的加高（候選 C）；每次換頁各自計算，封面是 0
-        pad.extraHeight = (view.getTag(R.id.bottom_space) as? Int) ?: 0
+        // A1 的加高：每一頁一樣。封面沒有天氣欄位，照日曆頁的加高，第一次撕下封面時才不會變高（emulator #105）
+        pad.extraHeight = (view.getTag(R.id.bottom_space) as? Int) ?: pageExtra
         pad.addView(view)
         // 只有最上面那張、而且還有沒撕的頁時才能撕
         pad.tearable = newDate == topDate() && book.nextDate(today) != null

@@ -200,7 +200,12 @@ class ActionSlotTest {
             assertFalse("${cfg.name} 隔天也不顯示引導", c.findViewById<View>(R.id.tear_guide).isShown)
             val hs = listOf(h0, h1, h2, h3).map { it.slotH }
             if (hs.distinct().size > 1) problems += "${cfg.name} 操作區高度變了：${hs.map { f(it) }}"
-            report.append("| ${cfg.name} | ${hs.joinToString(" | ") { f(it) }} |\n")
+            // 位置也不能動：封面（首次）跟日曆頁一樣高（emulator #105 抓到封面比較矮，撕下封面後操作區往下 43dp）
+            for ((n, sel) in listOf<Pair<String, (Pos) -> Int>>("日曆上緣" to { it.pageTop }, "日曆高" to { it.pageH }, "操作區上緣" to { it.slotTop }, "故事卡上緣" to { it.storyTop })) {
+                val vs = listOf(h0, h1, h2, h3).map(sel)
+                if (vs.distinct().size > 1) problems += "${cfg.name} $n 變了：${vs.map { f(it) }}"
+            }
+            report.append("| ${cfg.name} | ${listOf(h0, h1, h2, h3).joinToString(" | ") { "高 ${f(it.slotH)}、上緣 ${f(it.slotTop)}、日曆高 ${f(it.pageH)}" }} |\n")
             AppClock.setFakeToday(context, today)
         }
         File(out, "first-use.md").writeText(report.toString())
