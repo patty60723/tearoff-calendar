@@ -1,0 +1,3 @@
+  520   339 S<L   0      system_server
+ 1083   339 S     0      com.google.android.apps.nexuslauncher
+ 9407   339 R<    0      com.patty60723.tearoff

@@ -1,0 +1,4 @@
+mCurrentFocus=Window{8c92d34 u0 Application Not Responding: com.google.android.apps.nexuslauncher
+  mFocusedApp=ActivityRecord{35120ac u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t7}
+  mFocusedApp=ActivityRecord{dab5691 u0 com.patty60723.tearoff/.MainActivity t32}
+11-07 16:00:09.668   520  2765 I am_anr  : [0,1083,com.google.android.apps.nexuslauncher,885767749,Input dispatching timed out (Application does not have a focused window)]

@@ -1,0 +1,4 @@
+tag=anr-1-bundle-1-1-anr-closed
+host_time=2026-11-07T16:06:46.522Z
+device_uptime=435.63
+device_time=11-07 16:06:46

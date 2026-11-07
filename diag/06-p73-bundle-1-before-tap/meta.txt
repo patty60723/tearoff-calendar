@@ -1,0 +1,6 @@
+tag=p73-bundle-1-before-tap
+host_time=2026-11-07T16:20:23.663Z
+device_uptime=1252.75
+device_time=11-07 16:20:23
+tap=483 1023
+target=395 960 572 1086

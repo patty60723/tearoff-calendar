@@ -1,0 +1,65 @@
+== 分類：正常的輸入
+ok    狀態有變 → HANDLED
+ok    對話框蓋住點擊位置 → OBSCURED
+ok    座標不在元件裡 → COORDINATE_MISS
+ok    觸控視窗是 App、焦點是 launcher → NOT_FOREGROUND
+ok    佇列卡住＋系統判定沒回應 → APP_NOT_PROCESSING
+ok    只有 WaitQueue 不是 0 → 不判成 APP_NOT_PROCESSING
+ok    只有 WaitQueue 不是 0 → 理由寫出來
+ok    佇列卡住＋兩次取樣都停在同一個位置 → APP_NOT_PROCESSING
+ok    佇列不是 0 但主執行緒有在動（兩次取樣不同）→ 不判成卡住
+ok    只有一次取樣 → 不當成卡住的證據
+ok    堆疊讀不懂 → 不當成卡住的證據
+ok    摘要寫出取樣：狀態、位置、idle
+ok    送到 App、主執行緒閒置、狀態沒變 → DELIVERED_NO_CHANGE
+ok    互動記錄是 launcher → DELIVERED_ELSEWHERE
+ok    點擊之前的互動記錄不算 → UNKNOWN
+== 元件真正的位置（uiautomator，診斷 workflow 點了沒反應時）
+ok    元件其實在別的地方 → COORDINATE_MISS
+ok    元件不在畫面上 → COORDINATE_MISS
+ok    元件真的在點擊位置 → 不判成 COORDINATE_MISS（照樣看派送／互動記錄）
+ok    uiautomator 讀不到 → 不判成 COORDINATE_MISS（照樣看派送／互動記錄）
+== 派送記錄（診斷 workflow 打開 InputDispatcher 的記錄時）
+ok    派送記錄送到 App、狀態沒變 → DELIVERED_NO_CHANGE
+ok    派送記錄寫出 handled
+ok    派送記錄只有 launcher（手勢監聽不算）→ DELIVERED_ELSEWHERE
+ok    點擊之前的派送記錄不算 → UNKNOWN
+== SPY 視窗（launcher 的手勢監聽）不算擋住
+ok    最上層是 SPY 視窗 → 不判成 OBSCURED
+== 真的 Android 14 輸出（P7-4a 診斷 #1 的對照組，截掉不需要的部分）
+ok    焦點是 App
+ok    輸入焦點是 App
+ok    App 的輸入連線正常、佇列是空的
+ok    launcher 的連線也找得到
+ok    點擊位置最上層是 App（手勢監聽的 SPY 不算）
+ok    launcher 程序狀態讀得到
+ok    真的輸出：狀態有變 → HANDLED
+ok    真的輸出：狀態沒變、沒有派送記錄 → 不亂判（UNKNOWN）
+== 缺資料
+ok    點之後沒有 dumpsys input → INSUFFICIENT
+ok    缺的東西寫出來
+ok    沒有點擊座標 → INSUFFICIENT
+ok    沒有狀態 → INSUFFICIENT
+ok    快照資料夾不存在 → INSUFFICIENT
+ok    空的快照：摘要寫 missing、不猜
+ok    空的快照：程序狀態 missing
+== 讀不懂的輸入
+ok    亂碼的 dumpsys → INSUFFICIENT
+ok    視窗清單是空的 → INSUFFICIENT
+ok    座標不是數字 → INSUFFICIENT
+== 錯誤的參數
+ok    沒有參數 → 結束碼 2
+ok    參數不夠 → 結束碼 2
+ok    不認得的指令 → 結束碼 2
+== classify-all：把每次點擊前後的快照配對
+ok    對照那一次 HANDLED
+ok    注入那一次 OBSCURED（用 after-tap 配對）
+ok    兩次點擊、兩行結果
+ok    after-tap 配對時，用同一次點擊的 miss 快照裡的真正位置
+ok    沒有診斷資料夾 → INSUFFICIENT
+== 掛勾不改變點擊流程的結果
+ok    會切換時照樣回傳 0、不會切換照樣回傳 1（掛勾失敗也一樣）
+ok    掛勾在點之前、點之後被呼叫
+ok    沒反應時呼叫 miss 掛勾
+
+全部通過

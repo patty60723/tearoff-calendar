@@ -1,0 +1,14 @@
+11-07 16:00:26.486   520   575 E ActivityManager: Unable to freeze binder for 2452: -11
+11-07 16:00:28.176   520   575 E ActivityManager: Unable to freeze binder for 4050: -11
+11-07 16:00:30.579   520   896 E ActivityManager: Sending non-protected broadcast com.android.settings.battery.action.PERIODIC_JOB_RECHECK from system 1049:com.android.settings/1000 pkg com.android.settings
+11-07 16:00:30.579   520   896 E ActivityManager: java.lang.Throwable
+11-07 16:00:30.579   520   896 E ActivityManager: 	at com.android.server.am.ActivityManagerService.checkBroadcastFromSystem(ActivityManagerService.java:14306)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at com.android.server.am.ActivityManagerService.broadcastIntentLockedTraced(ActivityManagerService.java:15131)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at com.android.server.am.ActivityManagerService.broadcastIntentLocked(ActivityManagerService.java:14370)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at com.android.server.am.ActivityManagerService.broadcastIntentWithFeature(ActivityManagerService.java:15336)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at android.app.IActivityManager$Stub.onTransact(IActivityManager.java:2653)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at com.android.server.am.ActivityManagerService.onTransact(ActivityManagerService.java:2720)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at android.os.Binder.execTransactInternal(Binder.java:1339)
+11-07 16:00:30.579   520   896 E ActivityManager: 	at android.os.Binder.execTransact(Binder.java:1275)
+11-07 16:00:38.319   520  2193 E ActivityManager: Cannot find package for uid: 1013
+11-07 16:01:14.641   520   575 E ActivityManager: Unable to freeze binder for 4176: -11
