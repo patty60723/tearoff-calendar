@@ -105,7 +105,8 @@ class HomeShotsTest {
         return when {
             l.lineCount > 0 && l.getEllipsisCount(l.lineCount - 1) > 0 -> "「…」截斷"
             l.lineCount > 1 -> "換成 ${l.lineCount} 行"
-            tv.paint.measureText(tv.text.toString()) > tv.width - tv.totalPaddingLeft - tv.totalPaddingRight + 1 -> "被切掉"
+            // P7-7：字形實際有墨的範圍（GlyphInk）被自己或外框切掉 1dp 以上
+            GlyphInk.clipped(tv.rootView, tv) > 0 -> "被切掉"
             else -> "完整"
         }
     }

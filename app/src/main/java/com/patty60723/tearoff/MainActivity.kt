@@ -85,8 +85,41 @@ class MainActivity : Activity() {
         } else {
             pin.visibility = View.GONE
         }
+        fixActionSlotHeight()
         show(date)
     }
+
+    /**
+     * 日曆下方操作區的高度（P7-7 V2b）：所有狀態（「撕下這一頁」＋首次引導、「回到最上面那頁」、「明天再來撕下一頁」）裡最高的。
+     * 首次引導有沒有顯示都照「有引導」算，所以從第一次使用就固定，首次引導結束、重開 App、切換狀態都不變。
+     * 寬度跟日曆頁一樣用螢幕寬減掉左右內距（pageView 也這樣算），第一次排版前就能算好。
+     */
+    private fun fixActionSlotHeight() {
+        val slot = findViewById<View>(R.id.action_slot)
+        val metrics = resources.displayMetrics
+        val width = metrics.widthPixels - (56 * metrics.density).toInt()
+        fun measure(v: View): Int {
+            val keep = v.visibility
+            v.visibility = View.VISIBLE
+            v.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            v.visibility = keep
+            return v.measuredHeight
+        }
+        val guide = findViewById<View>(R.id.tear_guide)
+        val guideKeep = guide.visibility
+        guide.visibility = View.VISIBLE
+        val tearBox = measure(findViewById(R.id.tear_box))
+        guide.visibility = guideKeep
+        val h = maxOf(tearBox, measure(findViewById(R.id.today)), measure(findViewById(R.id.hint)))
+        slot.layoutParams = slot.layoutParams.apply { height = h }
+    }
+
+    /** A1 的加高（這台裝置的寬度與字體下固定）：給封面用，跟日曆頁一樣高 */
+    private val pageExtra: Int by lazy { (pageView(AppClock.today(this)).getTag(R.id.bottom_space) as? Int) ?: 0 }
+
+    /** 首次引導（P7-7）：成功撕下第一頁以後就不再顯示；記在設定裡。之前就撕過頁的使用者視為已完成 */
+    private val guideDone: Boolean
+        get() = getSharedPreferences(PREFS_UI, MODE_PRIVATE).getBoolean(KEY_GUIDE_DONE, false) || book.page > 0
 
     /** 上次閃退的錯誤訊息，截圖回報後按「繼續」回到日曆。 */
     private fun showCrash(text: String) {
@@ -301,11 +334,13 @@ class MainActivity : Activity() {
         val page = Almanac.page(newDate ?: today)
 
         pad.removeAllViews()
-        pad.addView(if (newDate == null) coverView() else pageView(newDate))
+        val view = if (newDate == null) coverView() else pageView(newDate)
+        // A1 的加高：每一頁一樣。封面沒有天氣欄位，照日曆頁的加高，第一次撕下封面時才不會變高（emulator #105）
+        pad.extraHeight = (view.getTag(R.id.bottom_space) as? Int) ?: pageExtra
+        pad.addView(view)
         // 只有最上面那張、而且還有沒撕的頁時才能撕
         pad.tearable = newDate == topDate() && book.nextDate(today) != null
 
-        findViewById<Button>(R.id.today).visibility = if (newDate == topDate()) View.INVISIBLE else View.VISIBLE
         findViewById<TextView>(R.id.yi_all).text = page.yi.joinToString("　")
         findViewById<TextView>(R.id.ji_all).text = page.ji.joinToString("　")
         findViewById<TextView>(R.id.details).text = buildString {
@@ -388,6 +423,7 @@ class MainActivity : Activity() {
                 it.bottomMargin = (pageWidthPx * 0.05f).toInt()
             }
         }
+        frame.setTag(R.id.bottom_space, reserveForSun(page))
         frame.addView(page)
         val today = AppClock.today(this)
         if (day.isAfter(today)) {
@@ -405,6 +441,34 @@ class MainActivity : Activity() {
             )
         }
         return frame
+    }
+
+    /**
+     * P7-7 A1：左下的天氣三行（天氣、日出、日落）在大字體時比底部保留（84dp）高，會蓋到「忌」。
+     * **每一頁都照「天氣三行」算**（不管這一頁實際有幾行：只有今天有天氣），所以同一個螢幕寬與字體下每一頁一樣高——
+     * 撕頁前後、翻頁、撕頁動畫裡的下一頁都不會變高變矮，日期數字也不會在動畫裡忽大忽小。
+     * 需要的空間＝三行的高度＋下邊距＋4dp；不夠時把底部保留加高，回傳多出來的高度（頁面加高同樣多，日期數字的空間不變）。
+     * 字體 100% 時夠用，回傳 0、什麼都不改。之後天氣文字如果變成四行，這裡的樣本要一起改。
+     */
+    private fun reserveForSun(page: View): Int {
+        val sun = page.findViewById<TextView>(R.id.sun) ?: return 0
+        val space = page.findViewById<View>(R.id.bottom_space) ?: return 0
+        val probe = TextView(this).apply {
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, sun.textSize)
+            typeface = sun.typeface
+            letterSpacing = sun.letterSpacing
+            setLineSpacing(sun.lineSpacingExtra, sun.lineSpacingMultiplier)
+            includeFontPadding = sun.includeFontPadding
+            setPadding(sun.paddingLeft, sun.paddingTop, sun.paddingRight, sun.paddingBottom)
+            text = SUN_SAMPLE
+        }
+        probe.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        val margin = (sun.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+        val need = probe.measuredHeight + margin + (4 * resources.displayMetrics.density).toInt()
+        val have = space.layoutParams.height
+        if (need <= have) return 0
+        space.layoutParams = space.layoutParams.apply { height = need }
+        return need - have
     }
 
     /**
@@ -479,24 +543,43 @@ class MainActivity : Activity() {
     /** 紙已經撕下來了：記下這一頁的故事，換上下一頁。 */
     private fun tear(today: LocalDate) {
         book.tear(today) ?: return
+        getSharedPreferences(PREFS_UI, MODE_PRIVATE).edit().putBoolean(KEY_GUIDE_DONE, true).apply()
         show(topDate())
         showStory()
         CalendarWidget.refreshAll(this)
+        focusNewPage()
     }
 
+    /** 測試用：最近一次撕頁後無障礙焦點移到哪個元件、朗讀什麼 */
+    internal var lastTornA11y: Pair<View, String>? = null
+
+    /**
+     * 撕頁後（TalkBack 開著時）：焦點移到新那一頁的日期，朗讀結果。撕頁按鈕可能已經換成「明天再來撕下一頁」，焦點不能留在消失的按鈕上（P7-7）
+     */
+    private fun focusNewPage() {
+        val manager = getSystemService(android.view.accessibility.AccessibilityManager::class.java) ?: return
+        if (!manager.isEnabled) return
+        val shown = date ?: return
+        val target = pad.findViewById<View>(R.id.day) ?: pad
+        val text = getString(R.string.torn_announce, shown.monthValue, shown.dayOfMonth)
+        target.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
+        target.announceForAccessibility(text)
+        lastTornA11y = target to text
+    }
+
+    /**
+     * 日曆下方的操作區（P7-7 V2b）：看別天 →「回到最上面那頁」；可以撕 →「撕下這一頁」（首次引導以前多一行說明）；
+     * 其他（今天撕過了）→「明天再來撕下一頁」，只有文字。操作區高度固定（[fixActionSlotHeight]），換狀態不推動版面
+     */
     private fun showHint() {
-        val today = AppClock.today(this)
-        val next = book.nextDate(today)
-        val pending = book.pendingPages(today)
-        val showing = date
-        findViewById<TextView>(R.id.hint).text = when {
-            showing != topDate() -> getString(R.string.hint_browsing, viewing().monthValue, viewing().dayOfMonth)
-            showing == null -> getString(R.string.hint_cover)
-            next == null -> getString(R.string.tear_done)
-            pending > 1 -> getString(R.string.hint_more, pending)
-            else -> getString(R.string.hint_tear)
-        }
-        findViewById<Button>(R.id.tear).visibility = if (pad.tearable) View.VISIBLE else View.GONE
+        val browsing = date != topDate()
+        val today = findViewById<Button>(R.id.today)
+        today.visibility = if (browsing) View.VISIBLE else View.GONE
+        today.contentDescription = if (browsing) getString(R.string.today_desc, viewing().monthValue, viewing().dayOfMonth) else null
+        val tearable = !browsing && pad.tearable
+        findViewById<View>(R.id.tear_box).visibility = if (tearable) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.tear_guide).visibility = if (tearable && !guideDone) View.VISIBLE else View.GONE
+        findViewById<TextView>(R.id.hint).visibility = if (!browsing && !tearable) View.VISIBLE else View.GONE
     }
 
     private fun showStory() {
@@ -513,7 +596,12 @@ class MainActivity : Activity() {
         heldStoryHeight = null
     }
 
-    private companion object {
+    internal companion object {
         const val KEY_DATE = "date"
+        /** 介面狀態（P7-7）：首次引導完成了沒 */
+        const val PREFS_UI = "ui"
+        const val KEY_GUIDE_DONE = "tearGuideDone"
+        /** A1 的固定樣本：天氣三行（天氣、日出、日落）。實際文字長短不影響高度，只看行數 */
+        const val SUN_SAMPLE = "晴 25°\n日出 06:03\n日落 17:11"
     }
 }

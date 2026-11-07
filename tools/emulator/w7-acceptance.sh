@@ -17,7 +17,7 @@ PASS_N=0
 FAIL_N=0
 WARN_N=0
 # 必要檢查的總數；少跑了（例如某段直接跳過）也算失敗
-EXPECTED_CHECKS=34
+EXPECTED_CHECKS=58
 check() { # check <名稱> <條件結果 0/1> <說明>
   if [ "$2" = 0 ]; then PASS_N=$((PASS_N + 1)); log "PASS  $1 — $3"
   else FAIL_N=$((FAIL_N + 1)); log "FAIL  $1 — $3"; fi
@@ -339,6 +339,199 @@ for d in 320 420 560; do
   done
 done
 adb shell wm density reset
+adb shell settings put system font_scale 1.0
+
+log ""
+log "== 8b. P7-7 字體 2.0：導覽列與日曆下方操作區（V2b）、固定頁面高度（A1）、手指撕頁、翻頁、返回最上頁、故事卡 =="
+# 量導覽列與日曆頁時捲在最上面：view_bounds.py 用 top 模式（不扣捲動量）
+top_bounds() { # top_bounds <名稱> <id>：捲在最上面時的位置（看得到的才輸出）
+  local r
+  r=$(python3 tools/emulator/view_bounds.py "$OUT/ui/$1.txt" "$2" top 2>/dev/null)
+  [ "${r##* }" = V ] && echo "${r% *}"
+}
+scroll_up() {
+  for _ in 1 2 3 4 5; do adb shell input swipe $((W / 2)) $((H * 25 / 100)) $((W / 2)) $((H * 85 / 100)) 250; sleep 0.4; done
+  sleep 1
+}
+center_tap() { set -- $1; adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 1.5; }
+height_of() { set -- $1; echo $(( $4 - $2 )); }
+story_page() { adb shell run-as $PKG cat shared_prefs/story.xml 2>/dev/null | tr -d '\r' | grep -o 'name="page" value="[0-9]*"' | tr -dc '0-9'; }
+adb shell settings put system font_scale 2.0
+adb shell am force-stop $PKG
+# 今天那頁還沒撕：最上面是前一天（沒有天氣三行），可以撕
+write_prefs story "  <int name=\"page\" value=\"14\" />
+  <string name=\"lastTornDate\">$YESTERDAY</string>
+  <string name=\"lastText\">$(story_text 14)</string>"
+write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
+  <boolean name=\"bundleOn\" value=\"true\" />"
+write_prefs weather "  <string name=\"fakeMood\">SUNNY</string>"
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+sleep 2
+scroll_up
+adb exec-out screencap -p > "$OUT/shots/p77-1-top-full.png"
+dump_ui p77-1-top || true
+pg=$(top_bounds p77-1-top page); tb=$(top_bounds p77-1-top today)
+check "字體 2.0：最上面那頁不顯示「回到最上面那頁」" "$([ -n "$pg" ] && [ -z "$tb" ] && echo 0 || echo 1)" "日曆頁 ${pg:-找不到}；回到最上面那頁 ${tb:-不顯示}"
+# 手指撕頁：從頁面右下角往左上拖
+if [ -n "$pg" ]; then
+  set -- $pg
+  p0=$(story_page)
+  adb shell input swipe $(( $3 - 24 )) $(( $4 - 24 )) $(( $1 + 40 )) $(( $2 + 40 )) 900
+  sleep 3
+  p1=$(story_page)
+  adb exec-out screencap -p > "$OUT/shots/p77-2-torn-full.png"
+  dump_ui p77-2-torn || true
+  pt=$(top_bounds p77-2-torn page)
+  check "字體 2.0：手指撕頁成功" "$([ -n "$p0" ] && [ "$p1" = $(( p0 + 1 )) ] && echo 0 || echo 1)" "頁數 ${p0:-?} → ${p1:-?}；頁面高 $(height_of "$pg") → $([ -n "$pt" ] && height_of "$pt" || echo ?) px"
+  check "字體 2.0：撕頁前後頁面一樣高（A1）" "$([ -n "$pt" ] && [ "$(height_of "$pg")" = "$(height_of "$pt")" ] && echo 0 || echo 1)" "撕之前 $(height_of "$pg")、撕完 $([ -n "$pt" ] && height_of "$pt" || echo ?) px"
+else
+  check "字體 2.0：手指撕頁成功" 1 "找不到日曆頁"
+  check "字體 2.0：撕頁前後頁面一樣高（A1）" 1 "找不到日曆頁"
+fi
+# 看昨天那頁：「回到最上面那頁」在日曆下方的操作區、≥ 48dp
+pt=$(top_bounds p77-2-torn page); pv=$(top_bounds p77-2-torn prev)
+[ -n "$pv" ] && center_tap "$pv"
+adb exec-out screencap -p > "$OUT/shots/p77-3-yesterday-full.png"
+dump_ui p77-3-yesterday || true
+pv=$(top_bounds p77-3-yesterday prev); nx=$(top_bounds p77-3-yesterday next); tb=$(top_bounds p77-3-yesterday today)
+ok=1
+if [ -n "$pv" ] && [ -n "$nx" ] && [ -n "$tb" ]; then
+  set -- $pv; pvy=$2; pvb=$4; set -- $nx; nxy=$2; set -- $tb; tby=$2; tbh=$(( $4 - $2 ))
+  [ "$pvy" = "$nxy" ] && [ "$tby" -ge "$pvb" ] && [ "$tbh" -ge $(( 48 * 420 / 160 - 1 )) ] && ok=0
+fi
+check "字體 2.0：看昨天時「回到最上面那頁」在日曆下方、≥ 48dp" "$ok" "前一天 ${pv:-?}；後一天 ${nx:-?}；回到最上面那頁 ${tb:-?}（高 ${tbh:-?} px）"
+# 翻頁：後一天回到今天，頁面高度跟撕完時一樣
+[ -n "$nx" ] && center_tap "$nx"
+dump_ui p77-4-next || true
+pn=$(top_bounds p77-4-next page)
+check "字體 2.0：翻到前一天再回來，頁面高度一樣" "$([ -n "$pt" ] && [ -n "$pn" ] && [ "$(height_of "$pt")" = "$(height_of "$pn")" ] && echo 0 || echo 1)" "撕完 $([ -n "$pt" ] && height_of "$pt" || echo ?) px；回來 $([ -n "$pn" ] && height_of "$pn" || echo ?) px"
+# 返回最上頁
+pv=$(top_bounds p77-4-next prev); [ -n "$pv" ] && center_tap "$pv"
+dump_ui p77-5-prev || true
+tb=$(top_bounds p77-5-prev today); [ -n "$tb" ] && center_tap "$tb"
+adb exec-out screencap -p > "$OUT/shots/p77-5-back-full.png"
+dump_ui p77-5-back || true
+pb=$(top_bounds p77-5-back page); tb2=$(top_bounds p77-5-back today)
+check "字體 2.0：按「回到最上面那頁」回到今天、按鈕不再顯示、頁面高度一樣" "$([ -n "$tb" ] && [ -z "$tb2" ] && [ -n "$pb" ] && [ -n "$pt" ] && [ "$(height_of "$pb")" = "$(height_of "$pt")" ] && echo 0 || echo 1)" "按鈕 ${tb:-找不到} → ${tb2:-不顯示}；頁面 $([ -n "$pb" ] && height_of "$pb" || echo ?) px"
+# 日曆上緣、操作區、故事卡標題在四個狀態（撕頁前、撕頁後、昨天、回到今天）都不動（V2b＋A1：0 位移）
+same=0; pos_log=""
+first_pos=""
+for n in p77-1-top p77-2-torn p77-3-yesterday p77-5-back; do
+  pp="$(top_bounds $n page) | $(top_bounds $n action_slot) | $(top_bounds $n story_title)"
+  pos_log="$pos_log $n:[$pp]"
+  [ -z "$first_pos" ] && first_pos="$pp"
+  [ "$pp" = "$first_pos" ] || same=1
+  case "$pp" in *"|  |"*|"| "*|*" |") same=1 ;; esac
+done
+check "字體 2.0：四個狀態日曆上緣與高度、操作區、故事卡上緣都不動" "$same" "$pos_log"
+# 捲到最底點故事卡墨丸：畫面不位移（頁面加高後 P7-2 的規則照樣成立）
+scroll_down
+dump_ui p77-6-before || true
+m0=$(bounds_of p77-6-before story_mowan); b0=$(bounds_of p77-6-before story_bundle)
+[ -n "$m0" ] && center_tap "$m0"
+dump_ui p77-6-after || true
+m1=$(bounds_of p77-6-after story_mowan); b1=$(bounds_of p77-6-after story_bundle)
+adb exec-out screencap -p > "$OUT/shots/p77-6-card-full.png"
+check "字體 2.0：捲到最底點故事卡墨丸，墨丸與包袱入口不位移" "$([ -n "$m0" ] && [ "$m0" = "$m1" ] && [ "$b0" = "$b1" ] && echo 0 || echo 1)" "墨丸 ${m0:-?} → ${m1:-?}；包袱 ${b0:-?} → ${b1:-?}"
+adb shell settings put system font_scale 1.0
+
+log ""
+log "== 8c. P7-7 錄影（給人看）：411dp／320dp × 字體 100%／200%，正常速度撕頁、翻到昨天再回來、日出日落與山丘放大 =="
+# 411dp＝密度 420、320dp＝密度 540（1080px 寬）。錄影是即時的（正常速度）；模擬器用軟體繪圖，流暢度不代表實機
+for fs in 1.0 2.0; do
+for dpi in 420 540; do
+  wdp=$(( 1080 * 160 / dpi ))
+  fpct=$([ "$fs" = 2.0 ] && echo 200 || echo 100)
+  adb shell wm density $dpi
+  adb shell settings put system font_scale $fs
+  adb shell am force-stop $PKG
+  write_prefs story "  <int name=\"page\" value=\"14\" />
+  <string name=\"lastTornDate\">$YESTERDAY</string>
+  <string name=\"lastText\">$(story_text 14)</string>"
+  write_prefs mowan "  <boolean name=\"paperHatOn\" value=\"true\" />
+  <boolean name=\"bundleOn\" value=\"true\" />"
+  write_prefs weather "  <string name=\"fakeMood\">SUNNY</string>"
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  scroll_up
+  n="p77v-${wdp}dp-${fpct}"
+  dump_ui "$n-0" || true
+  pg=$(top_bounds "$n-0" page)
+  adb exec-out screencap -p > "$OUT/shots/$n-0-before.png"
+  p0=$(story_page)
+  adb shell screenrecord --time-limit 16 /sdcard/p77.mp4 &
+  rec=$!
+  sleep 1.5
+  if [ -n "$pg" ]; then
+    set -- $pg
+    # 正常速度的手指撕頁：右下角往左上拖 0.6 秒
+    adb shell input swipe $(( $3 - 24 )) $(( $4 - 24 )) $(( $1 + 40 )) $(( $2 + 40 )) 600
+  fi
+  sleep 3
+  p1=$(story_page)
+  adb exec-out screencap -p > "$OUT/shots/$n-1-torn.png"
+  dump_ui "$n-1" || true
+  pt=$(top_bounds "$n-1" page); pv=$(top_bounds "$n-1" prev); sun=$(top_bounds "$n-1" sun)
+  [ -n "$pv" ] && center_tap "$pv"
+  sleep 1
+  adb exec-out screencap -p > "$OUT/shots/$n-2-yesterday.png"
+  dump_ui "$n-2" || true
+  py=$(top_bounds "$n-2" page); nx=$(top_bounds "$n-2" next)
+  [ -n "$nx" ] && center_tap "$nx"
+  sleep 1.5
+  dump_ui "$n-3" || true
+  pb=$(top_bounds "$n-3" page)
+  adb exec-out screencap -p > "$OUT/shots/$n-3-back.png"
+  wait $rec
+  adb pull /sdcard/p77.mp4 "$OUT/video/$n.mp4" >/dev/null 2>&1 || warn "錄影 $n 沒有拉回來"
+  # 影格總覽（每秒 4 張）：看有沒有閃爍、跳動
+  [ -s "$OUT/video/$n.mp4" ] && ffmpeg -loglevel error -y -i "$OUT/video/$n.mp4" -vf "fps=4,scale=216:-1,tile=8x8:padding=4:color=white" -frames:v 1 "$OUT/shots/$n-frames.png" || warn "影格總覽 $n 沒做出來"
+  # 日出日落與山丘放大（撕完、有天氣三行的今天那頁）：左下角，放大 2 倍
+  if [ -n "$sun" ] && [ -n "$pt" ]; then
+    set -- $sun; sx=$1; sy=$2; set -- $pt
+    convert "$OUT/shots/$n-1-torn.png" -crop "$(( $3 - $1 ))x$(( $4 - sy + 20 ))+$1+$(( sy - 20 ))" +repage -resize 200% "$OUT/shots/$n-sun-zoom.png" || warn "放大圖 $n 失敗"
+  else
+    warn "放大圖 $n：找不到天氣或頁面位置"
+  fi
+  hh() { [ -n "$1" ] && height_of "$1" || echo "?"; }
+  check "${wdp}dp 字體 ${fpct}% 錄影：手指撕頁成功" "$([ -n "$p0" ] && [ "$p1" = $(( p0 + 1 )) ] && echo 0 || echo 1)" "頁數 ${p0:-?} → ${p1:-?}"
+  check "${wdp}dp 字體 ${fpct}% 錄影：撕頁前後頁面一樣高（A1）" "$([ -n "$pg" ] && [ -n "$pt" ] && [ "$(height_of "$pg")" = "$(height_of "$pt")" ] && echo 0 || echo 1)" "撕之前 $(hh "$pg")、撕完 $(hh "$pt") px"
+  check "${wdp}dp 字體 ${fpct}% 錄影：翻到昨天再回來，頁面一樣高" "$([ -n "$pt" ] && [ -n "$pb" ] && [ -n "$py" ] && [ "$(height_of "$pt")" = "$(height_of "$pb")" ] && [ "$(height_of "$pt")" = "$(height_of "$py")" ] && echo 0 || echo 1)" "今天 $(hh "$pt")、昨天 $(hh "$py")、回來 $(hh "$pb") px"
+done
+done
+adb shell wm density reset
+adb shell settings put system font_scale 1.0
+
+log ""
+log "== 8d. P7-7 首次引導：第一次使用（封面）顯示引導，按「撕下這一頁」撕下第一頁後不再顯示；重開 App 後操作區一樣高 =="
+for fs in 1.0 2.0; do
+  fpct=$([ "$fs" = 2.0 ] && echo 200 || echo 100)
+  adb shell settings put system font_scale $fs
+  adb shell am force-stop $PKG
+  adb shell "run-as $PKG sh -c 'rm -f shared_prefs/story.xml shared_prefs/ui.xml'"
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  scroll_up
+  n="p77g-$fpct"
+  adb exec-out screencap -p > "$OUT/shots/$n-1-first.png"
+  dump_ui "$n-1" || true
+  s1=$(top_bounds "$n-1" action_slot); g1=$(top_bounds "$n-1" tear_guide); t1=$(top_bounds "$n-1" tear)
+  [ -n "$t1" ] && center_tap "$t1"
+  sleep 3
+  adb exec-out screencap -p > "$OUT/shots/$n-2-torn.png"
+  dump_ui "$n-2" || true
+  s2=$(top_bounds "$n-2" action_slot); g2=$(top_bounds "$n-2" tear_guide)
+  adb shell am force-stop $PKG
+  adb shell am start -W -n $PKG/.MainActivity >/dev/null
+  sleep 2
+  scroll_up
+  adb exec-out screencap -p > "$OUT/shots/$n-3-reopen.png"
+  dump_ui "$n-3" || true
+  s3=$(top_bounds "$n-3" action_slot); g3=$(top_bounds "$n-3" tear_guide)
+  done_flag=$(adb shell run-as $PKG cat shared_prefs/ui.xml 2>/dev/null | tr -d '\r' | grep -c 'tearGuideDone" value="true"')
+  check "字體 ${fpct}%：首次顯示引導，撕下第一頁後不再顯示，重開也不顯示" "$([ -n "$g1" ] && [ -z "$g2" ] && [ -z "$g3" ] && [ "$done_flag" = 1 ] && echo 0 || echo 1)" "引導：首次 ${g1:-不顯示}、撕下後 ${g2:-不顯示}、重開 ${g3:-不顯示}；設定記錄 $done_flag"
+  check "字體 ${fpct}%：首次、撕下第一頁後、重開 App，操作區位置與高度一樣" "$([ -n "$s1" ] && [ "$s1" = "$s2" ] && [ "$s1" = "$s3" ] && echo 0 || echo 1)" "首次 ${s1:-?}、撕下後 ${s2:-?}、重開 ${s3:-?}"
+done
 adb shell settings put system font_scale 1.0
 
 log ""
