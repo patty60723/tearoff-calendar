@@ -10,7 +10,7 @@
     <string name="today">回到最上面那頁</string>
     <string name="pin">把小工具放到桌面</string>
     <string name="how_to">也可以自己加：長按桌面空白處 →「小工具」→ 找到「手撕日曆」，按住拖到桌面。拉動邊框可以調整大小，變窄時會換成精簡版面。</string>
-    <string name="tear_done">這是今天的頁面，明天再來撕</string>
+    <string name="tear_done">明天再來撕下一頁</string>
     <string name="story_page">第 %d 頁</string>
     <string name="story_not_started">還沒開始</string>
     <string name="story_hint">頁面最下面好像有一個小墨點……撕下第一頁看看吧。</string>
@@ -20,14 +20,16 @@
     <string name="crash_hint">上次 App 閃退了。請把下一個畫面截圖回報，再按「繼續」回到日曆。</string>
     <string name="crash_continue">繼續</string>
     <string name="crash_stay">先截圖</string>
-    <string name="tear_button">或按這裡撕下</string>
+    <string name="tear_button">撕下這一頁</string>
+    <!-- 首次引導（P7-7）：成功撕下第一頁以前顯示在「撕下這一頁」下面 -->
+    <string name="tear_guide">也可以從紙張下方兩角往上撕</string>
+    <!-- 看別天時，「回到最上面那頁」的朗讀補上現在看的日期（上方不再顯示「在看 m/d 的頁面」） -->
+    <string name="today_desc">回到最上面那頁，現在在看 %1$d/%2$d</string>
+    <!-- 撕頁後 TalkBack 朗讀（焦點移到新的日曆頁） -->
+    <string name="torn_announce">已撕下，現在是 %1$d 月 %2$d 日</string>
     <string name="tear_only_top">只能撕最上面那一頁喔</string>
     <string name="veil_tomorrow">明天見</string>
     <string name="veil_later">%1$d/%2$d 還沒到</string>
-    <string name="hint_tear">撕下昨天，迎接今天：從左下角或右下角往上撕</string>
-    <string name="hint_more">還有 %d 頁沒撕，一頁一頁撕到今天</string>
-    <string name="hint_browsing">在看 %1$d/%2$d 的頁面</string>
-    <string name="hint_cover">撕開封面，這一年就開始了</string>
     <string name="cover_title">手撕日曆</string>
     <string name="cover_sub">從角落往上撕開</string>
     <!-- 城市入口（P7-2 方案 A）：畫面上只有城市名，TalkBack 唸完整說明 -->

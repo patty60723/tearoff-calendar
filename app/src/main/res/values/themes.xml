@@ -9,6 +9,24 @@
         <item name="android:navigationBarColor">@color/desk</item>
     </style>
 
+    <!-- 日曆下方操作區的按鈕（P7-7 V2b）：淡色描邊、暖灰字，不是警告；觸控區至少 48dp -->
+    <style name="ActionButton" parent="android:Widget.Material.Button.Borderless">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:background">@drawable/action_outline</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingLeft">18dp</item>
+        <item name="android:paddingRight">18dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/ink_mid</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
     <style name="SectionTitle">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>

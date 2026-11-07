@@ -13,16 +13,7 @@
         android:paddingRight="28dp"
         android:paddingBottom="24dp">
 
-        <TextView
-            android:id="@+id/hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="serif"
-            android:gravity="center"
-            android:letterSpacing="0.1"
-            android:textColor="@color/ink_soft"
-            android:textSize="13sp" />
-
+        <!-- P7-7 V2b：上方只留前一天／後一天與城市入口；狀態文字與操作按鈕在日曆頁下面的操作區（action_slot） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,7 +26,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/prev"
-                android:textColor="@color/ink_soft" />
+                android:textColor="@color/ink_mid" />
 
             <Space
                 android:layout_width="0dp"
@@ -48,21 +39,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/next"
-                android:textColor="@color/ink_soft" />
+                android:textColor="@color/ink_mid" />
         </LinearLayout>
-
-        <!-- 「回到最上面那頁」自己一列（P7-7 導覽列候選 A）：放在前一天／後一天中間時，大字體或窄螢幕會被擠成直排（D-54）。
-             看最上面那頁時 GONE（不佔高度） -->
-        <Button
-            android:id="@+id/today"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:minHeight="48dp"
-            android:text="@string/today"
-            android:textColor="@color/red"
-            android:visibility="gone" />
 
         <!-- 城市入口（P7-2 方案 A，D-53）：日曆上方靠右，「⌖ 臺北市 ⌄」。天氣、溫度、日出日落在日曆裡。
              整塊可以點（至少 48×48dp），只有系統的淡漣漪，不加卡片、底色或外框；圖示在程式裡跟著字的大小設定。
@@ -81,7 +59,7 @@
             android:minHeight="48dp"
             android:paddingLeft="12dp"
             android:paddingRight="8dp"
-            android:textColor="@color/ink"
+            android:textColor="@color/ink_mid"
             android:textSize="14sp" />
 
         <!-- 可以用手指撕的那一頁 -->
@@ -91,15 +69,63 @@
             android:layout_height="wrap_content"
             android:elevation="2dp" />
 
-        <Button
-            android:id="@+id/tear"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="wrap_content"
+        <!-- 日曆下方的操作區（P7-7 V2b）：依狀態只顯示其中一個——「撕下這一頁」（可以撕）、「回到最上面那頁」（看別天）、
+             「明天再來撕下一頁」（今天撕過了，只有文字）。高度在 onCreate 時算成所有狀態（含首次引導）裡最高的，之後不變，
+             撕頁、翻頁、首次引導結束、重開 App 都不會推動下面的故事卡 -->
+        <FrameLayout
+            android:id="@+id/action_slot"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/tear_button"
-            android:textColor="@color/ink_soft"
-            android:textSize="12sp" />
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:letterSpacing="0.1"
+                android:text="@string/tear_done"
+                android:textColor="@color/ink_mid"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/tear_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/tear"
+                    style="@style/ActionButton"
+                    android:text="@string/tear_button" />
+
+                <!-- 首次引導：成功撕下第一頁以前才顯示（MainActivity.guideDone） -->
+                <TextView
+                    android:id="@+id/tear_guide"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:text="@string/tear_guide"
+                    android:textColor="@color/ink_mid"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/today"
+                style="@style/ActionButton"
+                android:layout_gravity="center"
+                android:text="@string/today"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

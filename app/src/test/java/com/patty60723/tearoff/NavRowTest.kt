@@ -29,7 +29,7 @@ import java.io.File
 import java.time.LocalDate
 
 /**
- * P7-7 導覽列候選 A：「回到最上面那頁」自己一列（D-54）。411dp／320dp × 字體 100%／200%（Robolectric）。
+ * P7-7 導覽列（V2b，2026-11-07 起；原本是候選 A）：上方只有前一天／後一天與城市；「回到最上面那頁」在日曆下方的操作區（D-54）。411dp／320dp × 字體 100%／200%（Robolectric）。
  * 字形完整用 [GlyphInk]（實際有墨的像素）。圖：app/build/screenshots/p7-7-nav/。
  */
 @RunWith(RobolectricTestRunner::class)
@@ -92,7 +92,7 @@ class NavRowTest {
 
     @Test
     fun todayButtonHasItsOwnRow() {
-        val report = StringBuilder("# 導覽列候選 A（正式）：「回到最上面那頁」自己一列\n\n")
+        val report = StringBuilder("# 導覽列（P7-7 V2b）：上方只有前一天／後一天；「回到最上面那頁」在日曆下方的操作區\n\n")
         report.append("| 設定 | 看最上面那頁 | 看昨天那頁：前一天 | 後一天 | 回到最上面那頁 | 點了以後 |\n|---|---|---|---|---|---|\n")
         val shots = mutableListOf<Pair<String, Bitmap>>()
         for (cfg in cfgs) {
@@ -117,7 +117,8 @@ class NavRowTest {
             val p = check(a, prev, "${cfg.name} 前一天", d)
             val n = check(a, next, "${cfg.name} 後一天", d)
             val t = check(a, todayBtn, "${cfg.name} 回到最上面那頁", d)
-            assertTrue("${cfg.name} 回到最上面那頁在導覽列下面", todayBtn.top >= navRow.bottom)
+            // V2b：「回到最上面那頁」在日曆頁下面的操作區
+            assertTrue("${cfg.name} 回到最上面那頁在日曆頁下面", GlyphInk.rectIn(a.content, todayBtn).top >= GlyphInk.rectIn(a.content, a.findViewById(R.id.page)).bottom)
             val yesterdayShot = shoot(a.content)
             // 點了回到最上面那頁
             todayBtn.performClick()

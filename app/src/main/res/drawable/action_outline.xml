@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 操作區按鈕（P7-7 V2b）：1dp 淡色描邊（ink_soft，桌面色上 3.06:1，介面元件 3:1）、圓角，裡面透明；按下時淡淡的漣漪 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#298C8378">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/ink_soft" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</ripple>
