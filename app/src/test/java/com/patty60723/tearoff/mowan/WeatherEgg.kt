@@ -70,8 +70,39 @@ internal object WeatherEgg {
         return arm(ref, left, dir, bend)
     }
 
+    /**
+     * 手臂的內插：每一節的**角度**與長度各自內插（從肩膀一節一節接下去），手臂在中間不會縮短、穿過身體。
+     * 直接內插控制點（Keyframes.mix）在手從上舉換到放下時，中間的點會擠在肩膀附近，看起來像斷手（自動檢查抓到）。
+     */
+    fun armLerp(a: List<Pt>, b: List<Pt>, u: Double): List<Pt> {
+        if (a.size != b.size) return if (u < 0.5) a else b
+        if (u <= 0.0) return a
+        if (u >= 1.0) return b
+        val out = ArrayList<Pt>(a.size)
+        var x = Geometry.lerp(a[0].x, b[0].x, u)
+        var y = Geometry.lerp(a[0].y, b[0].y, u)
+        out += Pt(x, y)
+        for (i in 1 until a.size) {
+            val aa = kotlin.math.atan2(a[i].y - a[i - 1].y, a[i].x - a[i - 1].x)
+            val ab = kotlin.math.atan2(b[i].y - b[i - 1].y, b[i].x - b[i - 1].x)
+            var d = ab - aa
+            while (d > PI) d -= 2 * PI
+            while (d < -PI) d += 2 * PI
+            val ang = aa + d * u
+            val len = Geometry.lerp(hypot(a[i].x - a[i - 1].x, a[i].y - a[i - 1].y), hypot(b[i].x - b[i - 1].x, b[i].y - b[i - 1].y), u)
+            x += cos(ang) * len
+            y += sin(ang) * len
+            out += Pt(x, y)
+        }
+        return out
+    }
+
+    /** 整個姿勢的內插：其他部位照正式的 PoseBlend，手臂改用 [armLerp] */
+    fun poseLerp(from: Pose, to: Pose, u: Double): Pose =
+        PoseBlend.mix(from, to, u).copy(armL = armLerp(from.armL, to.armL, u), armR = armLerp(from.armR, to.armR, u))
+
     /** 從 [from] 過渡到 [to]：[a] 開始、[b] 完成 */
-    fun blend(t: Double, a: Double, b: Double, from: Pose, to: Pose) = PoseBlend.mix(from, to, Keyframes.seg(t, a, b))
+    fun blend(t: Double, a: Double, b: Double, from: Pose, to: Pose) = poseLerp(from, to, Keyframes.seg(t, a, b))
 
     /** 一小段上下彈跳（往上是負的） */
     fun hop(t: Double, a: Double, peak: Double, b: Double, h: Double) = when {
@@ -130,7 +161,7 @@ internal object WeatherEgg {
                 val point = Keyframes.env(t, 2450.0, 2650.0, 2900.0, 3150.0)
                 val l = arm(normal.armL, true, 40 - 70 * rub, -30 * rub)
                 val r = arm(normal.armR, false, 30 + 35 * point, -10 * point)
-                p = p.copy(armL = Keyframes.mix(p.armL, l, maxOf(rub, 0.0)), armR = Keyframes.mix(p.armR, r, point),
+                p = p.copy(armL = armLerp(p.armL, l, rub), armR = armLerp(p.armR, r, point),
                     face = if (t > 2250) Face.SUNNY else p.face, headAngle = p.headAngle + 4 * point, gaze = Pt(-1.0 * point, 1.4 * point))
             }
             // 回到日曆上原本那一格
@@ -144,10 +175,11 @@ internal object WeatherEgg {
             val look = Poses.sunny(0.0).copy(face = Face.NORMAL, flick = Flick.NORMAL, headAngle = -8.0, gaze = Pt(0.2, -2.0))
             val ref = Poses.sunny(0.0)
             // 蹲低預備（手往後下）→ 踮腳大伸展（手直直往上、頭往後仰、閉眼笑）
-            val crouch = Keyframes.env(t, 3700.0, 3950.0, 4000.0, 4250.0)
-            val stretch = Keyframes.env(t, 4100.0, 4600.0, 5000.0, 5400.0)
-            val dir = Keyframes.track(t, listOf(3300.0 to 120.0, 3700.0 to 25.0, 3950.0 to 15.0, 4600.0 to 168.0, 5000.0 to 172.0, 5500.0 to 120.0))
-            val bend = Keyframes.track(t, listOf(3300.0 to 8.0, 3950.0 to -10.0, 4600.0 to 4.0, 5500.0 to 8.0))
+            val crouch = Keyframes.env(t, 3800.0, 4050.0, 4100.0, 4350.0)
+            val stretch = Keyframes.env(t, 4150.0, 4800.0, 5100.0, 5500.0)
+            // 手先慢慢放下（察覺）→ 蹲低時往後下 → 慢慢舉到最高 → 放回日常的伸展角度
+            val dir = Keyframes.track(t, listOf(3300.0 to 120.0, 3900.0 to 30.0, 4100.0 to 20.0, 4800.0 to 168.0, 5100.0 to 172.0, 5800.0 to 120.0))
+            val bend = Keyframes.track(t, listOf(3300.0 to 8.0, 4100.0 to -10.0, 4800.0 to 4.0, 5800.0 to 8.0))
             var p = look.copy(armL = arm(ref.armL, true, dir, bend), armR = arm(ref.armR, false, dir, bend))
             p = p.copy(headAngle = -8 - 6 * stretch, face = if (stretch > 0.4 || t > 5000) Face.SUNNY else Face.NORMAL, flick = if (stretch > 0.2 || t > 5100) Flick.PERKED else Flick.NORMAL,
                 gaze = Pt(0.2, -2.0 * (1 - stretch)))
@@ -222,7 +254,7 @@ internal object WeatherEgg {
                 umbrellaAngle = s0.umbrellaAngle + 16 * tilt,
                 face = if (flinch > 0.2) Face.STARTLE else Face.RAINY,
             )
-            p = p.copy(armL = Keyframes.mix(s0.armL, arm(s0.armL, true, 75.0, -15.0), reach * (1 - flinch)))
+            p = p.copy(armL = armLerp(s0.armL, arm(s0.armL, true, 75.0, -15.0), reach * (1 - flinch)))
             return p.shifted(0.8 * hit + 0.6 * flinch).jittered(0.5 * flinch * sin(t / 16))
         }
 
@@ -337,7 +369,7 @@ internal object WeatherEgg {
             val tilt = Keyframes.env(t, 5000.0, 5300.0, 5700.0, 5900.0)
             var p = base.copy(
                 armR = arm(base.armR, false, dir, bend),
-                armL = Keyframes.mix(base.armL, arm(base.armL, true, 160.0, 5.0), cheer),
+                armL = armLerp(base.armL, arm(base.armL, true, 160.0, 5.0), cheer),
                 headAngle = Keyframes.track(t, listOf(3800.0 to -4.0, 4300.0 to -2.0, 4800.0 to 4.0, 5300.0 to 8.0, 5800.0 to -6.0, 6600.0 to -4.0)),
                 gaze = Pt(Keyframes.track(t, listOf(3800.0 to 0.0, 4400.0 to 1.6, 5300.0 to 1.2, 5800.0 to 0.0)), Keyframes.track(t, listOf(3800.0 to -1.8, 4400.0 to 0.6, 5300.0 to 1.4, 5800.0 to -1.8))),
                 face = if (cheer > 0.2) Face.SUNNY else Face.NORMAL,
