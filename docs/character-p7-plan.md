@@ -1,7 +1,7 @@
 # 墨丸 V3 — P7 計畫：正式化、首頁 UI/UX、相容性與 QA
 
 > 日期：2026-10-29　分支：`feature/mowan-weather-poses`
-> **狀態（2026-11-01）：P7-0、P7-1、P7-2 結案；P5～P7-2 已由 PR #1 合併 `main`（merge commit `1b3f0c2`，main CI #162 通過、54 張 PNG golden 一致）。** P7-2 的實機與 TalkBack 仍是 Not tested。後續順序依 [P7 後續規劃](character-p7-next-plan.md)（2026-11-01 核准）：P7-4a（2026-11-03 結案；#68／#79 自然發生的根因仍 Unknown）→ P7-3（狀態一致性，2026-11-03 驗收通過，[報告](character-p7-3-consistency.md)；D-55）→ **P7-7 版面部分（下一階段，尚未開始）** → P7-4b → P7-5 → P7-6 → P7-8。V3 是唯一的角色。
+> **狀態（2026-11-01）：P7-0、P7-1、P7-2 結案；P5～P7-2 已由 PR #1 合併 `main`（merge commit `1b3f0c2`，main CI #162 通過、54 張 PNG golden 一致）。** P7-2 的實機與 TalkBack 仍是 Not tested。後續順序依 [P7 後續規劃](character-p7-next-plan.md)（2026-11-01 核准）：P7-4a（2026-11-03 結案；#68／#79 自然發生的根因仍 Unknown）→ P7-3（狀態一致性，2026-11-03 驗收通過，[報告](character-p7-3-consistency.md)；D-55）→ **P7-7 版面部分（2026-11-08 最終審核通過，PR #4；[實作紀錄](character-p7-7-implementation.md)）** → P7-4b → P7-5 → P7-6 → P7-8。V3 是唯一的角色。
 > 相關文件：[實作計畫 P7](character-implementation-plan.md#p7--整合效能qa)・[P6 結案報告](character-p6-acceptance.md)・[未定案事項](character-open-decisions.md)
 
 ## 0. 前提（2026-10-29 確認）
