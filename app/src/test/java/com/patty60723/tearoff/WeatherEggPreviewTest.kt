@@ -177,7 +177,7 @@ class WeatherEggPreviewTest {
     /** 一個姿勢所有骨架點（給跳格、斷肢檢查用） */
     private fun joints(p: com.patty60723.tearoff.mowan.Pose) = p.body + p.armL + p.armR + p.legL + p.legR + p.tail
 
-    private fun armLen(a: List<Pt>) = a.zipWithNext { x, y -> hypot(y.x - x.x, y.y - y.y) }.sum()
+    private fun armLen(a: List<Pt>) = a.zipWithNext { x, y -> hypot(y.x - x.x, y.y - x.y) }.sum()
 
     data class Check(val maxJump: Double, val jumpAt: Double, val armMin: Double, val armMax: Double, val sizeChanges: Int)
 
@@ -239,12 +239,12 @@ class WeatherEggPreviewTest {
                 if (inEgg) {
                     for (m in script.motes(t)) drawMote(cv, m, st)
                     // 雪：大墨丸接住以後，雪花跟著右手
-                    if (script === WeatherEgg.Snowy && t in 4450.0..6300.0) {
+                    if (script === WeatherEgg.Snowy && t in 4450.0..7100.0) {
                         val hand = WeatherEgg.Snowy.bigHand(t, caps)
                         val from = Pt(61.0, 8.0)
                         val u = ((t - 4450) / 350).coerceIn(0.0, 1.0)
                         val at = if (u < 1) Pt(Geometry.lerp(from.x, hand.x, u), Geometry.lerp(from.y, hand.y - 3, u)) else Pt(hand.x, hand.y - 3)
-                        drawMote(cv, WeatherEgg.Mote(WeatherEgg.Kind.FLAKE, "big", at.x, at.y, 3.6, if (t > 6000) 1 - (t - 6000) / 300 else 1.0), st)
+                        drawMote(cv, WeatherEgg.Mote(WeatherEgg.Kind.FLAKE, "big", at.x, at.y, 3.6, if (t > 6800) 1 - (t - 6800) / 300 else 1.0), st)
                     }
                 }
                 File(dir, "frame-%04d.jpg".format(n)).outputStream().use { b.compress(Bitmap.CompressFormat.JPEG, 88, it) }

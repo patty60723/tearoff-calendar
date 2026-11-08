@@ -124,20 +124,20 @@ internal object WeatherEgg {
 
     object Sunny : Script {
         override val weather = Mowan.Weather.SUNNY
-        override val durMs = 7200.0
+        override val durMs = 7900.0
         override val beats = listOf(
             0.0 to "點擊：天氣資訊亮一下",
             200.0 to "光點從太陽飄下來",
             900.0 to "小墨丸察覺：伸到一半的手放下、睜眼看光點",
             1500.0 to "吸氣（頭往後仰）",
             1750.0 to "哈啾！（被陽光照到打噴嚏）",
-            2150.0 to "笑一下，左手往故事卡指，把光點送下去",
+            2150.0 to "笑一下，左手往故事卡那邊指，把光點送下去",
             2500.0 to "接力：光點從日曆飄到故事卡",
             3300.0 to "大墨丸：光點落在頭上，停下來抬頭",
-            3700.0 to "蹲低（預備）",
-            4100.0 to "踮腳伸一個比平常更大的懶腰",
-            5100.0 to "放鬆、開心地彈一下",
-            5900.0 to "接回日常：慢慢伸懶腰的循環",
+            4000.0 to "蹲低（預備）",
+            4250.0 to "踮腳、慢慢伸一個比平常更大的懶腰",
+            5800.0 to "放鬆、開心地彈一下",
+            6700.0 to "接回日常：慢慢伸懶腰的循環",
         )
 
         override fun daily(clock: Double, caps: Capabilities) = Poses.sunny(clock)
@@ -157,12 +157,12 @@ internal object WeatherEgg {
             }
             // 笑一下，左手往左下（故事卡的方向）指：把光點送下去
             if (t >= 2100) {
-                val point = Keyframes.env(t, 2300.0, 2650.0, 2900.0, 3250.0)
-                p = p.copy(armL = armLerp(p.armL, arm(normal.armL, true, 55.0, -5.0), point),
+                val point = Keyframes.env(t, 2200.0, 2800.0, 3000.0, 3500.0)
+                p = p.copy(armL = armLerp(p.armL, arm(normal.armL, true, 95.0, -5.0), point),
                     face = if (t > 2200) Face.SUNNY else p.face, headAngle = p.headAngle + 5 * point, gaze = Pt(-1.4 * point, 1.4 * point))
             }
             // 回到日曆上原本那一格
-            return blend(t, 3050.0, 3700.0, p, s0)
+            return blend(t, 3400.0, 4100.0, p, s0)
         }
 
         override fun big(t: Double, caps: Capabilities): Pose {
@@ -172,18 +172,18 @@ internal object WeatherEgg {
             val look = Poses.sunny(0.0).copy(face = Face.NORMAL, flick = Flick.NORMAL, headAngle = -8.0, gaze = Pt(0.2, -2.0))
             val ref = Poses.sunny(0.0)
             // 蹲低預備（手往後下）→ 踮腳大伸展（手直直往上、頭往後仰、閉眼笑）
-            val crouch = Keyframes.env(t, 3800.0, 4050.0, 4100.0, 4350.0)
-            val stretch = Keyframes.env(t, 4150.0, 4800.0, 5100.0, 5500.0)
-            // 手先慢慢放下（察覺）→ 蹲低時往後下 → 慢慢舉到最高 → 放回日常的伸展角度
-            val dir = Keyframes.track(t, listOf(3300.0 to 120.0, 3900.0 to 30.0, 4100.0 to 20.0, 4800.0 to 168.0, 5100.0 to 172.0, 5800.0 to 120.0))
-            val bend = Keyframes.track(t, listOf(3300.0 to 8.0, 4100.0 to -10.0, 4800.0 to 4.0, 5800.0 to 8.0))
+            val crouch = Keyframes.env(t, 4000.0, 4200.0, 4250.0, 4500.0)
+            val stretch = Keyframes.env(t, 4250.0, 5600.0, 5800.0, 6200.0)
+            // 手先慢慢放到水平（察覺）→ 蹲低時再低一點 → 用 1 秒慢慢舉到最高 → 放回日常的伸展角度
+            val dir = Keyframes.track(t, listOf(3300.0 to 125.0, 4000.0 to 88.0, 4250.0 to 78.0, 5600.0 to 166.0, 5800.0 to 170.0, 6600.0 to 125.0))
+            val bend = Keyframes.track(t, listOf(3300.0 to 8.0, 4250.0 to -6.0, 5600.0 to 4.0, 6600.0 to 8.0))
             var p = look.copy(armL = arm(ref.armL, true, dir, bend), armR = arm(ref.armR, false, dir, bend))
-            p = p.copy(headAngle = -8 - 6 * stretch, face = if (stretch > 0.4 || t > 5000) Face.SUNNY else Face.NORMAL, flick = if (stretch > 0.2 || t > 5100) Flick.PERKED else Flick.NORMAL,
+            p = p.copy(headAngle = -8 - 6 * stretch, face = if (stretch > 0.4 || t > 5600) Face.SUNNY else Face.NORMAL, flick = if (stretch > 0.2 || t > 5600) Flick.PERKED else Flick.NORMAL,
                 gaze = Pt(0.2, -2.0 * (1 - stretch)))
-                .shifted(1.8 * crouch - 1.6 * stretch + hop(t, 5100.0, 5300.0, 5550.0, 2.4))
+                .shifted(1.8 * crouch - 1.6 * stretch + hop(t, 6100.0, 6300.0, 6550.0, 2.4))
             // 接手：日常 → 抬頭看光點；最後接回日常
-            val into = blend(t, 3300.0, 3700.0, d, p)
-            return blend(t, 5900.0, 6900.0, into, d)
+            val into = blend(t, 3300.0, 4000.0, d, p)
+            return blend(t, 6700.0, 7700.0, into, d)
         }
 
         override fun motes(t: Double): List<Mote> {
@@ -199,11 +199,11 @@ internal object WeatherEgg {
             }
             bridge(Kind.LIGHT, t, 2500.0, 3350.0, 3.2, 0.06)?.let { m += it }
             // 大墨丸身邊：光點落在頭上，伸懶腰時亮晶晶
-            if (t in 3300.0..5600.0) {
+            if (t in 3300.0..6200.0) {
                 m += Mote(Kind.LIGHT, "big", 61.0, 14.0, 3.0, Keyframes.env(t, 3300.0, 3400.0, 3650.0, 3900.0))
                 for (i in 0 until 4) {
-                    val a = 4300.0 + i * 120
-                    m += Mote(Kind.LIGHT, "big", 60 + 34 * cos(i * 1.6 + 0.4), 30 - 18 * sin(i * 1.6 + 0.4), 2.2, Keyframes.env(t, a, a + 150, 5000.0, 5500.0))
+                    val a = 4700.0 + i * 150
+                    m += Mote(Kind.LIGHT, "big", 60 + 34 * cos(i * 1.6 + 0.4), 30 - 18 * sin(i * 1.6 + 0.4), 2.2, Keyframes.env(t, a, a + 150, 5700.0, 6200.0))
                 }
             }
             return m
@@ -313,7 +313,7 @@ internal object WeatherEgg {
 
     object Snowy : Script {
         override val weather = Mowan.Weather.SNOW
-        override val durMs = 8200.0
+        override val durMs = 9400.0
         override val beats = listOf(
             0.0 to "點擊：天氣資訊亮一下",
             150.0 to "雪開始飄（日曆上的雪花動起來）；一片大雪花慢慢落下",
@@ -323,10 +323,10 @@ internal object WeatherEgg {
             3000.0 to "接力：雪花慢慢飄到故事卡（左右晃）",
             3900.0 to "大墨丸：看到雪花飄下來，伸出右手",
             4800.0 to "接住了！",
-            5000.0 to "把手湊到臉前、歪頭仔細看",
-            5800.0 to "好開心：雙手舉起、小跳一下",
-            6700.0 to "手收回來、抬頭看雪",
-            7000.0 to "接回日常：抬頭看雪",
+            5000.0 to "把手慢慢湊到臉前、歪頭仔細看",
+            5900.0 to "好開心：雙手慢慢舉起、小跳一下",
+            7200.0 to "手收回來、抬頭看雪",
+            8200.0 to "接回日常：抬頭看雪",
         )
 
         override fun daily(clock: Double, caps: Capabilities) = Poses.snow(clock, caps)
@@ -360,22 +360,22 @@ internal object WeatherEgg {
             if (t < 3800) return d
             val base = Poses.snow(0.0, caps)
             // 右手：往右前方伸出、手心朝上接住 → 湊到臉前 → 舉起歡呼 → 收回
-            val dir = Keyframes.track(t, listOf(3900.0 to 10.0, 4500.0 to 80.0, 4800.0 to 85.0, 5300.0 to -20.0, 5700.0 to -25.0, 6000.0 to 160.0, 6400.0 to 165.0, 6900.0 to 10.0))
-            val bend = Keyframes.track(t, listOf(3900.0 to 0.0, 4500.0 to -25.0, 4800.0 to -30.0, 5300.0 to -60.0, 5700.0 to -60.0, 6000.0 to 5.0, 6900.0 to 0.0))
-            val cheer = Keyframes.env(t, 5800.0, 6050.0, 6300.0, 6650.0)
-            val tilt = Keyframes.env(t, 5000.0, 5300.0, 5700.0, 5900.0)
+            val dir = Keyframes.track(t, listOf(3900.0 to 10.0, 4500.0 to 80.0, 4800.0 to 85.0, 5500.0 to -20.0, 5900.0 to -25.0, 7100.0 to 140.0, 7250.0 to 145.0, 8200.0 to 10.0))
+            val bend = Keyframes.track(t, listOf(3900.0 to 0.0, 4500.0 to -25.0, 4800.0 to -30.0, 5500.0 to -60.0, 5900.0 to -60.0, 7100.0 to 5.0, 8200.0 to 0.0))
+            val cheer = Keyframes.env(t, 5900.0, 7100.0, 7250.0, 8200.0)
+            val tilt = Keyframes.env(t, 5100.0, 5500.0, 5800.0, 6000.0)
             var p = base.copy(
                 armR = arm(base.armR, false, dir, bend),
-                armL = armLerp(base.armL, arm(base.armL, true, 160.0, 5.0), cheer),
-                headAngle = Keyframes.track(t, listOf(3800.0 to -4.0, 4300.0 to -2.0, 4800.0 to 4.0, 5300.0 to 8.0, 5800.0 to -6.0, 6600.0 to -4.0)),
+                armL = armLerp(base.armL, arm(base.armL, true, 140.0, 5.0), cheer),
+                headAngle = Keyframes.track(t, listOf(3800.0 to -4.0, 4300.0 to -2.0, 4800.0 to 4.0, 5500.0 to 8.0, 6500.0 to -6.0, 7900.0 to -4.0)),
                 gaze = Pt(Keyframes.track(t, listOf(3800.0 to 0.0, 4400.0 to 1.6, 5300.0 to 1.2, 5800.0 to 0.0)), Keyframes.track(t, listOf(3800.0 to -1.8, 4400.0 to 0.6, 5300.0 to 1.4, 5800.0 to -1.8))),
                 face = if (cheer > 0.2) Face.SUNNY else Face.NORMAL,
-                flick = if (t in 4800.0..6700.0) Flick.PERKED else Flick.NORMAL,
+                flick = if (t in 4800.0..8000.0) Flick.PERKED else Flick.NORMAL,
                 effects = Effects(scarfUp = true),
             )
-            p = p.copy(headAngle = p.headAngle + 4 * tilt).shifted(hop(t, 5800.0, 6000.0, 6250.0, 2.6))
+            p = p.copy(headAngle = p.headAngle + 4 * tilt).shifted(hop(t, 6800.0, 7000.0, 7250.0, 2.6))
             val into = blend(t, 3800.0, 4100.0, d, p)
-            return blend(t, 6900.0, 8000.0, into, d)
+            return blend(t, 8200.0, 9200.0, into, d)
         }
 
         /** 大墨丸右手手尖（雪花跟著手） */
