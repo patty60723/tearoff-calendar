@@ -131,7 +131,7 @@ internal object WeatherEgg {
             900.0 to "小墨丸察覺：伸到一半的手放下、睜眼看光點",
             1500.0 to "吸氣（頭往後仰）",
             1750.0 to "哈啾！（被陽光照到打噴嚏）",
-            2150.0 to "揉揉鼻子、笑，把光點往下送",
+            2150.0 to "笑一下，左手往故事卡指，把光點送下去",
             2500.0 to "接力：光點從日曆飄到故事卡",
             3300.0 to "大墨丸：光點落在頭上，停下來抬頭",
             3700.0 to "蹲低（預備）",
@@ -155,14 +155,11 @@ internal object WeatherEgg {
                 p = p.copy(headAngle = -6 - 6 * inhale + 14 * sneeze, gaze = Pt(1.2 - 1.2 * sneeze, -1.6 + 2.4 * sneeze), flick = if (sneeze > 0.3) Flick.PERKED else Flick.NORMAL)
                     .shifted(-1.0 * inhale + 0.8 * sneeze).jittered(0.6 * sneeze * sin(t / 18))
             }
-            // 揉鼻子、笑；右手往下（故事卡的方向）送一下
+            // 笑一下，左手往左下（故事卡的方向）指：把光點送下去
             if (t >= 2100) {
-                val rub = Keyframes.env(t, 2100.0, 2250.0, 2450.0, 2600.0)
-                val point = Keyframes.env(t, 2450.0, 2650.0, 2900.0, 3150.0)
-                val l = arm(normal.armL, true, 40 - 70 * rub, -30 * rub)
-                val r = arm(normal.armR, false, 30 + 35 * point, -10 * point)
-                p = p.copy(armL = armLerp(p.armL, l, rub), armR = armLerp(p.armR, r, point),
-                    face = if (t > 2250) Face.SUNNY else p.face, headAngle = p.headAngle + 4 * point, gaze = Pt(-1.0 * point, 1.4 * point))
+                val point = Keyframes.env(t, 2300.0, 2650.0, 2900.0, 3250.0)
+                p = p.copy(armL = armLerp(p.armL, arm(normal.armL, true, 55.0, -5.0), point),
+                    face = if (t > 2200) Face.SUNNY else p.face, headAngle = p.headAngle + 5 * point, gaze = Pt(-1.4 * point, 1.4 * point))
             }
             // 回到日曆上原本那一格
             return blend(t, 3050.0, 3700.0, p, s0)
