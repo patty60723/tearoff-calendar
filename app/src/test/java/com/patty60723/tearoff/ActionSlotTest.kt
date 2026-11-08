@@ -240,4 +240,55 @@ class ActionSlotTest {
         ShadowLooper.idleMainLooper(2, TimeUnit.SECONDS)
         assertEquals(null, a.lastTornA11y)
     }
+
+    /**
+     * 操作區裡的內容垂直置中（2026-11-08 審核 Minor：320dp・200% 操作區 123dp）：看得到的內容（按鈕的外框、文字的字形）
+     * 上下留白差 ≤ 1dp；首次引導兩行時按鈕與引導不重疊、不被切；內容不超出操作區。
+     */
+    @Test
+    fun contentIsCenteredInTheSlot() {
+        val report = StringBuilder("# 操作區內容的垂直位置（dp）：上留白／下留白\n\n| 設定 | 首次（撕下這一頁＋引導） | 撕下這一頁 | 明天再來撕下一頁 | 回到最上面那頁 |\n|---|---|---|---|---|\n")
+        val problems = mutableListOf<String>()
+        for (cfg in cfgs) {
+            prepare(cfg)
+            val cells = mutableListOf<String>()
+            fun measure(a: MainActivity, state: String) {
+                relayout(a)
+                val c = a.content
+                val slot = GlyphInk.rectIn(c, a.findViewById(R.id.action_slot))
+                // 看得到的內容：按鈕用整個按鈕（外框）、文字用實際字形
+                val parts = mutableListOf<android.graphics.Rect>()
+                for (id in listOf(R.id.tear, R.id.today)) a.findViewById<View>(id).takeIf { it.isShown }?.let { parts += GlyphInk.rectIn(c, it) }
+                for (id in listOf(R.id.hint, R.id.tear_guide)) a.findViewById<TextView>(id).takeIf { it.isShown }?.let { parts += GlyphInk.glyphs(c, it) }
+                val box = parts.reduce { x, y -> android.graphics.Rect(x).apply { union(y) } }
+                val top = box.top - slot.top
+                val bottom = slot.bottom - box.bottom
+                cells += "${f(top)}／${f(bottom)}"
+                if (top < 0 || bottom < 0) problems += "${cfg.name} $state 內容超出操作區（${f(top)}／${f(bottom)}）"
+                // 首次引導的按鈕會靠上（下面接兩行引導），整組置中；其他狀態單一內容置中
+                if (Math.abs(top - bottom) > d) problems += "${cfg.name} $state 沒有置中：上 ${f(top)}、下 ${f(bottom)}dp"
+                val guide = a.findViewById<TextView>(R.id.tear_guide)
+                if (guide.isShown) {
+                    if (GlyphInk.clipped(c, guide) > 0) problems += "${cfg.name} $state 引導被切"
+                    if (GlyphInk.touching(c, a.findViewById(R.id.tear), guide) > 0) problems += "${cfg.name} $state 引導碰到按鈕"
+                    if (GlyphInk.rectIn(c, a.findViewById(R.id.tear)).bottom > GlyphInk.glyphs(c, guide).minOf { it.top }) problems += "${cfg.name} $state 引導與按鈕重疊"
+                }
+            }
+            // 首次（封面）
+            StoryBook(context).reset()
+            context.getSharedPreferences(MainActivity.PREFS_UI, Context.MODE_PRIVATE).edit().clear().commit()
+            measure(launch(), "首次")
+            // 一般使用：撕頁前 → 撕頁後 → 昨天
+            StoryBook(context).jumpTo(13, today)
+            val a = launch()
+            measure(a, "撕下這一頁")
+            a.findViewById<Button>(R.id.tear).performClick(); ShadowLooper.idleMainLooper(2, TimeUnit.SECONDS)
+            measure(a, "明天再來撕下一頁")
+            a.findViewById<Button>(R.id.prev).performClick()
+            measure(a, "回到最上面那頁")
+            report.append("| ${cfg.name} | ${cells.joinToString(" | ")} |\n")
+        }
+        File(out, "centering.md").writeText(report.toString())
+        assertTrue("$problems", problems.isEmpty())
+    }
 }
