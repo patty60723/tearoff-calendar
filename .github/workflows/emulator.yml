@@ -74,9 +74,9 @@ jobs:
           path: emulator-out
           if-no-files-found: ignore
 
-      # 結果推到 screenshots/<分支>-emulator 分支，用 git 就能拿到
+      # 結果推到 screenshots/<分支>-emulator 分支，用 git 就能拿到（手動觸發的也推：Actions artifact 的下載網址在某些環境被擋，P7-7）
       - name: Push results to a branch
-        if: always() && github.event_name == 'push'
+        if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

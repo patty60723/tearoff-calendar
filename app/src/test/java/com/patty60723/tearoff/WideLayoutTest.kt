@@ -53,7 +53,7 @@ class WideLayoutTest {
         R.id.label to "節日", R.id.phrase to "宜", R.id.lunar to "農曆", R.id.ji to "忌",
     )
     /** 審核要求 4.5:1 的文字 */
-    private val contrastTargets = listOf(R.id.weekday to "星期", R.id.phrase to "宜", R.id.lunar to "農曆", R.id.ji to "忌")
+    private val contrastTargets = listOf(R.id.weekday to "星期", R.id.month_en to "英文月份", R.id.phrase to "宜", R.id.lunar to "農曆", R.id.ji to "忌")
 
     /** [mowan] false 時不畫角色（量截斷用，快很多；文字版面一樣） */
     private fun widget(day: LocalDate, w: Int, h: Int, mowan: Boolean = false): View {
@@ -87,37 +87,17 @@ class WideLayoutTest {
         return Rect(x, y, x + v.width, y + v.height)
     }
 
-    /** 截斷：有「…」，或文字比可用寬度寬（沒有設 ellipsize 的會被直接切掉）；沒有截斷是 null */
+    /** 截斷：有「…」；沒有截斷是 null */
     private fun cut(tv: TextView): String? {
-        if (tv.visibility != View.VISIBLE || tv.text.isEmpty() || tv.width == 0) return null
-        val l = tv.layout ?: return null
-        if (l.lineCount > 0 && l.getEllipsisCount(0) > 0) return "「…」"
-        val need = tv.paint.measureText(tv.text.toString())
-        val avail = tv.width - tv.totalPaddingLeft - tv.totalPaddingRight
-        return if (need > avail + 1) "切掉（需要 %.0f dp，只有 %.0f dp）".format(need / dp, avail / dp) else null
+        if (tv.visibility != View.VISIBLE || tv.text.isEmpty()) return null
+        return if (GlyphInk.ellipsized(tv)) "「…」" else null
     }
 
-    /** 上下被切掉：這行字要完整落在每一層外框看得到的範圍裡（有 clipToPadding 的要扣掉內距） */
+    /** 被切掉：字形實際有墨的範圍（[GlyphInk]，P7-7）超出自己或任何一層外框看得到的範圍 1dp 以上 */
     private fun clipped(root: View, tv: TextView): String? {
         if (tv.visibility != View.VISIBLE || tv.text.isEmpty()) return null
-        // 字實際畫出來的範圍（墨跡，不是行高）要在 TextView 裡面：直排 LinearLayout 放不下時，最後一行會被壓扁，字在 TextView 裡面被切掉
-        val l = tv.layout ?: return null
-        val ink = Rect().also { tv.paint.getTextBounds(tv.text.toString(), 0, tv.text.length, it) }
-        val baseline = tv.totalPaddingTop + l.getLineBaseline(0)
-        val inkTop = baseline + ink.top
-        val inkBottom = baseline + ink.bottom
-        if (inkTop < -1 || inkBottom > tv.height + 1) return "上下被切掉（字在 %.1f～%.1f dp，TextView 只有 0～%.1f dp）".format(inkTop / dp, inkBottom / dp, tv.height / dp)
-        val r = rectIn(root, tv).let { Rect(it.left, it.top + maxOf(0, inkTop), it.right, it.top + minOf(tv.height, inkBottom)) }
-        var cur = tv.parent as? android.view.ViewGroup
-        while (cur != null) {
-            val a = if (cur === root) Rect(0, 0, root.width, root.height) else rectIn(root, cur)
-            val top = a.top + if (cur.clipToPadding) cur.paddingTop else 0
-            val bottom = a.bottom - if (cur.clipToPadding) cur.paddingBottom else 0
-            if (r.top < top - 1 || r.bottom > bottom + 1) return "上下超出外框 %.1f dp".format(maxOf(top - r.top, r.bottom - bottom) / dp)
-            if (cur === root) break
-            cur = cur.parent as? android.view.ViewGroup
-        }
-        return null
+        val c = GlyphInk.clipped(root, tv)
+        return if (c > 0) "被切掉 %.0f%%".format(c * 100) else null
     }
 
     private fun cuts(v: View) = texts.mapNotNull { (id, name) ->
@@ -133,28 +113,23 @@ class WideLayoutTest {
     private fun ratio(a: Int, b: Int): Double { val x = lum(a); val y = lum(b); return (maxOf(x, y) + 0.05) / (minOf(x, y) + 0.05) }
 
     /**
-     * 文字顏色跟它背後背景的對比（WCAG）。背景是把這行字藏起來再畫一次，看這行字實際寫到的範圍（行高 × 字寬）裡每個像素；
+     * 文字顏色跟它背後背景的對比（WCAG）。背景是把這行字藏起來再畫一次，看這行字實際畫到的像素（GlyphInk）背後的每個像素；
      * 回傳（平均背景的對比, 最不利像素的對比）。
      */
     private fun contrast(root: View, id: Int): Pair<Double, Double>? {
         val tv = root.findViewById<TextView>(id)
         if (tv.visibility != View.VISIBLE || tv.text.isEmpty()) return null
+        // P7-7：只看字實際畫到的像素（GlyphInk.mask），不看行範圍。行範圍會伸到別行的字上（WIDE 8 月日期的「1.05」是星期的字）
+        val ink = GlyphInk.mask(root, tv)
         tv.visibility = View.INVISIBLE
         val bg = draw(root)
         tv.visibility = View.VISIBLE
-        val r = rectIn(root, tv)
-        val l = tv.layout
-        val x0 = r.left + tv.totalPaddingLeft + l.getLineLeft(0).toInt()
-        val x1 = minOf(r.right, r.left + tv.totalPaddingLeft + l.getLineRight(0).toInt())
-        val w = x1 - x0
-        if (w <= 0) return null
-        val px = IntArray(w * r.height())
-        bg.getPixels(px, 0, w, x0, r.top, w, r.height())
+        val px = IntArray(bg.width * bg.height).also { bg.getPixels(it, 0, bg.width, 0, 0, bg.width, bg.height) }
         val text = tv.currentTextColor
-        var sr = 0L; var sg = 0L; var sb = 0L
+        var sr = 0L; var sg = 0L; var sb = 0L; var n = 0
         var worst = Double.MAX_VALUE
-        for (p in px) { sr += Color.red(p); sg += Color.green(p); sb += Color.blue(p); worst = minOf(worst, ratio(text, p)) }
-        val n = px.size
+        for (i in px.indices) if (ink[i]) { val p = px[i]; sr += Color.red(p); sg += Color.green(p); sb += Color.blue(p); n++; worst = minOf(worst, ratio(text, p)) }
+        if (n == 0) return null
         return ratio(text, Color.rgb((sr / n).toInt(), (sg / n).toInt(), (sb / n).toInt())) to worst
     }
 
@@ -260,7 +235,7 @@ class WideLayoutTest {
         val days = (1..12).map { LocalDate.of(2027, it, 10) to "${it} 月" } +
             listOf(LocalDate.of(2027, 2, 6) to "春節", LocalDate.of(2027, 9, 15) to "中秋", LocalDate.of(2027, 12, 25) to "聖誕")
         val report = StringBuilder("# WIDE 文字對比（正式版面，Robolectric xxhdpi）\n\n")
-        report.append("WCAG 對比，一般文字目標 ≥ 4.5；「最差」是文字範圍（行高 × 字寬）裡最不利的背景像素。\n\n")
+        report.append("WCAG 對比，一般文字目標 ≥ 4.5；「最差」是字實際畫到的像素（GlyphInk）背後最不利的背景像素。\n\n")
         report.append("| 日子 | 大小 | " + contrastTargets.joinToString(" | ") { it.second } + " |\n|---|---|" + "---|".repeat(contrastTargets.size) + "\n")
         val below = mutableListOf<String>()
         for ((day, name) in days) for ((w, h) in sizes) {
@@ -273,7 +248,7 @@ class WideLayoutTest {
         report.append("\n" + if (below.isEmpty()) "**全部 ≥ 4.5（最不利像素）。**\n" else "**未達 4.5：${below.size} 項**\n\n" + below.joinToString("\n") { "- $it" } + "\n")
 
         // 2026-10-30 補測：其他文字（只記錄，不設門檻讓測試失敗）。日期數字 ≥ 32sp 算大字（WCAG 3:1），其他 4.5:1
-        val others = listOf(R.id.month to "中文月份", R.id.month_en to "英文月份", R.id.day to "日期數字", R.id.label to "節日名稱")
+        val others = listOf(R.id.month to "中文月份", R.id.day to "日期數字", R.id.label to "節日名稱")
         report.append("\n## 其他文字（補測，只記錄）\n\n日期數字是大字（≥ 18pt），目標 3:1；其他一般文字 4.5:1。\n\n")
         report.append("| 日子 | 大小 | " + others.joinToString(" | ") { it.second } + " |\n|---|---|" + "---|".repeat(others.size) + "\n")
         val otherBelow = mutableListOf<String>()

@@ -85,7 +85,7 @@
                             android:layout_height="wrap_content"
                             android:maxLines="1"
                             android:letterSpacing="0.2"
-                            android:textColor="@color/ink_soft"
+                            android:textColor="@color/ink_month_en"
                             android:textSize="8sp" />
                     </LinearLayout>
 

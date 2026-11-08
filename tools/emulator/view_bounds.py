@@ -1,7 +1,8 @@
 """從 `adb shell dumpsys activity top` 的 View 階層算出某個 id 在螢幕上的位置。
 
-用法：python3 view_bounds.py <dump.txt> <id>，輸出 "x1 y1 x2 y2 V|G|I"（找不到就沒有輸出）。
-ScrollView 假設已經捲到最底（驗收腳本會先捲到底），捲動量 = 內容高度 − ScrollView 高度。
+用法：python3 view_bounds.py <dump.txt> <id> [top]，輸出 "x1 y1 x2 y2 V|G|I"（找不到就沒有輸出）。
+ScrollView 假設已經捲到最底（驗收腳本會先捲到底），捲動量 = 內容高度 − ScrollView 高度；
+第三個參數是 top 時假設捲在最上面（捲動量 0，P7-7 第 8b 段量導覽列與日曆頁）。
 """
 import re
 import sys
@@ -9,7 +10,7 @@ import sys
 LINE = re.compile(r"^(\s*)([\w.$]+)\{\S+ (\S)\S* \S+ (-?\d+),(-?\d+)-(-?\d+),(-?\d+)(?: #\w+)?(?: (\S+))?")
 
 
-def main(path, key):
+def main(path, key, at_top=False):
     text = open(path, encoding="utf-8", errors="replace").read()
     # 只看最上面那個 Activity 的 View 階層
     act = text.find("ACTIVITY com.patty60723.tearoff/")
@@ -29,7 +30,7 @@ def main(path, key):
         px = py = 0
         if stack:
             pindent, px, py, pw, ph, pcls, pvis = stack[-1]
-            if pcls.endswith("ScrollView"):
+            if pcls.endswith("ScrollView") and not at_top:
                 py -= max(0, (b - t) - ph)
             if pvis != "V":
                 vis = pvis
@@ -41,4 +42,4 @@ def main(path, key):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], len(sys.argv) > 3 and sys.argv[3] == "top")
