@@ -85,7 +85,6 @@
                 android:layout_gravity="center"
                 android:fontFamily="serif"
                 android:gravity="center"
-                android:includeFontPadding="false"
                 android:letterSpacing="0.1"
                 android:text="@string/tear_done"
                 android:textColor="@color/ink_mid"

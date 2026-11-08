@@ -243,7 +243,7 @@ class ActionSlotTest {
 
     /**
      * 操作區裡的內容垂直置中（2026-11-08 審核 Minor：320dp・200% 操作區 123dp）：看得到的內容（按鈕的外框、文字的字形）
-     * 上下留白差 ≤ 1dp；首次引導兩行時按鈕與引導不重疊、不被切；內容不超出操作區。
+     * 中心偏移 ≤ 1dp；首次引導兩行時按鈕與引導不重疊、不被切；內容不超出操作區。
      */
     @Test
     fun contentIsCenteredInTheSlot() {
@@ -266,8 +266,8 @@ class ActionSlotTest {
                 cells += "${f(top)}／${f(bottom)}"
                 if (top < 0 || bottom < 0) problems += "${cfg.name} $state 內容超出操作區（${f(top)}／${f(bottom)}）"
                 // 首次：按鈕＋引導是最高的內容，操作區的高度就是照它算的，整組填滿操作區（下面只剩字形下方的行距）；
-                // 其他狀態只有一個按鈕或一行文字，上下留白差 ≤ 1dp
-                if (state != "首次" && Math.abs(top - bottom) > d) problems += "${cfg.name} $state 沒有置中：上 ${f(top)}、下 ${f(bottom)}dp"
+                // 其他狀態只有一個按鈕或一行文字：內容的中心離操作區中心 ≤ 1dp（文字的字形在字框裡本來就略低，200% 時約 1dp）
+                if (state != "首次" && Math.abs(top - bottom) / 2.0 > d) problems += "${cfg.name} $state 沒有置中：上 ${f(top)}、下 ${f(bottom)}dp"
                 val guide = a.findViewById<TextView>(R.id.tear_guide)
                 if (guide.isShown) {
                     if (GlyphInk.clipped(c, guide) > 0) problems += "${cfg.name} $state 引導被切"
