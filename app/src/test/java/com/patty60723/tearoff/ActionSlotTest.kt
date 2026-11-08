@@ -265,8 +265,9 @@ class ActionSlotTest {
                 val bottom = slot.bottom - box.bottom
                 cells += "${f(top)}／${f(bottom)}"
                 if (top < 0 || bottom < 0) problems += "${cfg.name} $state 內容超出操作區（${f(top)}／${f(bottom)}）"
-                // 首次引導的按鈕會靠上（下面接兩行引導），整組置中；其他狀態單一內容置中
-                if (Math.abs(top - bottom) > d) problems += "${cfg.name} $state 沒有置中：上 ${f(top)}、下 ${f(bottom)}dp"
+                // 首次：按鈕＋引導是最高的內容，操作區的高度就是照它算的，整組填滿操作區（下面只剩字形下方的行距）；
+                // 其他狀態只有一個按鈕或一行文字，上下留白差 ≤ 1dp
+                if (state != "首次" && Math.abs(top - bottom) > d) problems += "${cfg.name} $state 沒有置中：上 ${f(top)}、下 ${f(bottom)}dp"
                 val guide = a.findViewById<TextView>(R.id.tear_guide)
                 if (guide.isShown) {
                     if (GlyphInk.clipped(c, guide) > 0) problems += "${cfg.name} $state 引導被切"
