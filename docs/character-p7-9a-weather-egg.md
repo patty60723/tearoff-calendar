@@ -190,7 +190,21 @@ W7（天氣日常）、P5、P6（節日）、P7-7（A1＋V2b 不位移版面）�
 
 ## 8. 測試結果
 
-- CI「Build APK」在 `feature/p7-9a`：見回報裡的 run 編號。`WeatherEggPreviewTest` 通過，影格與 `report.md` 推到 `screenshots/feature/p7-9a`。
+- CI「Build APK」run 42782372151（commit `b61a72c`）：**success**。`WeatherEggPreviewTest` 通過，影格（晴 55、雨 53、雪 64 格）與 `report.md` 推到 `screenshots/feature/p7-9a` 的 `p7-9a/`。
+- 自動檢查（同一個 run 的 `report.md`）：
+
+  | 天氣 | 墨丸 | 最大跳格 | 發生在 | 手臂長度比 | 點數改變 |
+  |---|---|---|---|---|---|
+  | 晴 | 小 | 12.2 | 3333 ms | 0.88～1.00 | 0 |
+  | 晴 | 大 | 13.1 | 3833 ms | 1.00～1.16 | 0 |
+  | 雨 | 小 | 13.2 | 2000 ms | 1.00 | 0 |
+  | 雨 | 大 | 2.6 | 5333 ms | 1.00 | 0 |
+  | 雪 | 小 | 0.6 | 2167 ms | 1.00 | 0 |
+  | 雪 | 大 | 12.8 | 5167 ms | 1.00 | 0 |
+
+  門檻：跳格 ≤ 14 單位（墨丸身高約 75）、手臂長度比 0.85–1.2。最大的幾個跳格是打噴嚏、被雨打到縮手這種故意的快動作。
+- 關鍵影格對照：`docs/p7-9a/sunny-keyframes.jpg`、`rainy-keyframes.jpg`、`snow-keyframes.jpg`（每個分鏡段落第一格；上面是日曆小墨丸 ×2，下面是故事卡大墨丸 ×1.3）。
+- 可播放預覽：Artifact「墨丸天氣彩蛋預覽」（播放、暫停、重播、逐格、拖拉、0.25×／0.5×／1×、點分鏡跳格），素材就是上面的 CI 影格。我在本機用 Chromium 開過：桌面與手機寬度都能播、逐格、切換天氣，沒有 console 錯誤。
 - 既有的 golden 與測試沒有改；本分支沒有動 `app/src/main`。
 - 模擬器、實機、實機效能、TalkBack：**Not tested**。
 - Evidence Archive：Pending。
