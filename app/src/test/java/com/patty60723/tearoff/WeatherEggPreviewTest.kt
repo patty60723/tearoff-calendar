@@ -248,7 +248,7 @@ class WeatherEggPreviewTest {
                     }
                 }
                 File(dir, "frame-%04d.jpg".format(n)).outputStream().use { b.compress(Bitmap.CompressFormat.JPEG, 88, it) }
-                val beat = if (t < 0) "點擊前（日常）" else if (t > script.durMs) "結束（恢復日常）" else script.beats.last { it.first <= t }.second
+                val beat = if (t < -0.5) "點擊前（日常）" else if (t > script.durMs + 0.5) "結束（恢復日常）" else script.beats.last { it.first <= t + 0.5 }.second
                 frames.append(if (n > 0) "," else "").append("{\"t\":${t.toInt()},\"beat\":\"$beat\"}")
                 b.recycle()
                 n++
