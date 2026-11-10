@@ -269,7 +269,8 @@ internal object WeatherEgg {
             var p = base.copy(
                 headAngle = 3 - 12 * lookUp + 2 * hit,
                 gaze = Pt(0.4 * lookUp, -2.0 * lookUp),
-                umbrellaAngle = -10 + 32 * tilt + shake,
+                // 往外側（左邊）倒，傘面才不會蓋到故事卡文字
+                umbrellaAngle = -10 - 16 * tilt + shake,
                 face = if (t in 4100.0..4500.0) Face.STARTLE else if (t > 5300) Face.NORMAL else Face.RAINY,
                 flick = if (t > 5300) Flick.NORMAL else Flick.DROOPED,
             )
@@ -359,14 +360,14 @@ internal object WeatherEgg {
             val d = daily(clock, caps)
             if (t < 3800) return d
             val base = Poses.snow(0.0, caps)
-            // 右手：往右前方伸出、手心朝上接住 → 湊到臉前 → 舉起歡呼 → 收回
-            val dir = Keyframes.track(t, listOf(3900.0 to 10.0, 4500.0 to 80.0, 4800.0 to 85.0, 5500.0 to -20.0, 5900.0 to -25.0, 7100.0 to 140.0, 7250.0 to 145.0, 8200.0 to 10.0))
-            val bend = Keyframes.track(t, listOf(3900.0 to 0.0, 4500.0 to -25.0, 4800.0 to -30.0, 5500.0 to -60.0, 5900.0 to -60.0, 7100.0 to 5.0, 8200.0 to 0.0))
+            // 右手：往右前方伸出、手心朝上接住 → 湊到臉前 → 舉起歡呼（往斜上方張開，手在頭的兩側，不要舉直被頭遮住）→ 收回
+            val dir = Keyframes.track(t, listOf(3900.0 to 10.0, 4500.0 to 80.0, 4800.0 to 85.0, 5500.0 to -20.0, 5900.0 to -25.0, 7100.0 to 110.0, 7250.0 to 114.0, 8200.0 to 10.0))
+            val bend = Keyframes.track(t, listOf(3900.0 to 0.0, 4500.0 to -25.0, 4800.0 to -30.0, 5500.0 to -60.0, 5900.0 to -60.0, 7100.0 to 30.0, 7250.0 to 30.0, 8200.0 to 0.0))
             val cheer = Keyframes.env(t, 5900.0, 7100.0, 7250.0, 8200.0)
             val tilt = Keyframes.env(t, 5100.0, 5500.0, 5800.0, 6000.0)
             var p = base.copy(
                 armR = arm(base.armR, false, dir, bend),
-                armL = armLerp(base.armL, arm(base.armL, true, 140.0, 5.0), cheer),
+                armL = armLerp(base.armL, arm(base.armL, true, 110.0, 30.0), cheer),
                 headAngle = Keyframes.track(t, listOf(3800.0 to -4.0, 4300.0 to -2.0, 4800.0 to 4.0, 5500.0 to 8.0, 6500.0 to -6.0, 7900.0 to -4.0)),
                 gaze = Pt(Keyframes.track(t, listOf(3800.0 to 0.0, 4400.0 to 1.6, 5300.0 to 1.2, 5800.0 to 0.0)), Keyframes.track(t, listOf(3800.0 to -1.8, 4400.0 to 0.6, 5300.0 to 1.4, 5800.0 to -1.8))),
                 face = if (cheer > 0.2) Face.SUNNY else Face.NORMAL,
