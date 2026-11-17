@@ -44,8 +44,12 @@ class MowanPainter(frame: Mowan.Frame) {
         Item(op.layer, path, fill, stroke)
     }
 
-    /** 畫在 (left, top, width, height) 這一格裡 */
-    fun draw(canvas: Canvas, left: Float, top: Float, width: Float, height: Float) {
+    /**
+     * 畫在 (left, top, width, height) 這一格裡。
+     * @param rainAlpha 雨絲、雪花那一層（[Mowan.Layer.RAIN]）的不透明度倍數；預設 1（跟以前完全一樣）。
+     *   天氣接力彩蛋（P7-9b）用它讓日曆小墨丸的雨雪在動畫開始、結束時跟靜態圖淡入淡出，角色本身不受影響。
+     */
+    fun draw(canvas: Canvas, left: Float, top: Float, width: Float, height: Float, rainAlpha: Float = 1f) {
         val s = minOf(width / VIEW_W, height / VIEW_H)
         canvas.save()
         canvas.translate(left + (width - VIEW_W * s) / 2, top + (height - VIEW_H * s) / 2)
@@ -63,11 +67,37 @@ class MowanPainter(frame: Mowan.Frame) {
                 }
                 current = item.layer
             }
+            if (rainAlpha < 1f && item.layer == Mowan.Layer.RAIN) {
+                if (rainAlpha > 0f) drawFaded(canvas, item, rainAlpha)
+                continue
+            }
             item.fill?.let { canvas.drawPath(item.path, it) }
             item.stroke?.let { canvas.drawPath(item.path, it) }
         }
         if (transformOf(current) != null) canvas.restore()
         canvas.restore()
+    }
+
+    /** 只畫雨絲、雪花那一層（[Mowan.Layer.RAIN]，這一層沒有自己的位移），不透明度乘上 [alpha] */
+    fun drawRain(canvas: Canvas, left: Float, top: Float, width: Float, height: Float, alpha: Float) {
+        if (alpha <= 0f) return
+        val s = minOf(width / VIEW_W, height / VIEW_H)
+        canvas.save()
+        canvas.translate(left + (width - VIEW_W * s) / 2, top + (height - VIEW_H * s) / 2)
+        canvas.scale(s, s)
+        canvas.translate(0f, -VIEW_TOP)
+        for (item in items) if (item.layer == Mowan.Layer.RAIN) drawFaded(canvas, item, alpha.coerceAtMost(1f))
+        canvas.restore()
+    }
+
+    private fun drawFaded(canvas: Canvas, item: Item, alpha: Float) {
+        for (paint in arrayOf(item.fill, item.stroke)) {
+            paint ?: continue
+            val keep = paint.alpha
+            paint.alpha = (keep * alpha).toInt()
+            canvas.drawPath(item.path, paint)
+            paint.alpha = keep
+        }
     }
 
     private fun transformOf(layer: Mowan.Layer?) = when (layer) {

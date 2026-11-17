@@ -43,6 +43,7 @@
     <string name="mowan_desc">墨丸</string>
     <string name="mowan_desc_story">墨丸正在演故事</string>
     <string name="mowan_action_weather">讓墨丸對天氣做出反應</string>
+    <string name="weather_egg_action">看墨丸的天氣小動作</string>
     <string name="mowan_action_festival">聽墨丸說一句話</string>
     <string name="mowan_action_refresh">重新讀取天氣</string>
     <string name="bundle_take_off">卸下包袱 ›</string>

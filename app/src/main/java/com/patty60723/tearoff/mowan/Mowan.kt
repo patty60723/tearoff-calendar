@@ -285,9 +285,20 @@ object Mowan {
             val (pose, fx) = Performances.pose(scene, clockMs, performance)
             return render(parts, variant, hatOn, pose, weather, rainStep, art.umbrellaScale, clockMs, still, bundleOn, detail, scene, art, fx)
         }
-        val target = weatherPose(parts, weather, poseClockMs, sinceStrikeMs)
-        val p = if (blendFromPoseMs == null) target else PoseBlend.mix(weatherPose(parts, weather, blendFromPoseMs, sinceStrikeMs), target, PoseBlend.ease(blendU))
+        val p = dailyPose(parts, weather, poseClockMs, blendFromPoseMs, blendU, sinceStrikeMs)
         return render(parts, variant, hatOn, p, weather, rainStep, umbrellaScale, clockMs, still, bundleOn, detail)
+    }
+
+    /**
+     * 天氣日常這一刻的姿勢（沒有節日時 [frame] 畫的就是它；參數的意思一樣）。
+     * 天氣接力彩蛋（P7-9b）從這個姿勢接手、演完再接回來。
+     */
+    internal fun dailyPose(
+        parts: Set<String>, weather: Weather, poseClockMs: Double,
+        blendFromPoseMs: Double? = null, blendU: Double = 1.0, sinceStrikeMs: Double? = null,
+    ): Pose {
+        val target = weatherPose(parts, weather, poseClockMs, sinceStrikeMs)
+        return if (blendFromPoseMs == null) target else PoseBlend.mix(weatherPose(parts, weather, blendFromPoseMs, sinceStrikeMs), target, PoseBlend.ease(blendU))
     }
 
     /** 天氣日常在 [time] 這一刻的姿勢（沒有節日時） */

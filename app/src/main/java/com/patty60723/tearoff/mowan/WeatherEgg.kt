@@ -6,14 +6,15 @@ import kotlin.math.hypot
 import kotlin.math.sin
 
 /**
- * P7-9a 天氣彩蛋（方案 C：日曆小墨丸 → 故事卡大墨丸的接力）的**預覽用**分鏡。只在測試裡，不接正式 App。
+ * 天氣彩蛋（方案 C：日曆小墨丸 → 故事卡大墨丸的接力）的分鏡。P7-9a 驗收通過的晴、雨、雪三組；P7-9b 起接進正式 App
+ * （[com.patty60723.tearoff.WeatherEggController]）。分鏡的時間與姿勢跟 P7-9a 一樣，沒有改。
  *
  * 每一種天氣是一段時間軸（毫秒，從點擊「天氣資訊」開始）：
  * - [small]：日曆頁上的小墨丸（平常是靜止圖，彩蛋期間動起來，最後回到原本那一格）。
  * - [big]：故事卡上的大墨丸（平常是天氣日常的循環，彩蛋期間接手主演出，最後接回日常循環）。
  * - [motes]：天氣素材（光點、雨滴、雪花）：先在小墨丸那裡進場，再從日曆「接力」飛到故事卡。
- * 姿勢都用正式的骨架（[Pose]）與正式的繪製（[Mowan.render]），所以造型、筆觸、配色都跟現在一樣；
- * 畫面照正式的節奏每 1/6 秒取一次（6 FPS 的手繪感）。
+ * 姿勢都用正式的骨架（[Pose]）與正式的繪製（[Mowan.render]），所以造型、筆觸、配色都跟現在一樣。
+ * 大墨丸的「日常」由呼叫的人傳進來（App 裡是時間軸此刻的姿勢），接手與接回都從那個姿勢過渡，所以不管什麼時候點都接得上。
  */
 internal object WeatherEgg {
     /** 一個天氣素材：在哪一個墨丸的座標（"small"、"big"）或接力中（"bridge"，用 0–1 的進度） */
@@ -27,9 +28,12 @@ internal object WeatherEgg {
         val durMs: Double
         /** 分鏡的段落（給文件與預覽顯示）：開始時間、名稱 */
         val beats: List<Pair<Double, String>>
+        /** 小墨丸演到什麼時候（之後已經回到 [still] 那一格，可以換回日曆上的靜態圖） */
+        val smallEndMs: Double
         fun small(t: Double, caps: Capabilities): Pose
-        fun big(t: Double, caps: Capabilities): Pose
-        fun motes(t: Double): List<Mote>
+        /** @param daily 大墨丸此刻的日常姿勢（接手前、接回後就是它） */
+        fun big(t: Double, caps: Capabilities, daily: Pose): Pose
+        fun motes(t: Double, caps: Capabilities): List<Mote>
         /** 點擊回饋：天氣資訊那裡淡淡亮一下（0–1） */
         fun tap(t: Double) = Keyframes.env(t, 0.0, 80.0, 220.0, 600.0)
         /** 大墨丸的日常時鐘（接回日常循環用） */
@@ -120,6 +124,9 @@ internal object WeatherEgg {
 
     val ALL = listOf(Sunny, Rainy, Snowy)
 
+    /** 這種天氣的彩蛋；還沒有的（另外五種）是 null */
+    fun of(weather: Mowan.Weather): Script? = ALL.firstOrNull { it.weather == weather }
+
     // ---------- 晴天：光點 → 小墨丸被太陽照到打噴嚏 → 大墨丸踮腳伸大懶腰 ----------
 
     object Sunny : Script {
@@ -165,9 +172,10 @@ internal object WeatherEgg {
             return blend(t, 3400.0, 4100.0, p, s0)
         }
 
-        override fun big(t: Double, caps: Capabilities): Pose {
-            val clock = t + 1200
-            val d = daily(clock, caps)
+        override val smallEndMs = 4100.0
+
+        override fun big(t: Double, caps: Capabilities, daily: Pose): Pose {
+            val d = daily
             if (t < 3300) return d
             val look = Poses.sunny(0.0).copy(face = Face.NORMAL, flick = Flick.NORMAL, headAngle = -8.0, gaze = Pt(0.2, -2.0))
             val ref = Poses.sunny(0.0)
@@ -186,7 +194,7 @@ internal object WeatherEgg {
             return blend(t, 6700.0, 7700.0, into, d)
         }
 
-        override fun motes(t: Double): List<Mote> {
+        override fun motes(t: Double, caps: Capabilities): List<Mote> {
             val m = ArrayList<Mote>()
             // 三顆光點從太陽（右上）飄到小墨丸鼻子附近
             for (i in 0 until 3) {
@@ -255,9 +263,10 @@ internal object WeatherEgg {
             return p.shifted(0.8 * hit + 0.6 * flinch).jittered(0.5 * flinch * sin(t / 16))
         }
 
-        override fun big(t: Double, caps: Capabilities): Pose {
-            val clock = t + 800
-            val d = daily(clock, caps)
+        override val smallEndMs = 3100.0
+
+        override fun big(t: Double, caps: Capabilities, daily: Pose): Pose {
+            val d = daily
             if (t < 3300) return d
             val base = Poses.rainy(0.0)
             val hit = Keyframes.env(t, 3300.0, 3360.0, 3420.0, 3600.0)
@@ -280,7 +289,7 @@ internal object WeatherEgg {
             return blend(t, 6400.0, 7400.0, into, d)
         }
 
-        override fun motes(t: Double): List<Mote> {
+        override fun motes(t: Double, caps: Capabilities): List<Mote> {
             val m = ArrayList<Mote>()
             // 小墨丸：一滴大雨落在傘頂（傘的中心約在握點上方）
             if (t in 300.0..760.0) m += Mote(Kind.DROP, "small", 74.0, Geometry.lerp(-8.0, 30.0, Keyframes.ease((t - 300) / 460)), 3.0, 1.0)
@@ -355,9 +364,10 @@ internal object WeatherEgg {
             return blend(t, 3200.0, 3900.0, p, s0)
         }
 
-        override fun big(t: Double, caps: Capabilities): Pose {
-            val clock = t + 1500
-            val d = daily(clock, caps)
+        override val smallEndMs = 3900.0
+
+        override fun big(t: Double, caps: Capabilities, daily: Pose): Pose {
+            val d = daily
             if (t < 3800) return d
             val base = Poses.snow(0.0, caps)
             // 右手：往右前方伸出、手心朝上接住 → 湊到臉前 → 舉起歡呼（往斜上方張開，手在頭的兩側，不要舉直被頭遮住）→ 收回
@@ -380,9 +390,9 @@ internal object WeatherEgg {
         }
 
         /** 大墨丸右手手尖（雪花跟著手） */
-        fun bigHand(t: Double, caps: Capabilities): Pt = big(t, caps).armR.last()
+        fun bigHand(t: Double, caps: Capabilities): Pt = big(t, caps, daily(0.0, caps)).armR.last()
 
-        override fun motes(t: Double): List<Mote> {
+        override fun motes(t: Double, caps: Capabilities): List<Mote> {
             val m = ArrayList<Mote>()
             if (t in 150.0..2100.0) heroSmall(t).let { m += Mote(Kind.FLAKE, "small", it.x, it.y, 3.2, Keyframes.env(t, 150.0, 400.0, 2000.0, 2100.0)) }
             // 落在鼻子上
@@ -397,6 +407,13 @@ internal object WeatherEgg {
                 m += Mote(Kind.FLAKE, "small", 60 - 18 * u, 51 + 10 * u, 3.2, 1.0)
             }
             bridge(Kind.FLAKE, t, 3000.0, 4500.0, 4.0, 0.12)?.let { m += it }
+            // 大墨丸接住以後，雪花跟著右手（從頭頂落到手上；歡呼時淡掉）
+            if (t in 4450.0..7100.0) {
+                val hand = bigHand(t, caps)
+                val u = Geometry.clamp01((t - 4450) / 350)
+                val at = if (u < 1) Pt(Geometry.lerp(61.0, hand.x, u), Geometry.lerp(8.0, hand.y - 3, u)) else Pt(hand.x, hand.y - 3)
+                m += Mote(Kind.FLAKE, "big", at.x, at.y, 3.6, if (t > 6800) 1 - (t - 6800) / 300 else 1.0)
+            }
             return m
         }
     }

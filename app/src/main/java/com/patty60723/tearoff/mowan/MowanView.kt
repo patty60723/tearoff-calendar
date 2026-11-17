@@ -33,6 +33,9 @@ import kotlin.random.Random
  * - 沒有節日（或 [today] 是 null）時，畫法與重畫排程跟以前完全一樣。
  *
  * 點故事卡上的墨丸（P7-2，D-48）：見 [react]。點擊與捲動的分辨用一般的點擊（手指移動就算捲動）；不加漣漪、不震動。
+ *
+ * 天氣接力彩蛋（P7-9b）：見 [egg]。彩蛋期間姿勢由分鏡決定，時間軸（環境、筆觸、日常的時鐘）照常走，
+ * 所以演完交還時正好接上日常；重畫的節奏跟天氣日常一樣，不另外排程。
  */
 class MowanView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
@@ -81,6 +84,21 @@ class MowanView @JvmOverloads constructor(
     /** 今天的節日（由 [today] 算出來） */
     var festival: Festival? = null
         private set
+
+    /**
+     * 天氣接力彩蛋（P7-9b）：有設定時，沒有節日、動畫打開、有天氣的每一格都先算出時間軸此刻的日常姿勢，
+     * 再交給它決定實際要畫的姿勢（參數：日常姿勢、現在時間）。回傳 null 表示演完了，這裡自己拿掉、畫日常。
+     * 只換姿勢：環境、筆觸、外觀、大小都跟平常一樣。
+     */
+    internal var egg: ((daily: Pose, nowMs: Long) -> Pose?)? = null
+        set(value) {
+            if (field === value) return
+            field = value
+            invalidate()
+        }
+
+    /** 天氣接力彩蛋正在演（這時點墨丸只換台詞，不重播日常） */
+    val eggPlaying: Boolean get() = egg != null
 
     /** 除錯用：固定某一張筆觸影格，null 表示跟著時間跑 */
     var fixedVariant: Int? = null
@@ -210,7 +228,7 @@ class MowanView @JvmOverloads constructor(
         return when {
             storyPlaying -> Reaction.NONE
             festival != null || reducedMotion() || weather == Mowan.Weather.NONE -> Reaction.LINE_ONLY
-            timeline.replaying(now) -> Reaction.LINE_ONLY
+            timeline.replaying(now) || eggPlaying -> Reaction.LINE_ONLY
             else -> Reaction.REPLAY
         }
     }
@@ -291,8 +309,15 @@ class MowanView @JvmOverloads constructor(
         var performing = false
         var heldUntil: Long? = null
         val painter = if (f == null) {
+            val eggPose = if (weather != Mowan.Weather.NONE && !sample.still) egg?.let { e ->
+                val daily = Mowan.dailyPose(parts, weather, sample.poseClockMs, sample.blendFromPoseMs, sample.blendU, sample.sinceStrikeMs)
+                // 演完了（回傳 null）：拿掉，這一格就畫日常
+                e(daily, now) ?: run { egg = null; null }
+            } else null
             if (weather == Mowan.Weather.NONE) {
                 boil[variant] ?: MowanPainter(Mowan.frame(parts, variant, hatOn, bundleOn = bundleOn)).also { boil[variant] = it }
+            } else if (eggPose != null) {
+                MowanPainter(Mowan.render(parts, variant, hatOn, eggPose, weather, sample.rainStep, clockMs = sample.clockMs, bundleOn = bundleOn))
             } else {
                 MowanPainter(Mowan.frame(
                     parts, variant, hatOn, weather, sample.clockMs, sample.rainStep,

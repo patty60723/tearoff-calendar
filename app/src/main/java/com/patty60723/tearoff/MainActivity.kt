@@ -33,6 +33,12 @@ class MainActivity : Activity() {
     private lateinit var book: StoryBook
     private lateinit var pad: TearPageView
 
+    /** 天氣接力彩蛋（P7-9b）：疊層與播放控制 */
+    internal lateinit var eggOverlay: WeatherEggOverlay
+        private set
+    internal lateinit var egg: WeatherEggController
+        private set
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CrashLog.read(this)?.let {
@@ -55,6 +61,14 @@ class MainActivity : Activity() {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
         findViewById<Button>(R.id.tear).setOnClickListener { pad.peelAway() }
+        // 天氣接力彩蛋（P7-9b，D-48 補充）：點日曆左下的天氣資訊。疊層蓋在整個畫面上、不吃觸控、不參與版面
+        eggOverlay = WeatherEggOverlay(this)
+        addContentView(eggOverlay, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        egg = WeatherEggController(eggOverlay, findViewById(R.id.story_mowan))
+        pad.tapTarget = { x, y -> weatherInfoAt(x, y) }
+        pad.onTap = { tapWeather() }
+        // 開始撕頁（手指或按鈕）：彩蛋收掉，大墨丸從當下的姿勢接回日常
+        pad.onPeelStart = { egg.cancel(blendBig = true) }
         findViewById<TextView>(R.id.city).apply {
             setOnClickListener { pickCity() }
             accessibilityDelegate = clickLabel(getString(R.string.city_action))
@@ -142,6 +156,12 @@ class MainActivity : Activity() {
             }
             .setNegativeButton(R.string.crash_stay, null)
             .show()
+    }
+
+    /** 離開 App、鎖定畫面、切到別的畫面：彩蛋取消，回到日常（回來時不續播、不補播） */
+    override fun onPause() {
+        if (::egg.isInitialized) egg.cancel()
+        super.onPause()
     }
 
     override fun onResume() {
@@ -269,17 +289,78 @@ class MainActivity : Activity() {
             // 沒有天氣資料：重新抓，台詞先說讀取中
             holdStoryHeight { findViewById<TextView>(R.id.story_text).text = getString(R.string.weather_none) }
             refreshWeather()
+            pad.removeCallbacks(backToStory)
+            pad.postDelayed(backToStory, 6000)
         } else {
             // 天氣如果剛好換了，先換上（換天氣本來就從頭開始），再算這次的反應
             mowan.weather = MowanSettings.weatherOf(weather.mood)
             mowan.react()
-            holdStoryHeight {
-                findViewById<TextView>(R.id.story_title).text = weather.long
-                findViewById<TextView>(R.id.story_text).text = "${book.name}：${weather.mood.line}"
-            }
+            showWeatherLine(weather)
+        }
+    }
+
+    /** 故事卡換成天氣的那句話（固定高度，見 [holdStoryHeight]），6 秒後回到故事；再呼叫只重新計時 */
+    private fun showWeatherLine(weather: com.patty60723.tearoff.weather.Weather) {
+        holdStoryHeight {
+            findViewById<TextView>(R.id.story_title).text = weather.long
+            findViewById<TextView>(R.id.story_text).text = "${book.name}：${weather.mood.line}"
         }
         pad.removeCallbacks(backToStory)
         pad.postDelayed(backToStory, 6000)
+    }
+
+    /** 日曆頁上的天氣資訊（今天那頁、有天氣資料時才有）；沒有就是 null */
+    private fun weatherInfo(): TextView? {
+        if (date != AppClock.today(this) || WeatherService.current(this) == null) return null
+        return pad.findViewById(R.id.sun)
+    }
+
+    /** 這個點（日曆頁的座標）是不是在天氣資訊上（四周多 8dp，比較好點） */
+    private fun weatherInfoAt(x: Float, y: Float): Boolean {
+        val sun = weatherInfo() ?: return false
+        if (sun.visibility != View.VISIBLE || sun.width == 0) return false
+        val r = android.graphics.Rect(0, 0, sun.width, sun.height)
+        pad.offsetDescendantRectToMyCoords(sun, r)
+        val more = (8 * resources.displayMetrics.density).toInt()
+        r.inset(-more, -more)
+        return r.contains(x.toInt(), y.toInt())
+    }
+
+    /** 測試用：最近一次點天氣資訊的結果 */
+    internal var lastWeatherTap: com.patty60723.tearoff.mowan.WeatherEggSession.Outcome? = null
+
+    /**
+     * 點日曆上的天氣資訊（P7-9b，D-48 補充）：晴、雨、雪播接力彩蛋——日曆小墨丸先反應，天氣素材飄到故事卡，大墨丸接手。
+     * 規則見 [com.patty60723.tearoff.mowan.WeatherEggSession.decide]：播放中與剛播完 1 秒內再點忽略；成長故事、撕頁中不反應；
+     * 節日、Reduced Motion、另外五種天氣、墨丸還沒長齊時不播動作，只在故事卡換一句天氣的話（固定高度）。不捲動、不改版面。
+     */
+    internal fun tapWeather() {
+        val sun = weatherInfo() ?: return
+        val weather = WeatherService.current(this) ?: return
+        val mowan = findViewById<MowanView>(R.id.story_mowan)
+        val kind = MowanSettings.weatherOf(weather.mood)
+        val parts = Mowan.partsOf(book.parts)
+        val outcome = egg.session.decide(
+            com.patty60723.tearoff.mowan.WeatherEggSession.Conditions(
+                weatherShown = true, weather = kind, parts = parts,
+                storyPlaying = mowan.storyPlaying, festival = mowan.festival != null,
+                reducedMotion = mowan.reducedMotion(), tearing = pad.busy,
+            ),
+            egg.clock(),
+        )
+        lastWeatherTap = outcome
+        when (outcome) {
+            com.patty60723.tearoff.mowan.WeatherEggSession.Outcome.IGNORED -> Unit
+            com.patty60723.tearoff.mowan.WeatherEggSession.Outcome.TEXT_ONLY -> showWeatherLine(weather)
+            com.patty60723.tearoff.mowan.WeatherEggSession.Outcome.PLAY -> {
+                val script = com.patty60723.tearoff.mowan.WeatherEgg.of(kind) ?: return
+                val still = pad.findViewById<android.widget.ImageView>(R.id.mowan_still) ?: return
+                // 天氣如果剛好換了，大墨丸先換上
+                mowan.weather = kind
+                val look = WeatherEggOverlay.Look(parts, MowanSettings.hatOn(this), MowanSettings.bundleOn(this))
+                if (!egg.start(script, still, sun, look, findViewById<android.view.ViewGroup>(android.R.id.content).getChildAt(0))) lastWeatherTap = com.patty60723.tearoff.mowan.WeatherEggSession.Outcome.IGNORED
+            }
+        }
     }
 
     /** 天氣台詞顯示期間，故事卡文字欄維持點擊前的高度（null 表示沒有在維持） */
@@ -328,6 +409,8 @@ class MainActivity : Activity() {
     private var shownOn: LocalDate? = null
 
     private fun show(newDate: LocalDate?) {
+        // 日曆頁要換掉了（換頁、天氣更新、換城市、回到 App）：彩蛋取消，靜態墨丸與日常都回來
+        if (::egg.isInitialized) egg.cancel()
         date = newDate
         val today = AppClock.today(this)
         shownOn = today
@@ -426,6 +509,11 @@ class MainActivity : Activity() {
         frame.setTag(R.id.bottom_space, reserveForSun(page))
         frame.addView(page)
         val today = AppClock.today(this)
+        // 今天那頁印著天氣：TalkBack 可以在天氣資訊上點兩下觸發彩蛋（P7-9b）。手指的點擊與撕頁怎麼分辨見 TearPageView.tapTarget
+        if (day == today && WeatherService.current(this) != null) page.findViewById<TextView>(R.id.sun)?.apply {
+            setOnClickListener { tapWeather() }
+            accessibilityDelegate = clickLabel(getString(R.string.weather_egg_action))
+        }
         if (day.isAfter(today)) {
             frame.addView(
                 TextView(this).apply {

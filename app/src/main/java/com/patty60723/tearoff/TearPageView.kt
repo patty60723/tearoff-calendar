@@ -43,6 +43,19 @@ class TearPageView @JvmOverloads constructor(
     /** 拖得夠遠但這頁不能撕 */
     var onBlocked: () -> Unit = {}
 
+    /**
+     * 點擊目標（P7-9b）：這個點（這一頁的座標）是不是在「可以點的東西」上（左下的天氣資訊）。
+     * 天氣資訊在左下撕頁區裡，所以在它上面按下時先不撕，看手指接下來怎麼動：
+     * - 沒有移動超過 touchSlop 就放開 → [onTap]（不撕頁、紙完全不動）。
+     * - 移動超過 touchSlop → 照原本的方式從左下角撕（不算點擊）。
+     * 其他地方（包含紙角本身）按下就開始撕，跟以前完全一樣。預設沒有點擊目標。
+     */
+    var tapTarget: (x: Float, y: Float) -> Boolean = { _, _ -> false }
+    var onTap: () -> Unit = {}
+
+    /** 紙開始被掀起來（手指或按鈕）：在畫這一頁的快照以前呼叫，讓彩蛋先收掉、靜態墨丸先回來 */
+    var onPeelStart: () -> Unit = {}
+
     /** 高 / 寬 */
     var aspect = 1.45f
 
@@ -59,6 +72,11 @@ class TearPageView @JvmOverloads constructor(
     private var corner: PointF? = null
     private val touch = PointF()
     private var animator: ValueAnimator? = null
+
+    /** 在點擊目標上按下、還沒決定是點擊還是撕頁：按下的位置與要撕的那個角 */
+    private var pendingDown: PointF? = null
+    private var pendingCorner: PointF? = null
+    private val touchSlop = android.view.ViewConfiguration.get(context).scaledTouchSlop
 
     private val frontPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val belowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -102,17 +120,45 @@ class TearPageView @JvmOverloads constructor(
             MotionEvent.ACTION_DOWN -> {
                 if (animator != null) return false
                 val c = cornerAt(event.x, event.y) ?: return false
-                begin(c)
-                touch.set(event.x, event.y)
                 // 不要讓外面的捲動把手勢搶走
                 parent?.requestDisallowInterceptTouchEvent(true)
+                if (tapTarget(event.x, event.y)) {
+                    pendingDown = PointF(event.x, event.y)
+                    pendingCorner = c
+                    return true
+                }
+                begin(c)
+                touch.set(event.x, event.y)
             }
             MotionEvent.ACTION_MOVE -> {
+                val down = pendingDown
+                if (down != null) {
+                    if (hypot(event.x - down.x, event.y - down.y) <= touchSlop) return true
+                    // 手指動了：不是點擊，照原本的方式開始撕
+                    val c = pendingCorner
+                    pendingDown = null
+                    pendingCorner = null
+                    if (c == null || animator != null) return false
+                    begin(c)
+                }
                 if (corner == null) return false
                 touch.set(event.x, event.y)
                 invalidate()
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> release()
+            MotionEvent.ACTION_UP -> {
+                if (pendingDown != null) {
+                    pendingDown = null
+                    pendingCorner = null
+                    onTap()
+                } else {
+                    release()
+                }
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                pendingDown = null
+                pendingCorner = null
+                release()
+            }
         }
         return true
     }
@@ -131,6 +177,7 @@ class TearPageView @JvmOverloads constructor(
 
     private fun begin(c: PointF) {
         val child = getChildAt(0) ?: return
+        onPeelStart()
         front = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { child.draw(Canvas(it)) }
         below = pageBelow(width, height)
         frontPaint.shader = BitmapShader(front!!, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
