@@ -40,7 +40,7 @@ adb shell wm dismiss-keyguard
 for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 1; done
 adb shell settings put secure anr_show_background 0
 adb shell wm size 720x1600
-SIZE=$(adb shell wm size | tr -d '\r' | awk '{print $NF}')
+SIZE=$(adb shell wm size | tr -d '\r' | awk '{print $NF}' | tail -1)
 W=${SIZE%x*}
 H=${SIZE#*x}
 TODAY=$(adb shell date +%F | tr -d '\r')
@@ -276,6 +276,7 @@ check "整段沒有閃退" "$(adb logcat -d -b crash | grep -q "$PKG" && echo 1 
 
 # 影片縮小（給人看：寬 540、H.264）
 for v in "$OUT"/video/*.mp4; do
+  [ -e "$v" ] || continue
   ffmpeg -loglevel error -y -i "$v" -vf "scale=540:-2" -c:v libx264 -crf 26 -pix_fmt yuv420p -an "${v%.mp4}-540.mp4" && mv "${v%.mp4}-540.mp4" "$v" || warn "縮小 $v 失敗"
 done
 finish
