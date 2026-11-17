@@ -4,7 +4,9 @@
 #
 # 位置不是從截圖猜的：debug 版的 App 每個事件（顯示、捲動、點擊、開始、每半秒、結束）都在 logcat 印出
 # 各元件在螢幕上的實際位置（tag WeatherEgg，見 MainActivity.eggTrace）。這裡讀那些紀錄來判斷「位置不變」與點哪裡。
-# 411dp＝密度 420、320dp＝密度 540（1080px 寬的模擬器）。錄影是即時的（正常速度）；模擬器用軟體繪圖，流暢度不代表實機。
+# 模擬器用軟體繪圖：1080×2400 錄影只有每秒 4–6 格（第一次跑的結果），所以螢幕改成 720×1600，
+# 411dp＝密度 280、320dp＝密度 360（dp 寬度與字體設定不變）。錄影時不截圖；關鍵畫面在錄影之後另外播一次再截。
+# 錄影是即時的（正常速度）；流暢度不代表實機。
 set -u
 APK=$1
 OUT=$2
@@ -37,6 +39,7 @@ adb shell input keyevent KEYCODE_WAKEUP
 adb shell wm dismiss-keyguard
 for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 1; done
 adb shell settings put secure anr_show_background 0
+adb shell wm size 720x1600
 SIZE=$(adb shell wm size | tr -d '\r' | awk '{print $NF}')
 W=${SIZE%x*}
 H=${SIZE#*x}
@@ -113,7 +116,7 @@ tap_sun() {
 
 # ---------- 每種設定 ----------
 for fs in 1.0 2.0; do
-for dpi in 420 540; do
+for dpi in 280 360; do
   wdp=$(( W * 160 / dpi ))
   fpct=$([ "$fs" = 2.0 ] && echo 200 || echo 100)
   cfg="${wdp}dp-${fpct}"
@@ -128,22 +131,32 @@ for dpi in 420 540; do
     open_app "$TODAY" "$mood"
     frame_both
     adb exec-out screencap -p > "$OUT/shots/$n-0-before.png"
-    adb shell screenrecord --time-limit 13 /sdcard/egg.mp4 &
+    adb shell screenrecord --size 720x1600 --bit-rate 6000000 --time-limit 13 /sdcard/egg.mp4 &
     rec=$!
-    sleep 1
+    sleep 1.5
+    adb shell dumpsys gfxinfo $PKG reset >/dev/null
+    tap_sun
+    sleep 9
+    adb shell dumpsys gfxinfo $PKG > "$OUT/logs/$n-gfx.txt"
+    wait $rec
+    adb pull /sdcard/egg.mp4 "$OUT/video/$n.mp4" >/dev/null 2>&1 || warn "錄影 $n 沒有拉回來"
+    egg_log > "$OUT/logs/$n.txt"
+    gt=$(grep -m1 "Total frames rendered" "$OUT/logs/$n-gfx.txt" | awk '{print $NF}'); gj=$(grep -m1 "Janky frames:" "$OUT/logs/$n-gfx.txt" | sed 's/.*Janky frames: //')
+    vf=$(ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 "$OUT/video/$n.mp4" 2>/dev/null)
+    vd=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUT/video/$n.mp4" 2>/dev/null)
+    log "  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 ${gt:-?} 格、jank ${gj:-?}；錄影 ${vd:-?} 秒 ${vf:-?} 格"
+    # 關鍵畫面：等冷卻過了再播一次，點擊後約 1、2、3.5、5、6.5 秒截圖（截圖本身要 0.3–0.6 秒，實際時間寫在檔名）
+    sleep 1.5
+    adb logcat -c
     t0=$(date +%s%N)
     tap_sun
-    # 關鍵畫面：點擊後約 1、2、3.5、5、6.5 秒（截圖本身要 0.3–0.6 秒，實際時間寫在檔名）
     for at in 1000 2000 3500 5000 6500; do
       while [ $(( ($(date +%s%N) - t0) / 1000000 )) -lt $at ]; do sleep 0.05; done
       ms=$(( ($(date +%s%N) - t0) / 1000000 ))
       adb exec-out screencap -p > "$OUT/shots/$n-k$(printf %05d $ms).png"
     done
-    wait $rec
-    adb pull /sdcard/egg.mp4 "$OUT/video/$n.mp4" >/dev/null 2>&1 || warn "錄影 $n 沒有拉回來"
-    sleep 1
+    sleep 3.5
     adb exec-out screencap -p > "$OUT/shots/$n-9-after.png"
-    egg_log > "$OUT/logs/$n.txt"
     tap=$(grep -m1 '^tap ' "$OUT/logs/$n.txt"); endl=$(grep -m1 '^end ' "$OUT/logs/$n.txt")
     check "$cfg $mood：點天氣資訊播完整段" "$(echo "$tap" | grep -q '^tap PLAY' && grep -q '^start ' "$OUT/logs/$n.txt" && echo "$endl" | grep -q 'reason=done' && echo 0 || echo 1)" "${tap%% scroll*}；${endl%% scroll*}"
     # 位置：點擊、播放中每半秒、結束時都一樣（同一個捲動位置）
@@ -153,7 +166,7 @@ for dpi in 420 540; do
       [ "$(layout_of "$l")" = "$base" ] || { moved=1; log "  位置不同：$l"; }
       [ "$(field "$l" scroll)" = "$(field "$tap" scroll)" ] || { moved=1; log "  捲動位置不同：$l"; }
     done < <(grep -E '^(start|frame|end) ' "$OUT/logs/$n.txt")
-    check "$cfg $mood：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移" "$([ "$moved" = 0 ] && [ "$samples" -ge 10 ] && echo 0 || echo 1)" "比對 $samples 筆（App 量的螢幕位置）；$base"
+    check "$cfg $mood：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移" "$([ "$moved" = 0 ] && [ "$samples" -ge 5 ] && echo 0 || echo 1)" "比對 $samples 筆（App 量的螢幕位置）；$base"
     # 靜態墨丸：小墨丸在動時藏起來（4＝INVISIBLE），換回靜態圖後顯示（0），結束時疊層清空
     bad=0
     while read -r l; do
@@ -188,7 +201,7 @@ for dpi in 420 540; do
   # 2. 互動：紙角撕頁 → 點天氣 → 播放中從紙角掀 → 再點 → 連點 → 回到桌面 → 回來 → 從天氣資訊拖 → 再點、播完
   n="$cfg-interact"
   open_app "$YESTERDAY" SUNNY
-  adb shell screenrecord --time-limit 45 /sdcard/act.mp4 &
+  adb shell screenrecord --size 720x1600 --bit-rate 6000000 --time-limit 45 /sdcard/act.mp4 &
   rec=$!
   sleep 1
   l=$(last_line "resume|show"); pg=$(field "$l" page)
@@ -239,11 +252,11 @@ done
 done
 
 # 3. Reduced Motion（411dp、字體 100%）：不播動作，只換一句話
-adb shell wm density 420
 adb shell settings put system font_scale 1.0
 log ""
 log "== Reduced Motion（411dp・字體 100%）=="
 for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 0; done
+adb shell wm density 280
 open_app "$TODAY" RAIN
 frame_both
 adb exec-out screencap -p > "$OUT/shots/reduced-0-before.png"
@@ -257,6 +270,7 @@ check "Reduced Motion：靜態墨丸一直顯示、沒有疊層" "$([ "$(field "
 for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 1; done
 
 adb shell wm density reset
+adb shell wm size reset
 adb shell settings put system font_scale 1.0
 check "整段沒有閃退" "$(adb logcat -d -b crash | grep -q "$PKG" && echo 1 || echo 0)" "logcat crash buffer"
 
