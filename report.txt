@@ -1,0 +1,156 @@
+裝置：sdk_gphone64_x86_64，Android 14，螢幕 720x1600，今天 2026-11-17
+
+== 411dp・字體 100% ==
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 71 格、jank 71 (100.00%)；錄影 7.579322 秒 41 格
+PASS  411dp-100 SUNNY：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  411dp-100 SUNNY：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 6 筆（App 量的螢幕位置）； page=49,116,671,1017 slot=49,1031,671,1154 card=49,1168,671,1566 title=263,1193,352,1225 text=263,1232,646,1453 mowan=74,1255,242,1479
+PASS  411dp-100 SUNNY：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 4 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：411dp-100-sunny-k01022 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-sunny-k02024 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-sunny-k03572 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-sunny-k05031 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-sunny-k06589 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 123 格、jank 122 (99.19%)；錄影 11.023667 秒 114 格
+PASS  411dp-100 RAIN：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  411dp-100 RAIN：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 9 筆（App 量的螢幕位置）； page=49,109,671,1010 slot=49,1024,671,1147 card=49,1161,671,1559 title=263,1186,352,1218 text=263,1225,646,1446 mowan=74,1248,242,1472
+PASS  411dp-100 RAIN：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 7 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：411dp-100-rain-k01060 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-rain-k02084 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-rain-k03570 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-rain-k05046 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-rain-k06593 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 89 格、jank 88 (98.88%)；錄影 10.718111 秒 102 格
+PASS  411dp-100 SNOW：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  411dp-100 SNOW：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 9 筆（App 量的螢幕位置）； page=49,116,671,1017 slot=49,1031,671,1154 card=49,1168,671,1566 title=263,1193,352,1225 text=263,1232,646,1453 mowan=74,1255,242,1479
+PASS  411dp-100 SNOW：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 7 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：411dp-100-snow-k01087 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-snow-k02067 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-snow-k03561 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-snow-k05050 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-100-snow-k06530 → 0
+PASS  411dp-100 互動：從紙角拖曳正常撕頁（不觸發彩蛋） — 頁數 14 → 15
+  事件順序：resume tap PLAY start end reason=peel tap PLAY start tap IGNORED tap IGNORED tap IGNORED end reason=pause resume tap PLAY start end reason=done 
+PASS  411dp-100 互動：單純點天氣資訊播放、不撕頁 — 頁數維持 15
+PASS  411dp-100 互動：播放中開始掀紙角，彩蛋取消 — end reason=peel
+PASS  411dp-100 互動：取消 1 秒後可以再播；播放中連點忽略 — 連點 3 次忽略
+PASS  411dp-100 互動：回到桌面取消，回來不續播 — end reason=pause resume
+PASS  411dp-100 互動：從天氣資訊拖曳超過 touchSlop 不觸發彩蛋 — 拖之前 5 次點擊、拖完 5 次
+PASS  411dp-100 互動：最後一次點擊播完、清乾淨 — end reason=done t=-1 scroll=121 sun=86,920,196,1014 page=49,
+
+== 320dp・字體 100% ==
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 128 格、jank 126 (98.44%)；錄影 11.638267 秒 108 格
+PASS  320dp-100 SUNNY：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  320dp-100 SUNNY：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 10 筆（App 量的螢幕位置）； page=63,-82,657,779 slot=63,797,657,954 card=63,972,657,1727 title=338,1004,453,1044 text=338,1053,625,1582 mowan=95,1205,311,1493
+PASS  320dp-100 SUNNY：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 8 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：320dp-100-sunny-k01021 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-sunny-k02050 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-sunny-k03558 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-sunny-k05072 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-sunny-k06553 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 138 格、jank 133 (96.38%)；錄影 11.424967 秒 118 格
+PASS  320dp-100 RAIN：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  320dp-100 RAIN：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 10 筆（App 量的螢幕位置）； page=63,-109,657,752 slot=63,770,657,927 card=63,945,657,1700 title=338,977,453,1017 text=338,1026,625,1555 mowan=95,1178,311,1466
+PASS  320dp-100 RAIN：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 8 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：320dp-100-rain-k01046 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-rain-k02043 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-rain-k03536 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-rain-k05066 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-rain-k06591 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 138 格、jank 130 (94.20%)；錄影 12.023922 秒 108 格
+PASS  320dp-100 SNOW：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  320dp-100 SNOW：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 12 筆（App 量的螢幕位置）； page=63,-113,657,748 slot=63,766,657,923 card=63,941,657,1696 title=338,973,453,1013 text=338,1022,625,1551 mowan=95,1174,311,1462
+PASS  320dp-100 SNOW：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 10 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：320dp-100-snow-k01027 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-snow-k02027 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-snow-k03580 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-snow-k05044 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-100-snow-k06561 → 0
+PASS  320dp-100 互動：從紙角拖曳正常撕頁（不觸發彩蛋） — 頁數 14 → 15
+  事件順序：resume tap PLAY start end reason=peel tap PLAY start tap IGNORED tap IGNORED tap IGNORED end reason=pause resume tap PLAY start end reason=done 
+PASS  320dp-100 互動：單純點天氣資訊播放、不撕頁 — 頁數維持 15
+PASS  320dp-100 互動：播放中開始掀紙角，彩蛋取消 — end reason=peel
+PASS  320dp-100 互動：取消 1 秒後可以再播；播放中連點忽略 — 連點 3 次忽略
+PASS  320dp-100 互動：回到桌面取消，回來不續播 — end reason=pause resume
+PASS  320dp-100 互動：從天氣資訊拖曳超過 touchSlop 不觸發彩蛋 — 拖之前 5 次點擊、拖完 5 次
+PASS  320dp-100 互動：最後一次點擊播完、清乾淨 — end reason=done t=-1 scroll=276 sun=98,752,238,873 page=63,5
+
+== 411dp・字體 200% ==
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 105 格、jank 105 (100.00%)；錄影 9.111622 秒 84 格
+PASS  411dp-200 SUNNY：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  411dp-200 SUNNY：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 8 筆（App 量的螢幕位置）； page=49,-216,671,760 slot=49,774,671,927 card=49,941,671,1823 title=263,966,441,1028 text=263,1035,646,1710 mowan=74,1270,242,1494
+PASS  411dp-200 SUNNY：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 6 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：411dp-200-sunny-k01071 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-sunny-k02065 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-sunny-k03534 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-sunny-k05054 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-sunny-k06556 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 143 格、jank 137 (95.80%)；錄影 11.674378 秒 119 格
+PASS  411dp-200 RAIN：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  411dp-200 RAIN：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 10 筆（App 量的螢幕位置）； page=49,-236,671,740 slot=49,754,671,907 card=49,921,671,1803 title=263,946,441,1008 text=263,1015,646,1690 mowan=74,1250,242,1474
+PASS  411dp-200 RAIN：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 8 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：411dp-200-rain-k01024 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-rain-k02040 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-rain-k03538 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-rain-k05027 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-rain-k06541 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 96 格、jank 95 (98.96%)；錄影 10.740611 秒 104 格
+PASS  411dp-200 SNOW：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  411dp-200 SNOW：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 9 筆（App 量的螢幕位置）； page=49,-190,671,786 slot=49,800,671,953 card=49,967,671,1849 title=263,992,441,1054 text=263,1061,646,1736 mowan=74,1296,242,1520
+PASS  411dp-200 SNOW：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 7 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：411dp-200-snow-k01025 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-snow-k02074 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-snow-k03531 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-snow-k05026 → 0
+  故事文字範圍內和點擊前不同的像素：411dp-200-snow-k06566 → 0
+PASS  411dp-200 互動：從紙角拖曳正常撕頁（不觸發彩蛋） — 頁數 14 → 15
+  事件順序：resume tap PLAY start end reason=peel tap PLAY start tap IGNORED tap IGNORED tap IGNORED end reason=pause resume tap PLAY start end reason=done 
+PASS  411dp-200 互動：單純點天氣資訊播放、不撕頁 — 頁數維持 15
+PASS  411dp-200 互動：播放中開始掀紙角，彩蛋取消 — end reason=peel
+PASS  411dp-200 互動：取消 1 秒後可以再播；播放中連點忽略 — 連點 3 次忽略
+PASS  411dp-200 互動：回到桌面取消，回來不續播 — end reason=pause resume
+PASS  411dp-200 互動：從天氣資訊拖曳超過 touchSlop 不觸發彩蛋 — 拖之前 5 次點擊、拖完 5 次
+PASS  411dp-200 互動：最後一次點擊播完、清乾淨 — end reason=done t=-1 scroll=334 sun=86,708,302,892 page=49,-
+
+== 320dp・字體 200% ==
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 149 格、jank 138 (92.62%)；錄影 9.679856 秒 71 格
+PASS  320dp-200 SUNNY：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  320dp-200 SUNNY：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 12 筆（App 量的螢幕位置）； page=63,-420,657,525 slot=63,543,657,814 card=63,832,657,2790 title=338,864,567,943 text=338,952,625,2607 mowan=95,1667,311,1955
+PASS  320dp-200 SUNNY：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 10 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：320dp-200-sunny-k01023 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-sunny-k02062 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-sunny-k03514 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-sunny-k05029 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-sunny-k06513 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 120 格、jank 109 (90.83%)；錄影 9.301933 秒 75 格
+PASS  320dp-200 RAIN：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  320dp-200 RAIN：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 11 筆（App 量的螢幕位置）； page=63,-431,657,514 slot=63,532,657,803 card=63,821,657,2779 title=338,853,567,932 text=338,941,625,2596 mowan=95,1656,311,1944
+PASS  320dp-200 RAIN：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 9 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：320dp-200-rain-k01033 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-rain-k02046 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-rain-k03508 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-rain-k05019 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-rain-k06572 → 0
+  參考（模擬器、軟體繪圖）：播放的 9 秒 App 畫了 155 格、jank 141 (90.97%)；錄影 11.180744 秒 91 格
+PASS  320dp-200 SNOW：點天氣資訊播完整段 — tap PLAY；end reason=done t=-1
+PASS  320dp-200 SNOW：日曆頁、操作區、故事卡、文字、大墨丸 0px 位移 — 比對 13 筆（App 量的螢幕位置）； page=63,-399,657,546 slot=63,564,657,835 card=63,853,657,2811 title=338,885,567,964 text=338,973,625,2628 mowan=95,1688,311,1976
+PASS  320dp-200 SNOW：同一時間只有一隻小墨丸，結束後靜態墨丸回來、疊層清空 — frame 11 筆；結束 stillVis=0 overlay=false
+  故事文字範圍內和點擊前不同的像素：320dp-200-snow-k01016 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-snow-k02010 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-snow-k03578 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-snow-k05060 → 0
+  故事文字範圍內和點擊前不同的像素：320dp-200-snow-k06537 → 0
+PASS  320dp-200 互動：從紙角拖曳正常撕頁（不觸發彩蛋） — 頁數 14 → 15
+  事件順序：resume tap PLAY start end reason=peel tap PLAY start tap IGNORED tap IGNORED tap IGNORED end reason=pause resume tap PLAY start end reason=done 
+PASS  320dp-200 互動：單純點天氣資訊播放、不撕頁 — 頁數維持 15
+PASS  320dp-200 互動：播放中開始掀紙角，彩蛋取消 — end reason=peel
+PASS  320dp-200 互動：取消 1 秒後可以再播；播放中連點忽略 — 連點 3 次忽略
+PASS  320dp-200 互動：回到桌面取消，回來不續播 — end reason=pause resume
+PASS  320dp-200 互動：從天氣資訊拖曳超過 touchSlop 不觸發彩蛋 — 拖之前 5 次點擊、拖完 5 次
+PASS  320dp-200 互動：最後一次點擊播完、清乾淨 — end reason=done t=-1 scroll=595 sun=98,423,377,658 page=63,-
+
+== Reduced Motion（411dp・字體 100%）==
+PASS  Reduced Motion：點天氣資訊只換一句話、不播動作 — tap TEXT_ONLY scroll=169 sun=86,872,196,
+PASS  Reduced Motion：靜態墨丸一直顯示、沒有疊層 — stillVis=0 overlay=false
+PASS  整段沒有閃退 — logcat crash buffer
+
+結果：PASS 67、FAIL 0、WARN 0（WARN 是素材或參考數字，不影響結果）
