@@ -29,6 +29,15 @@ internal class WeatherEggController(private val overlay: WeatherEggOverlay, priv
 
     val session = WeatherEggSession()
 
+    /** 除錯版的紀錄（模擬器驗收讀 logcat）：開始、每半秒、結束與原因。正式版是 null */
+    internal var trace: ((String) -> Unit)? = null
+
+    /** 最近一次結束的原因（測試用）：done、peel、page、pause、festival、story、reduced、weather、detached */
+    internal var lastEnd: String? = null
+        private set
+
+    private var frames = 0
+
     private var still: ImageView? = null
 
     /** 現在有沒有排著下一格（測試用：結束後不能還在跑） */
@@ -54,13 +63,21 @@ internal class WeatherEggController(private val overlay: WeatherEggOverlay, priv
         val caps = Capabilities.of(look.parts)
         overlay.begin(WeatherEggOverlay.Playback(script, still, sun, big, look, viewport))
         big.egg = { daily, at -> session.t(at)?.let { script.big(it, caps, daily) } }
+        frames = 0
+        trace?.invoke("start weather=${script.weather}")
         step()
         return true
     }
 
     /** 這次播放被打斷了沒 */
-    private fun interrupted(script: WeatherEgg.Script): Boolean =
-        big.festival != null || big.storyPlaying || big.reducedMotion() || big.weather != script.weather || still?.isAttachedToWindow != true
+    private fun interrupted(script: WeatherEgg.Script): String? = when {
+        big.festival != null -> "festival"
+        big.storyPlaying -> "story"
+        big.reducedMotion() -> "reduced"
+        big.weather != script.weather -> "weather"
+        still?.isAttachedToWindow != true -> "detached"
+        else -> null
+    }
 
     /** 一格：中斷檢查、切換小墨丸、排下一格 */
     internal fun step() {
@@ -68,16 +85,17 @@ internal class WeatherEggController(private val overlay: WeatherEggOverlay, priv
         val now = clock()
         val t = session.t(now)
         if (t == null) {
-            finish(now, blendBig = false)
+            finish(now, blendBig = false, reason = "done")
             return
         }
-        if (interrupted(script)) {
-            finish(now, blendBig = false)
+        interrupted(script)?.let {
+            finish(now, blendBig = false, reason = it)
             return
         }
         val smallOn = t < script.smallEndMs + WeatherEggOverlay.FADE_MS
         still?.visibility = if (smallOn) View.INVISIBLE else View.VISIBLE
         overlay.frame(t, smallOn)
+        if (frames++ % 15 == 0) trace?.invoke("frame t=${t.toLong()} small=${if (smallOn) "anim" else "still"}")
         overlay.removeCallbacks(tick)
         ticking = overlay.postDelayed(tick, FRAME_MS)
     }
@@ -86,12 +104,12 @@ internal class WeatherEggController(private val overlay: WeatherEggOverlay, priv
      * 取消（沒有在播時什麼都不做）。
      * @param blendBig 大墨丸要不要用一小段時間從現在的姿勢接回日常（撕頁時用；離開 App、換天氣時直接回日常）
      */
-    fun cancel(blendBig: Boolean = false) {
+    fun cancel(blendBig: Boolean = false, reason: String = "cancel") {
         if (session.script == null) return
-        finish(clock(), blendBig)
+        finish(clock(), blendBig, reason)
     }
 
-    private fun finish(now: Long, blendBig: Boolean) {
+    private fun finish(now: Long, blendBig: Boolean, reason: String) {
         val script = session.script
         val t = session.t(now)
         overlay.removeCallbacks(tick)
@@ -114,6 +132,8 @@ internal class WeatherEggController(private val overlay: WeatherEggOverlay, priv
             }
         }
         session.end(now)
+        lastEnd = reason
+        trace?.invoke("end reason=$reason t=${t?.toLong() ?: -1}")
     }
 
     /** 大墨丸現在還能不能演過渡（節日、成長故事、Reduced Motion 時直接回日常） */

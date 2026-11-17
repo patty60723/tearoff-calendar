@@ -254,6 +254,7 @@ class WeatherEggAppTest {
         touch(a, MotionEvent.ACTION_DOWN, loc[0] + a.pad.width - 3f, loc[1] + a.pad.height - 3f, t)
         assertTrue(a.pad.busy)
         assertClean(a, "開始撕頁")
+        assertEquals("peel", a.egg.lastEnd)
         // 大墨丸用一小段時間接回日常，之後自己交還
         assertTrue("還在接回日常", a.mowan.eggPlaying)
         advance(WeatherEggController.BLEND_OUT_MS + 50)
@@ -321,6 +322,7 @@ class WeatherEggAppTest {
             // 播完
             advance(200)
             assertClean(a, "$mood 播完")
+            assertEquals("done", a.egg.lastEnd)
             assertFalse("$mood 大墨丸交還", a.mowan.eggPlaying)
             assertEquals("$mood 位置不變", before, places(a))
             relayout(a)
@@ -364,13 +366,21 @@ class WeatherEggAppTest {
         }
     }
 
-    /** 兩張圖有幾個像素的任何一個色版差超過 [tolerance] */
+    /**
+     * 兩張圖有幾個像素的任何一個色版差超過 [tolerance]。用預乘過透明度的顏色比（畫面上實際看到的）：
+     * getPixels 給的是沒預乘的顏色，幾乎透明的像素（例如淡到 1% 的雨絲）RGB 會很大，但疊到頁面上看不到
+     */
     private fun differing(a: Bitmap, b: Bitmap, tolerance: Int): Int {
         val pa = IntArray(a.width * a.height).also { a.getPixels(it, 0, a.width, 0, 0, a.width, a.height) }
         val pb = IntArray(b.width * b.height).also { b.getPixels(it, 0, b.width, 0, 0, b.width, b.height) }
+        fun ch(p: Int, shift: Int): Int {
+            val alpha = p ushr 24
+            val v = (p ushr shift) and 0xFF
+            return if (shift == 24) alpha else v * alpha / 255
+        }
         return pa.indices.count { i ->
             val x = pa[i]; val y = pb[i]
-            (0..24 step 8).any { abs(((x ushr it) and 0xFF) - ((y ushr it) and 0xFF)) > tolerance }
+            (0..24 step 8).any { abs(ch(x, it) - ch(y, it)) > tolerance }
         }
     }
 
@@ -398,6 +408,7 @@ class WeatherEggAppTest {
         advance(2_000)
         controller!!.pause()
         assertClean(a, "離開 App")
+        assertEquals("pause", a.egg.lastEnd)
         assertFalse("大墨丸直接回日常", a.mowan.eggPlaying)
         controller!!.resume()
         relayout(a)
@@ -412,6 +423,7 @@ class WeatherEggAppTest {
         a.findViewById<Button>(R.id.prev).performClick()
         relayout(a)
         assertClean(a, "換頁")
+        assertEquals("page", a.egg.lastEnd)
         assertFalse(a.mowan.eggPlaying)
         // 昨天那頁沒有印天氣：不能點
         assertNull(a.lastWeatherTap.takeIf { it == Outcome.PLAY && a.egg.playing })
@@ -443,6 +455,7 @@ class WeatherEggAppTest {
         a.mowan.reducedMotion = { true }
         advance(50)
         assertClean(a, "中途開啟移除動畫")
+        assertEquals("reduced", a.egg.lastEnd)
         assertFalse(a.mowan.eggPlaying)
     }
 
@@ -495,6 +508,7 @@ class WeatherEggAppTest {
         a.mowan.director.start(MowanDirector.Activity.GROWTH_STORY)
         advance(50)
         assertClean(a, "成長故事開始")
+        assertEquals("story", a.egg.lastEnd)
     }
 
     @Test

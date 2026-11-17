@@ -68,7 +68,12 @@ class MainActivity : Activity() {
         pad.tapTarget = { x, y -> weatherInfoAt(x, y) }
         pad.onTap = { tapWeather() }
         // 開始撕頁（手指或按鈕）：彩蛋收掉，大墨丸從當下的姿勢接回日常
-        pad.onPeelStart = { egg.cancel(blendBig = true) }
+        pad.onPeelStart = { egg.cancel(blendBig = true, reason = "peel") }
+        if (BuildConfig.DEBUG) {
+            // 除錯版：模擬器驗收讀 logcat（App 自己量的螢幕位置），正式版沒有
+            egg.trace = { eggTrace(it) }
+            findViewById<View>(android.R.id.content).viewTreeObserver.addOnScrollChangedListener { eggTrace("scroll") }
+        }
         findViewById<TextView>(R.id.city).apply {
             setOnClickListener { pickCity() }
             accessibilityDelegate = clickLabel(getString(R.string.city_action))
@@ -160,13 +165,14 @@ class MainActivity : Activity() {
 
     /** 離開 App、鎖定畫面、切到別的畫面：彩蛋取消，回到日常（回來時不續播、不補播） */
     override fun onPause() {
-        if (::egg.isInitialized) egg.cancel()
+        if (::egg.isInitialized) egg.cancel(reason = "pause")
         super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
         if (!::book.isInitialized) return
+        if (BuildConfig.DEBUG) pad.post { eggTrace("resume") }
         // 打開 App 時順便更新桌面上的小工具，以防午夜那次換頁被系統延誤
         CalendarWidget.refreshAll(this)
         // 可能隔天才回到 App，最上面那張要重新算
@@ -326,6 +332,27 @@ class MainActivity : Activity() {
         return r.contains(x.toInt(), y.toInt())
     }
 
+    /**
+     * 除錯版的紀錄（tag WeatherEgg）：事件＋各元件在螢幕上的位置（x1,y1,x2,y2）與靜態墨丸看不看得到。
+     * 模擬器驗收用它量「播放前、中、後位置不變」與點擊的位置，不靠截圖猜。
+     */
+    private fun eggTrace(event: String) {
+        fun r(v: View?): String {
+            if (v == null || !v.isAttachedToWindow) return "-"
+            val p = IntArray(2).also { v.getLocationOnScreen(it) }
+            return "${p[0]},${p[1]},${p[0] + v.width},${p[1] + v.height}"
+        }
+        val sun = weatherInfo()
+        val still = pad.findViewById<View>(R.id.mowan_still)
+        val scroll = (findViewById<android.view.ViewGroup>(android.R.id.content).getChildAt(0) as? android.widget.ScrollView)?.scrollY
+        android.util.Log.i(
+            "WeatherEgg",
+            "$event scroll=$scroll sun=${r(sun)} page=${r(pad)} slot=${r(findViewById(R.id.action_slot))} " +
+                "card=${r(findViewById<View>(R.id.story_mowan).parent as View)} title=${r(findViewById(R.id.story_title))} text=${r(findViewById(R.id.story_text))} " +
+                "mowan=${r(findViewById(R.id.story_mowan))} still=${r(still)} stillVis=${still?.visibility} overlay=${eggOverlay.active}",
+        )
+    }
+
     /** 測試用：最近一次點天氣資訊的結果 */
     internal var lastWeatherTap: com.patty60723.tearoff.mowan.WeatherEggSession.Outcome? = null
 
@@ -349,6 +376,7 @@ class MainActivity : Activity() {
             egg.clock(),
         )
         lastWeatherTap = outcome
+        if (BuildConfig.DEBUG) eggTrace("tap $outcome")
         when (outcome) {
             com.patty60723.tearoff.mowan.WeatherEggSession.Outcome.IGNORED -> Unit
             com.patty60723.tearoff.mowan.WeatherEggSession.Outcome.TEXT_ONLY -> showWeatherLine(weather)
@@ -410,7 +438,7 @@ class MainActivity : Activity() {
 
     private fun show(newDate: LocalDate?) {
         // 日曆頁要換掉了（換頁、天氣更新、換城市、回到 App）：彩蛋取消，靜態墨丸與日常都回來
-        if (::egg.isInitialized) egg.cancel()
+        if (::egg.isInitialized) egg.cancel(reason = "page")
         date = newDate
         val today = AppClock.today(this)
         shownOn = today
@@ -433,6 +461,7 @@ class MainActivity : Activity() {
         }
         showHint()
         showCity()
+        if (BuildConfig.DEBUG && ::eggOverlay.isInitialized) pad.post { eggTrace("show") }
     }
 
     private fun pickCity() {
